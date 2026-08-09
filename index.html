@@ -3,15 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AskBack - Dashboard</title>
+  <title>AskBack - Ask. Recall. Answer.</title>
   <style>
     /* 
       Premium Academic Study Tool Theme
       Clean, minimal, high-readability with generous whitespace and soft geometry.
-      Gloomy gradients are strictly avoided.
     */
     :root {
-      /* Color Palette */
       --bg-body: #f8fafc;
       --bg-surface: #ffffff;
       --bg-subtle: #f1f5f9;
@@ -21,9 +19,9 @@
       
       --brand-primary: #1e293b;
       --brand-hover: #0f172a;
-      --brand-accent: #3b82f6; /* Subtle accent for active elements */
       
       --border-light: #e2e8f0;
+      --border-focus: #94a3b8;
       
       --status-success-bg: #f0fdf4;
       --status-success-text: #166534;
@@ -31,7 +29,6 @@
       --status-pending-bg: #fffbeb;
       --status-pending-text: #b45309;
 
-      /* Metrics */
       --radius-sm: 6px;
       --radius-md: 12px;
       --radius-lg: 16px;
@@ -43,6 +40,7 @@
       
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
       
       --transition-fast: 0.15s ease-in-out;
     }
@@ -108,7 +106,7 @@
       border-bottom: 1px solid var(--border-light);
       position: sticky;
       top: 0;
-      z-index: 50;
+      z-index: 40;
       box-shadow: var(--shadow-sm);
     }
 
@@ -169,6 +167,9 @@
       border-bottom: 2px solid transparent;
       white-space: nowrap;
       transition: color var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .nav-tab:hover:not(:disabled) {
@@ -179,6 +180,19 @@
       color: var(--brand-primary);
       border-bottom-color: var(--brand-primary);
       font-weight: 600;
+    }
+
+    .badge-nav {
+      background: var(--brand-primary);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 9px;
+    }
+    .badge-nav.empty {
+      background: var(--border-light);
+      color: var(--text-secondary);
     }
 
     /* Buttons */
@@ -196,12 +210,17 @@
       border: 1px solid transparent;
     }
 
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .btn-primary {
       background-color: var(--brand-primary);
       color: #fff;
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       background-color: var(--brand-hover);
       box-shadow: var(--shadow-sm);
     }
@@ -212,8 +231,18 @@
       border-color: var(--border-light);
     }
 
-    .btn-secondary:hover {
+    .btn-secondary:hover:not(:disabled) {
       background-color: var(--bg-subtle);
+    }
+    
+    .btn-danger {
+      background-color: #fef2f2;
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background-color: #fee2e2;
     }
     
     .btn-text {
@@ -228,7 +257,7 @@
       cursor: pointer;
     }
 
-    .btn-text:hover {
+    .btn-text:hover:not(:disabled) {
       color: var(--text-primary);
     }
 
@@ -245,7 +274,7 @@
       box-shadow: var(--shadow-sm);
     }
 
-    /* Dashboard Layout */
+    /* Layouts */
     .main-content {
       flex-grow: 1;
       padding: var(--spacing-xl) 0 64px 0;
@@ -255,14 +284,23 @@
       margin-bottom: var(--spacing-xl);
     }
 
-    .users-grid {
+    .grid-2 {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: var(--spacing-lg);
     }
+    
+    .view-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: var(--spacing-lg);
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+    }
 
-    /* User Cards */
-    .user-card {
+    /* Cards */
+    .card {
       background: var(--bg-surface);
       border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
@@ -272,7 +310,7 @@
       flex-direction: column;
     }
 
-    .user-card-header {
+    .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -281,26 +319,50 @@
       border-bottom: 1px solid var(--border-light);
     }
 
-    .user-card-header h4 {
+    .card-header h4 {
       font-size: 1.125rem;
       font-weight: 600;
       margin: 0;
     }
+    
+    .card-meta {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-sm);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
 
-    .badge-notification {
-      background-color: var(--status-pending-bg);
-      color: var(--status-pending-text);
+    .badge {
       font-size: 0.75rem;
       font-weight: 600;
       padding: 4px 10px;
       border-radius: 12px;
-      cursor: pointer;
-      border: 1px solid #fde68a;
-      transition: background-color var(--transition-fast);
+      border: 1px solid transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     
-    .badge-notification:hover {
+    .badge-pending {
+      background-color: var(--status-pending-bg);
+      color: var(--status-pending-text);
+      border-color: #fde68a;
+      cursor: pointer;
+    }
+    .badge-pending:hover {
       background-color: #fef3c7;
+    }
+    .badge-answered {
+      background-color: var(--status-success-bg);
+      color: var(--status-success-text);
+      border-color: #bbf7d0;
+    }
+    .badge-subject {
+      color: var(--brand-primary);
+      background-color: var(--bg-subtle);
+      border-color: var(--border-light);
     }
 
     /* Goal Lists */
@@ -319,7 +381,6 @@
       transition: color var(--transition-fast);
     }
 
-    /* Real Interactive Checkboxes */
     .goal-checkbox {
       width: 16px;
       height: 16px;
@@ -334,7 +395,6 @@
       opacity: 0.5;
     }
 
-    /* Mock Checkbox for Tomorrow (Non-interactive) */
     .checkbox-mock {
       width: 16px;
       height: 16px;
@@ -342,9 +402,6 @@
       border-radius: 4px;
       margin-top: 4px;
       flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .goal-item.completed {
@@ -367,20 +424,10 @@
       margin-bottom: var(--spacing-xs);
       font-size: 0.875rem;
     }
-    
-    .stat-row:last-child {
-      margin-bottom: 0;
-    }
+    .stat-row:last-child { margin-bottom: 0; }
 
-    .stat-label {
-      color: var(--text-secondary);
-      font-weight: 500;
-    }
-
-    .stat-value {
-      font-weight: 600;
-      color: var(--text-primary);
-    }
+    .stat-label { color: var(--text-secondary); font-weight: 500; }
+    .stat-value { font-weight: 600; color: var(--text-primary); }
     
     .note-text {
       margin-top: var(--spacing-sm);
@@ -389,6 +436,88 @@
       font-style: italic;
       border-left: 2px solid var(--border-light);
       padding-left: var(--spacing-sm);
+      white-space: pre-wrap;
+    }
+
+    /* Form Elements */
+    .form-group { margin-bottom: var(--spacing-md); }
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--spacing-xs);
+    }
+    .form-input {
+      width: 100%;
+      font-family: inherit;
+      padding: 10px 14px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      transition: border-color var(--transition-fast);
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+    }
+    textarea.form-input {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: var(--spacing-md);
+    }
+    .modal-content {
+      background: var(--bg-surface);
+      border-radius: var(--radius-md);
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: var(--spacing-xl);
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-lg);
+    }
+    .modal-header h2 { margin-bottom: 0; }
+    
+    .dynamic-list-item {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+    .dynamic-list-item input { flex-grow: 1; }
+
+    /* QEX Answer Box */
+    .answer-box {
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--border-light);
+    }
+    .answer-display {
+      margin-top: var(--spacing-md);
+      padding: var(--spacing-md);
+      background-color: var(--bg-subtle);
+      border-left: 3px solid var(--border-light);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 0.9375rem;
+      white-space: pre-wrap;
     }
 
     /* Utilities */
@@ -398,8 +527,9 @@
       color: var(--text-tertiary);
       font-size: 0.9375rem;
       font-weight: 500;
+      border: 1px dashed var(--border-light);
+      border-radius: var(--radius-sm);
     }
-    
     .loading-state {
       text-align: center;
       padding: 64px 24px;
@@ -407,11 +537,22 @@
       font-size: 1rem;
     }
     
+    .message {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--spacing-md);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .message.success {
+      background-color: var(--status-success-bg);
+      color: var(--status-success-text);
+      border: 1px solid #bbf7d0;
+    }
     .message.error {
       background-color: #fef2f2;
       color: #991b1b;
       border: 1px solid #fecaca;
-      border-radius: var(--radius-sm);
     }
 
     /* User Selection Screen */
@@ -435,7 +576,6 @@
       text-align: center;
       box-shadow: var(--shadow-md);
     }
-
     .user-btn {
       display: block;
       width: 100%;
@@ -446,20 +586,10 @@
     }
 
     @media (max-width: 640px) {
-      .header-top {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--spacing-md);
-      }
-      .quick-actions {
-        flex-direction: column;
-      }
-      .quick-actions .btn {
-        width: 100%;
-      }
-      .users-grid {
-        grid-template-columns: 1fr;
-      }
+      .header-top { flex-direction: column; align-items: flex-start; gap: var(--spacing-md); }
+      .quick-actions { flex-direction: column; }
+      .quick-actions .btn { width: 100%; }
+      .grid-2 { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -492,53 +622,215 @@
           </div>
         </div>
         <nav class="app-nav">
-          <button class="nav-tab active">Dashboard</button>
-          <button class="nav-tab" onclick="app.placeholderNav('Goals')">Daily Goals</button>
-          <button class="nav-tab" onclick="app.placeholderNav('Question Exchange')">Question Exchange</button>
-          <button class="nav-tab" onclick="app.placeholderNav('History')">History</button>
+          <button id="nav-dashboard" class="nav-tab active" onclick="app.switchView('dashboard')">Dashboard</button>
+          <button id="nav-goals" class="nav-tab" onclick="app.switchView('goals')">Daily Goals</button>
+          <button id="nav-qex" class="nav-tab" onclick="app.switchView('qex')">
+            Question Exchange <span id="nav-qex-badge" class="badge-nav empty">0</span>
+          </button>
+          <button id="nav-history" class="nav-tab" onclick="app.switchView('history')">History</button>
         </nav>
       </div>
     </header>
 
     <main class="main-content">
       <div class="container">
-        
-        <!-- QUICK ACTIONS -->
-        <div class="quick-actions">
-          <button class="btn btn-primary" onclick="app.placeholderAction('Set Tomorrow\\'s Goals')">Set Tomorrow's Goals</button>
-          <button class="btn btn-secondary" onclick="app.placeholderAction('Log Today\\'s Study')">Log Today's Study</button>
-          <button class="btn btn-secondary" onclick="app.placeholderAction('Ask a Question')">Ask a Question</button>
-          <button class="btn btn-secondary" onclick="app.placeholderAction('Answer Pending Questions')">Answer Pending Questions</button>
+
+        <!-- GLOBAL MESSAGES -->
+        <div id="global-msg" class="message hidden"></div>
+        <div id="global-loading" class="loading-state hidden">Loading...</div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: DASHBOARD -->
+        <!-- ========================================== -->
+        <div id="view-dashboard" class="view hidden">
+          <!-- QUICK ACTIONS -->
+          <div class="quick-actions">
+            <button class="btn btn-primary" onclick="app.openGoalsModal()">Set Tomorrow's Goals</button>
+            <button class="btn btn-secondary" onclick="app.openLogModal()">Log Today's Study</button>
+            <button class="btn btn-secondary" onclick="app.switchView('qex')">Ask a Question</button>
+            <button class="btn btn-secondary" onclick="app.switchView('qex')">Answer Pending Questions</button>
+          </div>
+          
+          <div id="dashboard-content">
+            <!-- TODAY SECTION -->
+            <div class="section-block">
+              <h2>Today's Overview</h2>
+              <h3 id="dash-today-date"></h3>
+              <div class="grid-2" id="dash-today-grid"></div>
+            </div>
+
+            <!-- TOMORROW SECTION -->
+            <div class="section-block" style="margin-top: 48px;">
+              <h2>Tomorrow's Plan</h2>
+              <h3 id="dash-tomorrow-date"></h3>
+              <div class="grid-2" id="dash-tomorrow-grid"></div>
+            </div>
+          </div>
         </div>
 
-        <div id="dashboard-loading" class="loading-state">Loading Dashboard Data...</div>
-        
-        <div id="dashboard-content" class="hidden">
-          <!-- TODAY SECTION -->
-          <div class="section-block">
-            <h2>Today's Overview</h2>
-            <h3 id="today-date-label"></h3>
-            <div class="users-grid" id="today-grid">
-              <!-- Rendered via JS -->
+        <!-- ========================================== -->
+        <!-- VIEW: DAILY GOALS (Management) -->
+        <!-- ========================================== -->
+        <div id="view-goals" class="view hidden">
+          <div class="view-header">
+            <h2>My Daily Goals</h2>
+            <div style="display: flex; gap: var(--spacing-sm);">
+               <button class="btn btn-secondary" onclick="app.openLogModal()">Edit Study Log</button>
+               <button class="btn btn-primary" onclick="app.openGoalsModal()">Edit Tomorrow's Goals</button>
             </div>
           </div>
+          
+          <div id="goals-content">
+            <div class="grid-2">
+              <div class="section-block">
+                <h3>Today</h3>
+                <div id="goals-today-card"></div>
+              </div>
+              <div class="section-block">
+                <h3>Tomorrow</h3>
+                <div id="goals-tomorrow-card"></div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <!-- TOMORROW SECTION -->
-          <div class="section-block" style="margin-top: 48px;">
-            <h2>Tomorrow's Plan</h2>
-            <h3 id="tomorrow-date-label"></h3>
-            <div class="users-grid" id="tomorrow-grid">
-              <!-- Rendered via JS -->
+        <!-- ========================================== -->
+        <!-- VIEW: QUESTION EXCHANGE -->
+        <!-- ========================================== -->
+        <div id="view-qex" class="view hidden">
+          <div class="grid-2">
+            
+            <!-- PENDING QUESTIONS -->
+            <div class="section-block">
+              <h2>Questions for Me</h2>
+              <div id="qex-pending-list"></div>
             </div>
+
+            <!-- ASK A QUESTION -->
+            <div class="section-block">
+              <h2>Ask a Question</h2>
+              <div class="card">
+                <div id="qex-ask-msg" class="message hidden"></div>
+                <div class="form-group">
+                  <label class="form-label">Recipient</label>
+                  <div id="qex-ask-recipient" style="padding: 8px 0; font-weight: 500;"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Subject</label>
+                  <select id="qex-ask-subject" class="form-input">
+                    <option value="Art & Culture">Art & Culture</option>
+                    <option value="Ancient History">Ancient History</option>
+                    <option value="Medieval History">Medieval History</option>
+                    <option value="Modern History">Modern History</option>
+                    <option value="Polity">Polity</option>
+                    <option value="Governance">Governance</option>
+                    <option value="Geography">Geography</option>
+                    <option value="Economy">Economy</option>
+                    <option value="Environment">Environment</option>
+                    <option value="Science & Technology">Science & Technology</option>
+                    <option value="Society">Society</option>
+                    <option value="International Relations">International Relations</option>
+                    <option value="Current Affairs">Current Affairs</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Question</label>
+                  <textarea id="qex-ask-text" class="form-input" placeholder="Type your question..."></textarea>
+                </div>
+                <div style="text-align: right;">
+                  <button id="btn-submit-qex" class="btn btn-primary" onclick="app.submitQuestion()">Send Question</button>
+                </div>
+              </div>
+            </div>
+
           </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: HISTORY -->
+        <!-- ========================================== -->
+        <div id="view-history" class="view hidden">
+          <div class="view-header">
+            <h2>Question History</h2>
+            <select id="history-filter" class="form-input" style="max-width: 250px;" onchange="app.renderHistory(false)">
+                <option value="All">All Subjects</option>
+                <option value="Art & Culture">Art & Culture</option>
+                <option value="Ancient History">Ancient History</option>
+                <option value="Medieval History">Medieval History</option>
+                <option value="Modern History">Modern History</option>
+                <option value="Polity">Polity</option>
+                <option value="Governance">Governance</option>
+                <option value="Geography">Geography</option>
+                <option value="Economy">Economy</option>
+                <option value="Environment">Environment</option>
+                <option value="Science & Technology">Science & Technology</option>
+                <option value="Society">Society</option>
+                <option value="International Relations">International Relations</option>
+                <option value="Current Affairs">Current Affairs</option>
+                <option value="Other">Other</option>
+            </select>
+          </div>
+          <div id="history-list" style="display: flex; flex-direction: column; gap: var(--spacing-md);"></div>
         </div>
 
       </div>
     </main>
   </div>
 
+  <!-- ========================================== -->
+  <!-- MODAL: SET TOMORROW'S GOALS -->
+  <!-- ========================================== -->
+  <div id="modal-goals" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Tomorrow's Goals</h2>
+        <button class="btn-text" onclick="app.closeModals()">Close</button>
+      </div>
+      <h3 id="modal-goals-date" style="margin-bottom: var(--spacing-lg);"></h3>
+      
+      <div id="modal-goals-msg" class="message hidden"></div>
+      
+      <div id="goals-input-container" style="margin-bottom: var(--spacing-md);"></div>
+      
+      <button class="btn btn-secondary" style="width: 100%; margin-bottom: var(--spacing-lg);" onclick="app.addGoalInput()">+ Add Goal</button>
+      
+      <div style="text-align: right;">
+        <button id="btn-save-goals" class="btn btn-primary" onclick="app.saveGoals()">Save Tomorrow's Goals</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: LOG TODAY'S STUDY -->
+  <!-- ========================================== -->
+  <div id="modal-log" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Log Today's Study</h2>
+        <button class="btn-text" onclick="app.closeModals()">Close</button>
+      </div>
+      <h3 id="modal-log-date" style="margin-bottom: var(--spacing-lg);"></h3>
+      
+      <div id="modal-log-msg" class="message hidden"></div>
+
+      <div class="form-group">
+        <label class="form-label">Study Hours</label>
+        <input type="number" id="log-hours" class="form-input" min="0" max="24" step="0.5" placeholder="e.g., 6.5">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Completion Note (Optional)</label>
+        <textarea id="log-note" class="form-input" placeholder="How did today go?"></textarea>
+      </div>
+      
+      <div style="text-align: right;">
+        <button id="btn-save-log" class="btn btn-primary" onclick="app.saveLog()">Save</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Reusable API JSONP Layer exactly as designed for Apps Script
+    // Reusable API JSONP Layer
     const apiLayer = {
       baseUrl: 'https://script.google.com/macros/s/AKfycbwZdsLkAtPNy7oA5X8UyOHgqctSigR0Vb635Dac3lrSE69AfucLOKrhALKLGUDcL3nV/exec',
       
@@ -586,7 +878,12 @@
     const app = {
       currentUser: null,
       users: ["Lakshya", "Archita"],
-      currentDashboardData: null, // Cache data to update UI dynamically
+      
+      // Caches
+      currentDashboardData: null,
+      pendingCounts: { Lakshya: 0, Archita: 0 },
+      cachedHistory: [],
+      cachedPending: [],
       
       init() {
         const savedUser = localStorage.getItem('askback_user');
@@ -598,134 +895,170 @@
         }
       },
 
-      // Utility: HTML Escaping
+      /* --- UTILS --- */
       escapeHTML(str) {
         if (!str) return '';
         return String(str).replace(/[&<>'"]/g, 
-          tag => ({
-              '&': '&amp;',
-              '<': '&lt;',
-              '>': '&gt;',
-              "'": '&#39;',
-              '"': '&quot;'
-            }[tag] || tag)
+          tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
         );
       },
-
-      // Date Formatting
+      getLocalDateString(offsetDays = 0) {
+        const d = new Date();
+        d.setDate(d.getDate() + offsetDays);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`; // YYYY-MM-DD
+      },
       formatDateFriendly(dateString) {
         if (!dateString) return '';
-        const date = new Date(dateString);
+        const parts = dateString.split('-');
+        if(parts.length !== 3) return this.escapeHTML(dateString);
+        const date = new Date(parts[0], parts[1]-1, parts[2]);
         if (isNaN(date.getTime())) return this.escapeHTML(dateString);
         const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
         return date.toLocaleDateString('en-GB', options);
       },
+      formatDateTime(isoString) {
+        if(!isoString) return '';
+        const d = new Date(isoString);
+        if(isNaN(d.getTime())) return this.escapeHTML(isoString);
+        return d.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'}).replace(',', ' ·');
+      },
+      getOtherUser() {
+        return this.currentUser === "Lakshya" ? "Archita" : "Lakshya";
+      },
+      showMsg(elementId, text, isError = false) {
+        const el = document.getElementById(elementId);
+        el.textContent = text;
+        el.className = `message ${isError ? 'error' : 'success'}`;
+        el.classList.remove('hidden');
+        if(!isError) setTimeout(() => el.classList.add('hidden'), 4000);
+      },
 
-      // Navigation & State
+      /* --- NAVIGATION --- */
       showSelectUser() {
         document.getElementById('app-shell').classList.add('hidden');
         document.getElementById('view-select-user').classList.remove('hidden');
       },
-
       showApp() {
         document.getElementById('view-select-user').classList.add('hidden');
         document.getElementById('app-shell').classList.remove('hidden');
         document.getElementById('header-current-user').textContent = this.currentUser;
-        this.loadDashboard();
+        this.switchView('dashboard');
       },
-
       selectUser(username) {
         this.currentUser = username;
         localStorage.setItem('askback_user', username);
         this.showApp();
       },
-
       switchUser() {
         this.currentUser = null;
         localStorage.removeItem('askback_user');
         this.showSelectUser();
       },
+      async switchView(viewId) {
+        // Update Tabs
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        const activeTab = document.getElementById(`nav-${viewId}`);
+        if(activeTab) activeTab.classList.add('active');
 
-      placeholderAction(actionName) {
-        alert(`Quick Action: "${actionName}" will be implemented in the next stage.`);
-      },
+        // Hide all views
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.getElementById('global-msg').classList.add('hidden');
 
-      placeholderNav(navName) {
-        alert(`Navigation: "${navName}" section will be built in a future stage. Stay on Dashboard for now.`);
-      },
-
-      // API Data Fetching & Rendering
-      async loadDashboard() {
-        const loadingEl = document.getElementById('dashboard-loading');
-        const contentEl = document.getElementById('dashboard-content');
-        
-        loadingEl.classList.remove('hidden');
-        contentEl.classList.add('hidden');
+        // Show global loading
+        const globalLoad = document.getElementById('global-loading');
+        globalLoad.classList.remove('hidden');
 
         try {
-          // Fetch the main dashboard data and individual pending counts in parallel
-          const [dashRes, lakshyaCountRes, architaCountRes] = await Promise.all([
-            apiLayer.request('dashboard'),
-            apiLayer.request('count', { user: 'Lakshya' }),
-            apiLayer.request('count', { user: 'Archita' })
-          ]);
-
-          this.currentDashboardData = dashRes.dashboard;
-          const pendingCounts = {
-            Lakshya: lakshyaCountRes.count || 0,
-            Archita: architaCountRes.count || 0
-          };
-
-          this.renderDashboard(this.currentDashboardData, pendingCounts);
-          
-          loadingEl.classList.add('hidden');
-          contentEl.classList.remove('hidden');
-
-        } catch (error) {
-          loadingEl.textContent = 'Failed to load dashboard. Please try refreshing.';
-          loadingEl.style.color = '#991b1b';
-          console.error("Dashboard Load Error:", error);
+          if (viewId === 'dashboard') {
+            await this.fetchDashboardData();
+            this.renderDashboard();
+          } else if (viewId === 'goals') {
+            if(!this.currentDashboardData) await this.fetchDashboardData();
+            this.renderGoalsView();
+          } else if (viewId === 'qex') {
+            await this.loadQex();
+          } else if (viewId === 'history') {
+            await this.loadHistory();
+          }
+          document.getElementById(`view-${viewId}`).classList.remove('hidden');
+        } catch(e) {
+          this.showMsg('global-msg', 'Failed to load data: ' + e.message, true);
+        } finally {
+          globalLoad.classList.add('hidden');
         }
       },
+      updateNavBadge() {
+        const badge = document.getElementById('nav-qex-badge');
+        const count = this.pendingCounts[this.currentUser] || 0;
+        badge.textContent = count;
+        if (count > 0) badge.classList.remove('empty');
+        else badge.classList.add('empty');
+      },
 
-      renderDashboard(data, pendingCounts) {
-        // Render Today
-        document.getElementById('today-date-label').textContent = this.formatDateFriendly(data.today.date);
-        const todayGrid = document.getElementById('today-grid');
-        todayGrid.innerHTML = '';
+      /* --- DASHBOARD / SHARED DATA FETCHING --- */
+      async fetchDashboardData() {
+        const [dashRes, lakshyaCountRes, architaCountRes] = await Promise.all([
+          apiLayer.request('dashboard'),
+          apiLayer.request('count', { user: 'Lakshya' }),
+          apiLayer.request('count', { user: 'Archita' })
+        ]);
+        this.currentDashboardData = dashRes.dashboard;
+        this.pendingCounts = {
+          Lakshya: lakshyaCountRes.count || 0,
+          Archita: architaCountRes.count || 0
+        };
+        this.updateNavBadge();
+      },
+
+      /* --- RENDER DASHBOARD --- */
+      renderDashboard() {
+        const data = this.currentDashboardData;
+        document.getElementById('dash-today-date').textContent = this.formatDateFriendly(data.today.date);
+        document.getElementById('dash-tomorrow-date').textContent = this.formatDateFriendly(data.tomorrow.date);
         
-        // Render Tomorrow
-        document.getElementById('tomorrow-date-label').textContent = this.formatDateFriendly(data.tomorrow.date);
-        const tomorrowGrid = document.getElementById('tomorrow-grid');
+        const todayGrid = document.getElementById('dash-today-grid');
+        const tomorrowGrid = document.getElementById('dash-tomorrow-grid');
+        todayGrid.innerHTML = '';
         tomorrowGrid.innerHTML = '';
 
         this.users.forEach(user => {
-          // Construct Today Card
-          const todayData = data.today.users[user];
-          const count = pendingCounts[user];
-          todayGrid.innerHTML += this.buildTodayCard(user, todayData, count);
-
-          // Construct Tomorrow Card
-          const tomorrowData = data.tomorrow.users[user];
-          tomorrowGrid.innerHTML += this.buildTomorrowCard(user, tomorrowData);
+          todayGrid.innerHTML += this.buildTodayCard(user, data.today.users[user], this.pendingCounts[user]);
+          tomorrowGrid.innerHTML += this.buildTomorrowCard(user, data.tomorrow.users[user]);
         });
       },
 
+      /* --- RENDER GOALS VIEW --- */
+      renderGoalsView() {
+        const data = this.currentDashboardData;
+        const todayContainer = document.getElementById('goals-today-card');
+        const tomorrowContainer = document.getElementById('goals-tomorrow-card');
+        
+        todayContainer.innerHTML = this.buildTodayCard(this.currentUser, data.today.users[this.currentUser], this.pendingCounts[this.currentUser]);
+        tomorrowContainer.innerHTML = this.buildTomorrowCard(this.currentUser, data.tomorrow.users[this.currentUser]);
+      },
+
+      /* --- CARD BUILDERS --- */
       buildTodayCard(user, data, pendingCount) {
-        const badgeHtml = pendingCount > 0 
-          ? `<div class="badge-notification" onclick="app.placeholderNav('Question Exchange')">${pendingCount} Pending Questions</div>` 
+        const isMe = (user === this.currentUser);
+        const badgeHtml = (pendingCount > 0 && isMe)
+          ? `<div class="badge badge-pending" onclick="app.switchView('qex')">${pendingCount} Pending Questions</div>` 
           : '';
 
         let goalsHtml = '<div class="empty-state">No goals set for today.</div>';
         if (data.goals && data.goals.length > 0) {
           goalsHtml = '<ul class="goal-list">';
           data.goals.forEach(g => {
-            const isCompletedClass = g.completed ? 'completed' : '';
-            const isCheckedAttr = g.completed ? 'checked' : '';
+            const isCompCls = g.completed ? 'completed' : '';
+            const isChkAttr = g.completed ? 'checked' : '';
+            // Only current user can click checkboxes
+            const disabledAttr = isMe ? '' : 'disabled';
             
             goalsHtml += `
-              <li id="goal-item-${g.id}" class="goal-item ${isCompletedClass}">
-                <input type="checkbox" id="goal-chk-${g.id}" class="goal-checkbox" ${isCheckedAttr} 
+              <li id="goal-item-${g.id}" class="goal-item ${isCompCls}">
+                <input type="checkbox" id="goal-chk-${g.id}" class="goal-checkbox" ${isChkAttr} ${disabledAttr}
                        onchange="app.toggleGoal('${g.id}', '${user}', this.checked)">
                 <span>${this.escapeHTML(g.goal)}</span>
               </li>
@@ -738,8 +1071,8 @@
         const noteHtml = data.note ? `<div class="note-text">"${this.escapeHTML(data.note)}"</div>` : '';
 
         return `
-          <div class="user-card">
-            <div class="user-card-header">
+          <div class="card" style="height: 100%;">
+            <div class="card-header">
               <h4>${user}</h4>
               ${badgeHtml}
             </div>
@@ -755,7 +1088,7 @@
               </div>
               ${noteHtml}
             </div>
-            <div id="goal-error-${user}" class="message error hidden" style="margin-top: 12px; font-size: 0.875rem; padding: 8px;"></div>
+            <div id="goal-error-${user}" class="message error hidden" style="margin-top: 12px;"></div>
           </div>
         `;
       },
@@ -779,8 +1112,8 @@
         }
 
         return `
-          <div class="user-card">
-            <div class="user-card-header">
+          <div class="card" style="height: 100%;">
+            <div class="card-header">
               <h4>${user}</h4>
               <span style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500;">
                 ${targetCount} Target${targetCount !== 1 ? 's' : ''}
@@ -791,62 +1124,340 @@
         `;
       },
 
-      // Interaction: Toggle Goal Completion
+      /* --- TOGGLE GOAL --- */
       async toggleGoal(goalId, cardUser, isCompleted) {
+        if(cardUser !== this.currentUser) return; // safety
+        
         const chk = document.getElementById(`goal-chk-${goalId}`);
         const listItem = document.getElementById(`goal-item-${goalId}`);
         const errorDiv = document.getElementById(`goal-error-${cardUser}`);
         const statsSpan = document.getElementById(`stats-completed-${cardUser}`);
 
-        // Temporarily disable while API request runs
         chk.disabled = true;
         if (errorDiv) errorDiv.classList.add('hidden');
 
         try {
-          // Perform API request using the logged in user as the initiator
           await apiLayer.request('completeGoal', {
             id: goalId,
             user: this.currentUser, 
             completed: String(isCompleted)
           });
 
-          // Optimistically update internal cached state
+          // Optimistically update cache
           if (this.currentDashboardData && this.currentDashboardData.today.users[cardUser]) {
             const userData = this.currentDashboardData.today.users[cardUser];
             const targetGoal = userData.goals.find(g => g.id === goalId);
+            if (targetGoal) targetGoal.completed = isCompleted;
             
-            if (targetGoal) {
-              targetGoal.completed = isCompleted;
-            }
-
-            // Recalculate and update the UI stats block
             const completedCount = userData.goals.filter(g => g.completed).length;
             userData.completion.completed = completedCount;
-            
-            if (statsSpan) {
-              statsSpan.textContent = `${completedCount} / ${userData.completion.total}`;
-            }
+            if (statsSpan) statsSpan.textContent = `${completedCount} / ${userData.completion.total}`;
           }
 
-          // Visually cross off the item
-          if (isCompleted) {
-            listItem.classList.add('completed');
-          } else {
-            listItem.classList.remove('completed');
-          }
-
+          if (isCompleted) listItem.classList.add('completed');
+          else listItem.classList.remove('completed');
         } catch (error) {
-          // Failure: Restore previous state
           chk.checked = !isCompleted; 
           if (errorDiv) {
             errorDiv.textContent = error.message;
             errorDiv.classList.remove('hidden');
           }
         } finally {
-          // Always re-enable the checkbox
           chk.disabled = false;
         }
+      },
+
+      /* --- MODALS --- */
+      closeModals() {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+      },
+
+      // Set Tomorrow's Goals
+      openGoalsModal() {
+        document.getElementById('modal-goals-msg').classList.add('hidden');
+        document.getElementById('modal-goals-date').textContent = "For " + this.formatDateFriendly(this.getLocalDateString(1));
+        
+        const container = document.getElementById('goals-input-container');
+        container.innerHTML = '';
+        
+        // Load existing
+        let existing = [];
+        if(this.currentDashboardData && this.currentDashboardData.tomorrow.users[this.currentUser]) {
+           existing = this.currentDashboardData.tomorrow.users[this.currentUser].goals;
+        }
+        
+        if (existing.length > 0) {
+          existing.forEach(g => this.addGoalInput(g.goal));
+        } else {
+          this.addGoalInput('');
+        }
+        
+        document.getElementById('modal-goals').classList.remove('hidden');
+      },
+      addGoalInput(val = '') {
+        const container = document.getElementById('goals-input-container');
+        const div = document.createElement('div');
+        div.className = 'dynamic-list-item';
+        div.innerHTML = `
+          <input type="text" class="form-input goal-input-field" placeholder="Enter goal..." value="${this.escapeHTML(val)}">
+          <button class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
+        `;
+        container.appendChild(div);
+      },
+      async saveGoals() {
+        const btn = document.getElementById('btn-save-goals');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        
+        try {
+          const inputs = document.querySelectorAll('.goal-input-field');
+          let goals = [];
+          inputs.forEach(inp => {
+            const val = inp.value.trim();
+            if(val) goals.push(val);
+          });
+          
+          if(goals.length === 0) throw new Error("Please add at least one goal.");
+
+          await apiLayer.request('saveGoals', {
+            user: this.currentUser,
+            date: this.getLocalDateString(1), // Tomorrow
+            goals: JSON.stringify(goals)
+          });
+          
+          this.closeModals();
+          // Refresh current view (either Dashboard or Goals)
+          const activeView = document.querySelector('.nav-tab.active').id.replace('nav-', '');
+          this.switchView(activeView);
+          
+        } catch (error) {
+          this.showMsg('modal-goals-msg', error.message, true);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Save Tomorrow's Goals";
+        }
+      },
+
+      // Log Today's Study
+      openLogModal() {
+        document.getElementById('modal-log-msg').classList.add('hidden');
+        document.getElementById('modal-log-date').textContent = "For " + this.formatDateFriendly(this.getLocalDateString(0));
+        
+        const hInput = document.getElementById('log-hours');
+        const nInput = document.getElementById('log-note');
+        hInput.value = '';
+        nInput.value = '';
+        
+        // Load existing
+        if(this.currentDashboardData && this.currentDashboardData.today.users[this.currentUser]) {
+           const currentData = this.currentDashboardData.today.users[this.currentUser];
+           if(currentData.studyHours !== null) hInput.value = currentData.studyHours;
+           if(currentData.note) nInput.value = currentData.note;
+        }
+
+        document.getElementById('modal-log').classList.remove('hidden');
+      },
+      async saveLog() {
+        const btn = document.getElementById('btn-save-log');
+        const hours = document.getElementById('log-hours').value;
+        const note = document.getElementById('log-note').value;
+        
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        try {
+          if(hours === '') throw new Error("Study hours are required.");
+          
+          await apiLayer.request('saveLog', {
+            user: this.currentUser,
+            date: this.getLocalDateString(0), // Today
+            studyHours: hours,
+            note: note
+          });
+          
+          this.closeModals();
+          const activeView = document.querySelector('.nav-tab.active').id.replace('nav-', '');
+          this.switchView(activeView);
+        } catch (error) {
+          this.showMsg('modal-log-msg', error.message, true);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Save";
+        }
+      },
+
+      /* --- QUESTION EXCHANGE --- */
+      async loadQex() {
+        document.getElementById('qex-ask-recipient').textContent = this.getOtherUser();
+        document.getElementById('qex-ask-subject').selectedIndex = 0;
+        document.getElementById('qex-ask-text').value = '';
+        document.getElementById('qex-ask-msg').classList.add('hidden');
+        
+        const listEl = document.getElementById('qex-pending-list');
+        listEl.innerHTML = '<div class="loading-state">Loading pending questions...</div>';
+        
+        const res = await apiLayer.request('pending', { user: this.currentUser });
+        this.cachedPending = res.questions || [];
+        
+        // Update nav badge to match accurate count
+        this.pendingCounts[this.currentUser] = this.cachedPending.length;
+        this.updateNavBadge();
+        
+        this.renderPendingQex();
+      },
+      renderPendingQex() {
+        const listEl = document.getElementById('qex-pending-list');
+        if(this.cachedPending.length === 0) {
+          listEl.innerHTML = '<div class="empty-state">You have no pending questions.</div>';
+          return;
+        }
+        
+        let html = '<div style="display: flex; flex-direction: column; gap: var(--spacing-md);">';
+        this.cachedPending.forEach(q => {
+          html += `
+            <div class="card" id="q-card-${q.id}">
+              <div class="card-meta">
+                <span class="badge badge-subject">${this.escapeHTML(q.subject)}</span>
+                <span>From ${this.escapeHTML(q.creator)} &middot; ${this.formatDateTime(q.createdAt)}</span>
+              </div>
+              <div style="font-size: 1.125rem; font-weight: 500; margin-bottom: var(--spacing-md); white-space: pre-wrap;">${this.escapeHTML(q.question)}</div>
+              
+              <div id="qex-answer-area-${q.id}">
+                 <button class="btn btn-primary" onclick="app.showAnswerBox('${q.id}')">Answer</button>
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+        listEl.innerHTML = html;
+      },
+      async submitQuestion() {
+        const btn = document.getElementById('btn-submit-qex');
+        const subject = document.getElementById('qex-ask-subject').value;
+        const text = document.getElementById('qex-ask-text').value.trim();
+        
+        if(!text) return;
+        
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        
+        try {
+          await apiLayer.request('create', {
+            creator: this.currentUser,
+            recipient: this.getOtherUser(),
+            subject: subject,
+            question: text
+          });
+          
+          document.getElementById('qex-ask-text').value = '';
+          document.getElementById('qex-ask-subject').selectedIndex = 0;
+          this.showMsg('qex-ask-msg', 'Question sent successfully!');
+          
+        } catch (e) {
+          this.showMsg('qex-ask-msg', e.message, true);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Send Question';
+        }
+      },
+      showAnswerBox(id) {
+        const area = document.getElementById(`qex-answer-area-${id}`);
+        area.innerHTML = `
+          <div class="answer-box">
+            <textarea id="qex-ans-text-${id}" class="form-input" placeholder="Type your answer here..."></textarea>
+            <div id="qex-ans-msg-${id}" class="message hidden" style="margin-top: 8px;"></div>
+            <div style="text-align: right; margin-top: 8px;">
+               <button class="btn btn-secondary" onclick="app.renderPendingQex()">Cancel</button>
+               <button id="qex-ans-btn-${id}" class="btn btn-primary" onclick="app.submitAnswer('${id}')">Submit Answer</button>
+            </div>
+          </div>
+        `;
+        document.getElementById(`qex-ans-text-${id}`).focus();
+      },
+      async submitAnswer(id) {
+        const text = document.getElementById(`qex-ans-text-${id}`).value.trim();
+        if(!text) return;
+        
+        const btn = document.getElementById(`qex-ans-btn-${id}`);
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+        
+        try {
+          await apiLayer.request('answer', {
+            id: id,
+            user: this.currentUser,
+            answer: text
+          });
+          
+          // Remove from local cache and re-render
+          this.cachedPending = this.cachedPending.filter(q => q.id !== id);
+          this.pendingCounts[this.currentUser] = this.cachedPending.length;
+          this.updateNavBadge();
+          this.renderPendingQex();
+          
+        } catch(e) {
+          this.showMsg(`qex-ans-msg-${id}`, e.message, true);
+          btn.disabled = false;
+          btn.textContent = 'Submit Answer';
+        }
+      },
+
+      /* --- HISTORY --- */
+      async loadHistory() {
+        const listEl = document.getElementById('history-list');
+        listEl.innerHTML = '<div class="loading-state">Loading history...</div>';
+        document.getElementById('history-filter').selectedIndex = 0;
+        
+        const res = await apiLayer.request('history', { user: this.currentUser });
+        this.cachedHistory = res.questions || [];
+        this.renderHistory(true);
+      },
+      renderHistory(isInitial = false) {
+        const filter = document.getElementById('history-filter').value;
+        const listEl = document.getElementById('history-list');
+        
+        let displayData = this.cachedHistory;
+        if(filter !== 'All') {
+          displayData = displayData.filter(q => q.subject === filter);
+        }
+
+        if(displayData.length === 0) {
+          listEl.innerHTML = '<div class="empty-state">No questions found.</div>';
+          return;
+        }
+
+        let html = '';
+        displayData.forEach(q => {
+          const isAns = q.status === 'Answered';
+          const badgeClass = isAns ? 'badge-answered' : 'badge-pending';
+          
+          html += `
+            <div class="card">
+              <div class="card-header" style="border: none; padding: 0; margin-bottom: var(--spacing-sm);">
+                <div class="card-meta" style="margin: 0;">
+                  <span class="badge badge-subject">${this.escapeHTML(q.subject)}</span>
+                  <span>${this.escapeHTML(q.creator)} &rarr; ${this.escapeHTML(q.recipient)}</span>
+                  <span>&middot; ${this.formatDateTime(q.createdAt)}</span>
+                </div>
+                <span class="badge ${badgeClass}">${this.escapeHTML(q.status)}</span>
+              </div>
+              <div style="font-size: 1.0625rem; font-weight: 500; white-space: pre-wrap;">${this.escapeHTML(q.question)}</div>
+          `;
+          
+          if(isAns && q.answer) {
+             html += `
+               <div class="answer-display">
+                 <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px;">Answer</div>
+                 <div>${this.escapeHTML(q.answer)}</div>
+               </div>
+             `;
+          }
+          html += '</div>';
+        });
+        
+        listEl.innerHTML = html;
       }
+
     };
 
     // Boot app
