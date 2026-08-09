@@ -3,606 +3,675 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AskBack - Ask. Recall. Answer.</title>
+  <title>AskBack - Study Journal</title>
+  
+  <!-- Premium Typography: Lora (Serif) & Inter (Sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+  
   <style>
     /* 
-      Premium Academic Study Tool Theme
-      Clean, minimal, high-readability with generous whitespace and soft geometry.
+      Vibrant Premium Design System
+      Rich Indigo, soft backgrounds, and elevated bento-box styling.
     */
     :root {
-      --bg-body: #f8fafc;
+      --bg-canvas: #f8fafc;
       --bg-surface: #ffffff;
       --bg-subtle: #f1f5f9;
-      --text-primary: #0f172a;
-      --text-secondary: #475569;
-      --text-tertiary: #94a3b8;
       
-      --brand-primary: #1e293b;
-      --brand-hover: #0f172a;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-faint: #cbd5e1;
       
-      --border-light: #e2e8f0;
+      --accent: #4f46e5; /* Vibrant Indigo */
+      --accent-hover: #4338ca;
+      --accent-light: #e0e7ff;
+      --accent-gradient: linear-gradient(135deg, #4f46e5, #db2777);
+      
+      --border: #e2e8f0;
       --border-focus: #94a3b8;
       
-      --status-success-bg: #f0fdf4;
-      --status-success-text: #166534;
+      --status-success: #10b981;
+      --status-success-bg: #ecfdf5;
       
-      --status-pending-bg: #fffbeb;
-      --status-pending-text: #b45309;
-
-      --radius-sm: 6px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --spacing-xs: 4px;
-      --spacing-sm: 8px;
-      --spacing-md: 16px;
-      --spacing-lg: 24px;
-      --spacing-xl: 32px;
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-full: 9999px;
       
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 12px 32px rgba(15, 23, 42, 0.08);
+      --shadow-float: 0 20px 40px rgba(79, 70, 229, 0.15);
       
-      --transition-fast: 0.15s ease-in-out;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: var(--bg-body);
-      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
+    .serif { font-family: 'Lora', serif; }
 
     /* Layout */
-    #app-shell {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
     .container {
-      max-width: 1000px;
+      max-width: 900px;
       margin: 0 auto;
+      padding: 0 24px;
       width: 100%;
-      padding: 0 var(--spacing-lg);
     }
 
     /* Typography */
     h1, h2, h3, h4 {
-      color: var(--text-primary);
-      line-height: 1.3;
+      font-family: 'Lora', serif;
+      font-weight: 600;
+      line-height: 1.2;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+    h2 { font-size: 2.25rem; margin-bottom: 24px; }
+    h3 { font-size: 1.5rem; margin-bottom: 16px; }
+    
+    .section-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: block;
     }
 
-    h2 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      letter-spacing: -0.025em;
-      margin-bottom: var(--spacing-md);
+    /* User Selection Screen (Heavily Enhanced) */
+    #view-select-user {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 24px;
+    }
+
+    .login-brand {
+      text-align: center;
+      margin-bottom: 64px;
+      animation: slideDown 0.6s ease-out;
     }
     
-    h3 {
-      font-size: 1rem;
+    .login-brand h1 {
+      color: #ffffff;
+      font-size: 3.5rem;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    
+    .login-brand p {
+      color: #94a3b8;
+      font-size: 0.875rem;
       font-weight: 600;
-      color: var(--text-secondary);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: var(--spacing-sm);
+      letter-spacing: 0.2em;
+    }
+
+    .login-cards-container {
+      display: flex;
+      gap: 24px;
+      animation: slideUp 0.6s ease-out forwards;
+      opacity: 0;
+      animation-delay: 0.2s;
+    }
+
+    .user-profile-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-lg);
+      padding: 40px 32px;
+      width: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .user-profile-card:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-8px) scale(1.02);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+    }
+
+    .user-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 24px;
+      background: var(--accent-gradient);
+      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+      transition: transform 0.3s ease;
+    }
+    
+    .user-profile-card:hover .user-avatar {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .user-profile-card.archita .user-avatar {
+      background: linear-gradient(135deg, #f43f5e, #fb923c);
+      box-shadow: 0 8px 24px rgba(244, 63, 94, 0.4);
+    }
+
+    .user-profile-card h3 {
+      color: #ffffff;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 1.25rem;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Header & Navigation */
     .app-header {
-      background-color: var(--bg-surface);
-      border-bottom: 1px solid var(--border-light);
+      padding: 32px 0 0 0;
+      margin-bottom: 40px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 40;
-      box-shadow: var(--shadow-sm);
     }
 
     .header-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: var(--spacing-md) 0;
+      margin-bottom: 24px;
     }
 
-    .brand-area {
-      display: flex;
-      flex-direction: column;
+    .brand h1 {
+      font-size: 1.5rem;
+      color: var(--accent);
     }
 
-    .brand-area h1 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: -0.025em;
-    }
-
-    .brand-area .tagline {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .user-area {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-md);
+    /* User Switcher */
+    .user-switcher { position: relative; display: inline-block; }
+    .user-switcher-btn {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-
-    .app-nav {
-      display: flex;
-      gap: var(--spacing-xl);
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    
-    .app-nav::-webkit-scrollbar {
-      display: none;
-    }
-
-    .nav-tab {
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-      font-weight: 500;
-      padding: var(--spacing-md) 0;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      white-space: nowrap;
-      transition: color var(--transition-fast);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .nav-tab:hover:not(:disabled) {
-      color: var(--text-primary);
-    }
-
-    .nav-tab.active {
-      color: var(--brand-primary);
-      border-bottom-color: var(--brand-primary);
       font-weight: 600;
-    }
-
-    .badge-nav {
-      background: var(--brand-primary);
-      color: #fff;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 9px;
-    }
-    .badge-nav.empty {
-      background: var(--border-light);
-      color: var(--text-secondary);
-    }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-family: inherit;
-      font-size: 0.875rem;
-      font-weight: 500;
-      border-radius: var(--radius-sm);
-      padding: 10px 18px;
+      color: var(--text-main);
       cursor: pointer;
-      transition: all var(--transition-fast);
-      border: 1px solid transparent;
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .btn-primary {
-      background-color: var(--brand-primary);
-      color: #fff;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background-color: var(--brand-hover);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .btn-secondary {
-      background-color: var(--bg-surface);
-      color: var(--text-primary);
-      border-color: var(--border-light);
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background-color: var(--bg-subtle);
-    }
-    
-    .btn-danger {
-      background-color: #fef2f2;
-      color: #b91c1c;
-      border-color: #fecaca;
-    }
-
-    .btn-danger:hover:not(:disabled) {
-      background-color: #fee2e2;
-    }
-    
-    .btn-text {
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      padding: 0;
-      font-size: 0.875rem;
-      font-weight: 500;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-      cursor: pointer;
-    }
-
-    .btn-text:hover:not(:disabled) {
-      color: var(--text-primary);
-    }
-
-    /* Quick Actions */
-    .quick-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--spacing-sm);
-      margin-bottom: var(--spacing-xl);
-      padding: var(--spacing-lg);
-      background: var(--bg-surface);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border-light);
-      box-shadow: var(--shadow-sm);
-    }
-
-    /* Layouts */
-    .main-content {
-      flex-grow: 1;
-      padding: var(--spacing-xl) 0 64px 0;
-    }
-
-    .section-block {
-      margin-bottom: var(--spacing-xl);
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: var(--spacing-lg);
-    }
-    
-    .view-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: var(--spacing-lg);
-      flex-wrap: wrap;
-      gap: var(--spacing-md);
-    }
-
-    /* Cards */
-    .card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-md);
-      padding: var(--spacing-lg);
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--spacing-md);
-      padding-bottom: var(--spacing-sm);
-      border-bottom: 1px solid var(--border-light);
-    }
-
-    .card-header h4 {
-      font-size: 1.125rem;
-      font-weight: 600;
-      margin: 0;
-    }
-    
-    .card-meta {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      margin-bottom: var(--spacing-sm);
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
+      transition: all var(--transition);
     }
+    .user-switcher-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .user-switcher-menu {
+      position: absolute;
+      top: 100%; right: 0; margin-top: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      z-index: 50;
+      min-width: 140px;
+      opacity: 0; visibility: hidden; transform: translateY(-5px);
+      transition: all 0.2s;
+    }
+    .user-switcher-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .user-switcher-menu button {
+      display: block; width: 100%; text-align: left; padding: 12px 16px;
+      background: none; border: none; font-family: 'Inter', sans-serif; font-size: 0.875rem; cursor: pointer;
+    }
+    .user-switcher-menu button:hover { background: var(--bg-canvas); color: var(--accent); }
 
-    .badge {
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 12px;
-      border: 1px solid transparent;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    /* Navigation */
+    .app-nav {
+      display: flex;
+      gap: 32px;
     }
     
-    .badge-pending {
-      background-color: var(--status-pending-bg);
-      color: var(--status-pending-text);
-      border-color: #fde68a;
+    .nav-tab {
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 0 0 16px 0;
       cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .badge-pending:hover {
-      background-color: #fef3c7;
+    .nav-tab:hover { color: var(--text-main); }
+    .nav-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
     }
-    .badge-answered {
-      background-color: var(--status-success-bg);
-      color: var(--status-success-text);
-      border-color: #bbf7d0;
+    .nav-badge {
+      background: var(--accent-gradient);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
     }
-    .badge-subject {
-      color: var(--brand-primary);
-      background-color: var(--bg-subtle);
-      border-color: var(--border-light);
-    }
+    .nav-badge.empty { display: none; }
 
-    /* Goal Lists */
-    .goal-list {
-      list-style: none;
-      margin-bottom: var(--spacing-md);
-      flex-grow: 1;
+    /* Main Content Areas */
+    .view {
+      animation: fadeIn 0.5s ease forwards;
+      padding-bottom: 80px;
     }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .section-block { margin-bottom: 48px; }
+    
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 600;
+      border-radius: var(--radius-md); padding: 12px 24px; cursor: pointer;
+      transition: all var(--transition); border: 1px solid transparent;
+    }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary { 
+      background: var(--accent); color: #fff; 
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+    }
+    .btn-primary:hover:not(:disabled) { 
+      background: var(--accent-hover); transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+    }
+    .btn-outline { background: var(--bg-surface); border-color: var(--border); color: var(--text-main); }
+    .btn-outline:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .btn-text { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.875rem; font-weight: 600;}
+    .btn-text:hover { color: var(--accent); }
 
+    /* Dashboard: Greeting & Progress */
+    .greeting-area { margin-bottom: 48px; }
+    .greeting-date { color: var(--text-muted); font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    
+    .progress-overview {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      background: var(--bg-surface);
+      padding: 32px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+    .progress-large {
+      font-family: 'Inter', sans-serif;
+      font-size: 4.5rem;
+      font-weight: 800;
+      line-height: 1;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.04em;
+    }
+    .progress-stats { display: flex; flex-direction: column; gap: 8px; }
+    .stat-line { font-size: 1rem; color: var(--text-muted); }
+    .stat-line strong { color: var(--text-main); font-weight: 700; font-size: 1.125rem;}
+
+    /* Today's Focus Checklist (Bento Style) */
+    .checklist-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-sm);
+    }
+    
     .goal-item {
       display: flex;
       align-items: flex-start;
-      gap: var(--spacing-sm);
-      margin-bottom: var(--spacing-sm);
-      font-size: 0.9375rem;
-      transition: color var(--transition-fast);
+      margin-bottom: 16px;
+      padding: 16px;
+      background: var(--bg-canvas);
+      border-radius: var(--radius-md);
+      transition: all var(--transition);
+      border: 1px solid transparent;
     }
-
-    .goal-checkbox {
-      width: 16px;
-      height: 16px;
-      margin-top: 4px;
-      flex-shrink: 0;
-      cursor: pointer;
-      accent-color: var(--status-success-text);
+    .goal-item:hover {
+      background: var(--bg-surface);
+      border-color: var(--border);
+      box-shadow: var(--shadow-sm);
     }
+    .goal-item:last-child { margin-bottom: 0; }
     
-    .goal-checkbox:disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
+    /* Interactive Checkbox styling */
+    .goal-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      cursor: pointer;
+      width: 100%;
     }
-
-    .checkbox-mock {
-      width: 16px;
-      height: 16px;
-      border: 1px solid var(--text-tertiary);
-      border-radius: 4px;
-      margin-top: 4px;
+    .goal-checkbox { opacity: 0; position: absolute; width: 0; height: 0; }
+    .custom-check {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border-focus);
+      border-radius: 6px;
       flex-shrink: 0;
+      margin-top: 2px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      background: var(--bg-surface);
     }
-
-    .goal-item.completed {
-      color: var(--text-secondary);
+    .goal-checkbox:checked + .custom-check {
+      background: var(--status-success);
+      border-color: var(--status-success);
+      transform: scale(1.05);
+    }
+    .goal-checkbox:checked + .custom-check::after {
+      content: '';
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2.5px 2.5px 0;
+      transform: rotate(45deg);
+      margin-top: -2px;
+    }
+    .goal-checkbox:disabled + .custom-check { opacity: 0.5; cursor: not-allowed; }
+    
+    .goal-text {
+      font-size: 1.0625rem;
+      font-weight: 500;
+      color: var(--text-main);
+      transition: all var(--transition);
+      line-height: 1.5;
+    }
+    .goal-checkbox:checked ~ .goal-text {
+      color: var(--text-muted);
       text-decoration: line-through;
-      text-decoration-color: var(--border-light);
+      text-decoration-color: var(--text-faint);
     }
 
-    /* Stats Block */
-    .stats-block {
-      background: var(--bg-subtle);
-      border-radius: var(--radius-sm);
-      padding: var(--spacing-md);
-      margin-top: auto;
+    /* Contextual Action */
+    .context-action {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      justify-content: flex-end;
     }
 
-    .stat-row {
+    /* Needs Attention Block */
+    .attention-block {
+      background: var(--accent-light);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius-lg);
+      padding: 24px 32px;
       display: flex;
       justify-content: space-between;
-      margin-bottom: var(--spacing-xs);
-      font-size: 0.875rem;
+      align-items: center;
+      margin-bottom: 48px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
     }
-    .stat-row:last-child { margin-bottom: 0; }
+    .attention-block h3 { margin-bottom: 4px; color: var(--accent-hover); font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.125rem;}
+    .attention-block p { font-size: 0.9375rem; color: var(--accent); font-weight: 500;}
 
-    .stat-label { color: var(--text-secondary); font-weight: 500; }
-    .stat-value { font-weight: 600; color: var(--text-primary); }
-    
-    .note-text {
-      margin-top: var(--spacing-sm);
+    /* Partner Section */
+    .partner-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .partner-info { display: flex; align-items: center; gap: 16px; }
+    .partner-avatar {
+      width: 48px; height: 48px; border-radius: var(--radius-full);
+      background: var(--border); display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: var(--text-muted); font-size: 1.25rem;
+    }
+    .partner-stats { display: flex; gap: 32px; }
+    .partner-stat { display: flex; flex-direction: column; }
+    .partner-stat-val { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.5rem; color: var(--text-main); }
+    .partner-stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;}
+
+    /* Plan (Tomorrow) */
+    .plan-list {
+      counter-reset: plan-counter;
+      list-style: none;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+    }
+    .plan-item {
+      position: relative;
+      padding-left: 48px;
+      margin-bottom: 24px;
+      font-size: 1.0625rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+    .plan-item:last-child { margin-bottom: 0; }
+    .plan-item::before {
+      counter-increment: plan-counter;
+      content: counter(plan-counter, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: -2px;
+      font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: var(--text-secondary);
-      font-style: italic;
-      border-left: 2px solid var(--border-light);
-      padding-left: var(--spacing-sm);
-      white-space: pre-wrap;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
     }
 
-    /* Form Elements */
-    .form-group { margin-bottom: var(--spacing-md); }
-    .form-label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: var(--spacing-xs);
-    }
+    /* Forms & Inputs */
+    .form-group { margin-bottom: 24px; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
     .form-input {
       width: 100%;
-      font-family: inherit;
-      padding: 10px 14px;
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-sm);
+      font-family: 'Inter', sans-serif;
       font-size: 1rem;
-      background-color: var(--bg-surface);
-      color: var(--text-primary);
-      transition: border-color var(--transition-fast);
+      padding: 14px 16px;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      transition: border-color var(--transition), box-shadow var(--transition);
     }
-    .form-input:focus {
-      outline: none;
-      border-color: var(--brand-primary);
+    .form-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); background: var(--bg-surface);}
+    textarea.form-input { resize: vertical; min-height: 120px; }
+
+    /* Question Cards */
+    .q-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
     }
-    textarea.form-input {
-      resize: vertical;
-      min-height: 100px;
+    .q-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .tag {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      color: var(--text-main);
+    }
+    .q-text { font-size: 1.25rem; font-weight: 500; line-height: 1.5; margin-bottom: 24px; white-space: pre-wrap; }
+    .q-answer-box { margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--border); }
+    
+    .timeline-answer {
+      margin-top: 24px;
+      padding: 24px;
+      background: var(--bg-canvas);
+      border-radius: var(--radius-md);
+      border-left: 4px solid var(--status-success);
     }
 
     /* Modals */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 100;
-      padding: var(--spacing-md);
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--transition);
     }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
     .modal-content {
       background: var(--bg-surface);
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-lg);
       width: 100%;
-      max-width: 500px;
+      max-width: 540px;
       max-height: 90vh;
       overflow-y: auto;
-      padding: var(--spacing-xl);
-      box-shadow: var(--shadow-lg);
+      padding: 40px;
+      box-shadow: var(--shadow-float);
+      transform: scale(0.95);
+      transition: transform var(--transition);
     }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--spacing-lg);
-    }
-    .modal-header h2 { margin-bottom: 0; }
+    .modal-overlay.open .modal-content { transform: scale(1); }
     
-    .dynamic-list-item {
-      display: flex;
-      gap: var(--spacing-sm);
-      margin-bottom: var(--spacing-sm);
-    }
+    .dynamic-list-item { display: flex; gap: 12px; margin-bottom: 16px; }
     .dynamic-list-item input { flex-grow: 1; }
+    .btn-icon { background: var(--bg-canvas); border: 1px solid var(--border); width: 48px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-muted); font-weight: bold; transition: all 0.2s;}
+    .btn-icon:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
 
-    /* QEX Answer Box */
-    .answer-box {
-      margin-top: var(--spacing-md);
-      padding-top: var(--spacing-md);
-      border-top: 1px solid var(--border-light);
+    /* Toast System */
+    #toast-container {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+      z-index: 200; display: flex; flex-direction: column; gap: 8px;
     }
-    .answer-display {
-      margin-top: var(--spacing-md);
-      padding: var(--spacing-md);
-      background-color: var(--bg-subtle);
-      border-left: 3px solid var(--border-light);
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      font-size: 0.9375rem;
-      white-space: pre-wrap;
+    .toast {
+      background: var(--text-main); color: #fff;
+      padding: 14px 28px; border-radius: var(--radius-full);
+      font-size: 0.9375rem; font-weight: 500;
+      box-shadow: var(--shadow-float);
+      animation: slideUpToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .toast.error { background: #dc2626; }
+    @keyframes slideUpToast {
+      from { opacity: 0; transform: translateY(30px) scale(0.9); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     /* Utilities */
     .empty-state {
+      padding: 64px 24px;
       text-align: center;
-      padding: 32px 16px;
-      color: var(--text-tertiary);
-      font-size: 0.9375rem;
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-focus);
+      border-radius: var(--radius-lg);
+      color: var(--text-muted);
+      font-size: 1rem;
       font-weight: 500;
-      border: 1px dashed var(--border-light);
-      border-radius: var(--radius-sm);
     }
     .loading-state {
+      padding: 80px 24px;
       text-align: center;
-      padding: 64px 24px;
-      color: var(--text-secondary);
-      font-size: 1rem;
+      color: var(--text-muted);
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 1.25rem;
     }
     
-    .message {
-      padding: 12px 16px;
-      border-radius: var(--radius-sm);
-      margin-bottom: var(--spacing-md);
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-    .message.success {
-      background-color: var(--status-success-bg);
-      color: var(--status-success-text);
-      border: 1px solid #bbf7d0;
-    }
-    .message.error {
-      background-color: #fef2f2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-
-    /* User Selection Screen */
-    #view-select-user {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background-color: var(--bg-body);
-      padding: var(--spacing-xl);
-    }
-    
-    .select-user-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-lg);
-      padding: 48px;
-      width: 100%;
-      max-width: 440px;
-      text-align: center;
-      box-shadow: var(--shadow-md);
-    }
-    .user-btn {
-      display: block;
-      width: 100%;
-      margin-bottom: var(--spacing-md);
-      padding: 16px;
-      font-size: 1rem;
-      border-radius: var(--radius-sm);
-    }
-
+    /* Responsive */
     @media (max-width: 640px) {
-      .header-top { flex-direction: column; align-items: flex-start; gap: var(--spacing-md); }
-      .quick-actions { flex-direction: column; }
-      .quick-actions .btn { width: 100%; }
-      .grid-2 { grid-template-columns: 1fr; }
+      .container { padding: 0 16px; }
+      h2 { font-size: 1.75rem; }
+      .app-nav { gap: 20px; overflow-x: auto; padding-bottom: 12px; }
+      .attention-block { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .progress-overview { flex-direction: column; align-items: flex-start; gap: 24px; padding: 24px;}
+      .partner-block { flex-direction: column; align-items: flex-start; }
+      .modal-content { padding: 24px; }
+      .login-cards-container { flex-direction: column; }
+      .user-profile-card { width: 100%; max-width: 300px; padding: 24px; }
+      .login-brand h1 { font-size: 2.5rem; }
     }
   </style>
 </head>
 <body>
 
-  <!-- SELECT USER VIEW -->
-  <div id="view-select-user" class="hidden">
-    <div class="select-user-card">
-      <h1 style="font-size: 2rem; letter-spacing: -0.025em; margin-bottom: 4px;">AskBack</h1>
-      <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 40px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">Ask. Recall. Answer.</div>
-      <h2 style="font-size: 1rem; color: var(--text-secondary); font-weight: 500;">Who is studying today?</h2>
-      <button class="btn btn-secondary user-btn" onclick="app.selectUser('Lakshya')">Lakshya</button>
-      <button class="btn btn-secondary user-btn" onclick="app.selectUser('Archita')">Archita</button>
+  <!-- SELECT USER SCREEN (Vibrant & Premium) -->
+  <div id="view-select-user">
+    <div class="login-brand">
+      <h1>AskBack</h1>
+      <p>Study Journal & Accountability</p>
+    </div>
+    
+    <div class="login-cards-container">
+      <div class="user-profile-card" onclick="app.selectUser('Lakshya')">
+        <div class="user-avatar">L</div>
+        <h3>Lakshya</h3>
+      </div>
+      <div class="user-profile-card archita" onclick="app.selectUser('Archita')">
+        <div class="user-avatar" style="background: linear-gradient(135deg, #f43f5e, #fb923c);">A</div>
+        <h3>Archita</h3>
+      </div>
     </div>
   </div>
 
@@ -612,228 +681,242 @@
     <header class="app-header">
       <div class="container">
         <div class="header-top">
-          <div class="brand-area">
-            <h1>AskBack</h1>
-            <div class="tagline">Ask. Recall. Answer.</div>
+          <div class="brand">
+            <h1 class="serif">AskBack</h1>
           </div>
-          <div class="user-area">
-            <span id="header-current-user"></span>
-            <button class="btn-text" onclick="app.switchUser()">Switch User</button>
+          
+          <div class="user-switcher" id="user-switcher-wrap">
+            <button class="user-switcher-btn" onclick="app.toggleUserMenu()">
+              <span id="header-current-user">User</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="user-switcher-menu" id="user-menu">
+              <button onclick="app.switchUser('Lakshya')">Lakshya</button>
+              <button onclick="app.switchUser('Archita')">Archita</button>
+            </div>
           </div>
         </div>
+        
         <nav class="app-nav">
-          <button id="nav-dashboard" class="nav-tab active" onclick="app.switchView('dashboard')">Dashboard</button>
-          <button id="nav-goals" class="nav-tab" onclick="app.switchView('goals')">Daily Goals</button>
-          <button id="nav-qex" class="nav-tab" onclick="app.switchView('qex')">
-            Question Exchange <span id="nav-qex-badge" class="badge-nav empty">0</span>
+          <button id="nav-today" class="nav-tab active" onclick="app.switchView('today')">Today</button>
+          <button id="nav-plan" class="nav-tab" onclick="app.switchView('plan')">Plan</button>
+          <button id="nav-questions" class="nav-tab" onclick="app.switchView('questions')">
+            Questions <span id="nav-qex-badge" class="nav-badge empty">0</span>
           </button>
           <button id="nav-history" class="nav-tab" onclick="app.switchView('history')">History</button>
         </nav>
       </div>
     </header>
 
-    <main class="main-content">
-      <div class="container">
+    <main class="container">
+      <div id="global-loading" class="loading-state hidden">Gathering your notes...</div>
 
-        <!-- GLOBAL MESSAGES -->
-        <div id="global-msg" class="message hidden"></div>
-        <div id="global-loading" class="loading-state hidden">Loading...</div>
+      <!-- ========================================== -->
+      <!-- VIEW: TODAY (DASHBOARD) -->
+      <!-- ========================================== -->
+      <div id="view-today" class="view hidden">
+        
+        <div class="greeting-area">
+          <div class="greeting-date" id="today-date-display">Date</div>
+          <h2 class="serif" id="today-greeting">Good day.</h2>
+        </div>
 
-        <!-- ========================================== -->
-        <!-- VIEW: DASHBOARD -->
-        <!-- ========================================== -->
-        <div id="view-dashboard" class="view hidden">
-          <!-- QUICK ACTIONS -->
-          <div class="quick-actions">
-            <button class="btn btn-primary" onclick="app.openGoalsModal()">Set Tomorrow's Goals</button>
-            <button class="btn btn-secondary" onclick="app.openLogModal()">Log Today's Study</button>
-            <button class="btn btn-secondary" onclick="app.switchView('qex')">Ask a Question</button>
-            <button class="btn btn-secondary" onclick="app.switchView('qex')">Answer Pending Questions</button>
+        <!-- Pending Attention Alert -->
+        <div id="today-attention-block" class="attention-block hidden">
+          <div>
+            <h3>Needs Your Attention</h3>
+            <p id="today-attention-text">You have questions waiting.</p>
           </div>
-          
-          <div id="dashboard-content">
-            <!-- TODAY SECTION -->
-            <div class="section-block">
-              <h2>Today's Overview</h2>
-              <h3 id="dash-today-date"></h3>
-              <div class="grid-2" id="dash-today-grid"></div>
-            </div>
+          <button class="btn btn-primary" onclick="app.switchView('questions')">View Questions</button>
+        </div>
 
-            <!-- TOMORROW SECTION -->
-            <div class="section-block" style="margin-top: 48px;">
-              <h2>Tomorrow's Plan</h2>
-              <h3 id="dash-tomorrow-date"></h3>
-              <div class="grid-2" id="dash-tomorrow-grid"></div>
+        <!-- Today's Progress -->
+        <div class="section-block">
+          <span class="section-label">Today's Progress</span>
+          <div class="progress-overview">
+            <div class="progress-large" id="today-percent">0%</div>
+            <div class="progress-stats">
+              <div class="stat-line"><strong id="today-fraction">0 of 0</strong> goals complete</div>
+              <div class="stat-line"><strong id="today-hours">0h</strong> studied</div>
             </div>
           </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- VIEW: DAILY GOALS (Management) -->
-        <!-- ========================================== -->
-        <div id="view-goals" class="view hidden">
-          <div class="view-header">
-            <h2>My Daily Goals</h2>
-            <div style="display: flex; gap: var(--spacing-sm);">
-               <button class="btn btn-secondary" onclick="app.openLogModal()">Edit Study Log</button>
-               <button class="btn btn-primary" onclick="app.openGoalsModal()">Edit Tomorrow's Goals</button>
-            </div>
-          </div>
-          
-          <div id="goals-content">
-            <div class="grid-2">
-              <div class="section-block">
-                <h3>Today</h3>
-                <div id="goals-today-card"></div>
-              </div>
-              <div class="section-block">
-                <h3>Tomorrow</h3>
-                <div id="goals-tomorrow-card"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- VIEW: QUESTION EXCHANGE -->
-        <!-- ========================================== -->
-        <div id="view-qex" class="view hidden">
-          <div class="grid-2">
+        <!-- Today's Focus -->
+        <div class="section-block">
+          <span class="section-label">Today's Focus</span>
+          <div class="checklist-container">
+            <div id="today-goals-list"></div>
             
-            <!-- PENDING QUESTIONS -->
-            <div class="section-block">
-              <h2>Questions for Me</h2>
-              <div id="qex-pending-list"></div>
+            <div class="context-action">
+              <button class="btn btn-outline" onclick="app.openModal('modal-log')">Log Study Time</button>
             </div>
-
-            <!-- ASK A QUESTION -->
-            <div class="section-block">
-              <h2>Ask a Question</h2>
-              <div class="card">
-                <div id="qex-ask-msg" class="message hidden"></div>
-                <div class="form-group">
-                  <label class="form-label">Recipient</label>
-                  <div id="qex-ask-recipient" style="padding: 8px 0; font-weight: 500;"></div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Subject</label>
-                  <select id="qex-ask-subject" class="form-input">
-                    <option value="Art & Culture">Art & Culture</option>
-                    <option value="Ancient History">Ancient History</option>
-                    <option value="Medieval History">Medieval History</option>
-                    <option value="Modern History">Modern History</option>
-                    <option value="Polity">Polity</option>
-                    <option value="Governance">Governance</option>
-                    <option value="Geography">Geography</option>
-                    <option value="Economy">Economy</option>
-                    <option value="Environment">Environment</option>
-                    <option value="Science & Technology">Science & Technology</option>
-                    <option value="Society">Society</option>
-                    <option value="International Relations">International Relations</option>
-                    <option value="Current Affairs">Current Affairs</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Question</label>
-                  <textarea id="qex-ask-text" class="form-input" placeholder="Type your question..."></textarea>
-                </div>
-                <div style="text-align: right;">
-                  <button id="btn-submit-qex" class="btn btn-primary" onclick="app.submitQuestion()">Send Question</button>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- VIEW: HISTORY -->
-        <!-- ========================================== -->
-        <div id="view-history" class="view hidden">
-          <div class="view-header">
-            <h2>Question History</h2>
-            <select id="history-filter" class="form-input" style="max-width: 250px;" onchange="app.renderHistory(false)">
-                <option value="All">All Subjects</option>
-                <option value="Art & Culture">Art & Culture</option>
-                <option value="Ancient History">Ancient History</option>
-                <option value="Medieval History">Medieval History</option>
-                <option value="Modern History">Modern History</option>
-                <option value="Polity">Polity</option>
-                <option value="Governance">Governance</option>
-                <option value="Geography">Geography</option>
-                <option value="Economy">Economy</option>
-                <option value="Environment">Environment</option>
-                <option value="Science & Technology">Science & Technology</option>
-                <option value="Society">Society</option>
-                <option value="International Relations">International Relations</option>
-                <option value="Current Affairs">Current Affairs</option>
-                <option value="Other">Other</option>
-            </select>
+        <!-- Partner Context -->
+        <div class="section-block">
+          <span class="section-label">Your Study Partner</span>
+          <div class="partner-block">
+            <div class="partner-info">
+              <div class="partner-avatar" id="partner-initial">P</div>
+              <h3 id="partner-name" class="serif" style="margin: 0;">Partner</h3>
+            </div>
+            <div class="partner-stats">
+              <div class="partner-stat">
+                <span class="partner-stat-val" id="partner-fraction">0/0</span>
+                <span class="partner-stat-label">Goals</span>
+              </div>
+              <div class="partner-stat">
+                <span class="partner-stat-val" id="partner-hours">0h</span>
+                <span class="partner-stat-label">Studied</span>
+              </div>
+            </div>
           </div>
-          <div id="history-list" style="display: flex; flex-direction: column; gap: var(--spacing-md);"></div>
         </div>
 
       </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW: PLAN (TOMORROW) -->
+      <!-- ========================================== -->
+      <div id="view-plan" class="view hidden">
+        <div class="greeting-area">
+          <div class="greeting-date" id="plan-date-display">Tomorrow</div>
+          <h2 class="serif">Tomorrow's Plan</h2>
+        </div>
+
+        <div class="section-block">
+          <div id="plan-goals-list"></div>
+          
+          <div style="margin-top: 32px;">
+            <button class="btn btn-primary" onclick="app.openPlanModal()">Edit Plan</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW: QUESTIONS -->
+      <!-- ========================================== -->
+      <div id="view-questions" class="view hidden">
+        <h2 class="serif">Question Exchange</h2>
+        
+        <div class="section-block" id="qex-pending-section">
+          <span class="section-label">Pending For You</span>
+          <div id="qex-pending-list"></div>
+        </div>
+
+        <div class="section-block">
+          <span class="section-label">Ask A Question</span>
+          <div class="checklist-container" style="padding: 40px;">
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <select id="qex-ask-subject" class="form-input">
+                <option>Art & Culture</option>
+                <option>Ancient History</option>
+                <option>Medieval History</option>
+                <option>Modern History</option>
+                <option>Polity</option>
+                <option>Governance</option>
+                <option>Geography</option>
+                <option>Economy</option>
+                <option>Environment</option>
+                <option>Science & Technology</option>
+                <option>Society</option>
+                <option>International Relations</option>
+                <option>Current Affairs</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Question for <span id="qex-ask-recipient" style="color: var(--accent);"></span></label>
+              <textarea id="qex-ask-text" class="form-input" placeholder="Type your question..."></textarea>
+            </div>
+            <div style="text-align: right;">
+              <button id="btn-submit-qex" class="btn btn-primary" onclick="app.submitQuestion()">Send Question</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW: HISTORY -->
+      <!-- ========================================== -->
+      <div id="view-history" class="view hidden">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; flex-wrap: wrap; gap: 16px;">
+          <h2 class="serif" style="margin: 0;">Timeline</h2>
+          <select id="history-filter" class="form-input" style="width: auto; min-width: 200px; padding: 10px 16px;" onchange="app.renderHistory(false)">
+              <option value="All">All Subjects</option>
+              <option>Art & Culture</option>
+              <option>Ancient History</option>
+              <option>Medieval History</option>
+              <option>Modern History</option>
+              <option>Polity</option>
+              <option>Governance</option>
+              <option>Geography</option>
+              <option>Economy</option>
+              <option>Environment</option>
+              <option>Science & Technology</option>
+              <option>Society</option>
+              <option>International Relations</option>
+              <option>Current Affairs</option>
+              <option>Other</option>
+          </select>
+        </div>
+        <div id="history-list"></div>
+      </div>
+
     </main>
   </div>
 
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container"></div>
+
   <!-- ========================================== -->
-  <!-- MODAL: SET TOMORROW'S GOALS -->
+  <!-- MODALS -->
   <!-- ========================================== -->
-  <div id="modal-goals" class="modal-overlay hidden">
+  
+  <!-- Plan Tomorrow Modal -->
+  <div id="modal-plan" class="modal-overlay">
     <div class="modal-content">
-      <div class="modal-header">
-        <h2>Tomorrow's Goals</h2>
-        <button class="btn-text" onclick="app.closeModals()">Close</button>
-      </div>
-      <h3 id="modal-goals-date" style="margin-bottom: var(--spacing-lg);"></h3>
-      
-      <div id="modal-goals-msg" class="message hidden"></div>
-      
-      <div id="goals-input-container" style="margin-bottom: var(--spacing-md);"></div>
-      
-      <button class="btn btn-secondary" style="width: 100%; margin-bottom: var(--spacing-lg);" onclick="app.addGoalInput()">+ Add Goal</button>
-      
-      <div style="text-align: right;">
-        <button id="btn-save-goals" class="btn btn-primary" onclick="app.saveGoals()">Save Tomorrow's Goals</button>
+      <h3 class="serif" style="margin-bottom: 32px; font-size: 1.75rem;">Plan Tomorrow</h3>
+      <div id="modal-plan-inputs"></div>
+      <button class="btn btn-outline" style="width: 100%; margin: 16px 0 40px 0; border-style: dashed;" onclick="app.addPlanInput()">+ Add Goal</button>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="btn btn-text" onclick="app.closeModals()">Cancel</button>
+        <button id="btn-save-plan" class="btn btn-primary" onclick="app.savePlan()">Save Plan</button>
       </div>
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL: LOG TODAY'S STUDY -->
-  <!-- ========================================== -->
-  <div id="modal-log" class="modal-overlay hidden">
+  <!-- Log Study Modal -->
+  <div id="modal-log" class="modal-overlay">
     <div class="modal-content">
-      <div class="modal-header">
-        <h2>Log Today's Study</h2>
-        <button class="btn-text" onclick="app.closeModals()">Close</button>
-      </div>
-      <h3 id="modal-log-date" style="margin-bottom: var(--spacing-lg);"></h3>
-      
-      <div id="modal-log-msg" class="message hidden"></div>
-
+      <h3 class="serif" style="margin-bottom: 32px; font-size: 1.75rem;">Today's Study</h3>
       <div class="form-group">
-        <label class="form-label">Study Hours</label>
-        <input type="number" id="log-hours" class="form-input" min="0" max="24" step="0.5" placeholder="e.g., 6.5">
+        <label class="form-label">How much did you study?</label>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <input type="number" id="log-hours" class="form-input" min="0" max="24" step="0.5" style="width: 120px; font-size: 1.25rem; font-weight: 600;" placeholder="0.0">
+          <span style="color: var(--text-muted); font-weight: 500;">hours</span>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Completion Note (Optional)</label>
-        <textarea id="log-note" class="form-input" placeholder="How did today go?"></textarea>
+      <div class="form-group" style="margin-bottom: 40px;">
+        <label class="form-label">Today's note</label>
+        <textarea id="log-note" class="form-input" placeholder="Reflections on today..."></textarea>
       </div>
-      
-      <div style="text-align: right;">
-        <button id="btn-save-log" class="btn btn-primary" onclick="app.saveLog()">Save</button>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="btn btn-text" onclick="app.closeModals()">Cancel</button>
+        <button id="btn-save-log" class="btn btn-primary" onclick="app.saveLog()">Save Log</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Reusable API JSONP Layer
+    // ---------------------------------------------------------
+    // API LAYER (Unmodified JSONP logic)
+    // ---------------------------------------------------------
     const apiLayer = {
       baseUrl: 'https://script.google.com/macros/s/AKfycbwZdsLkAtPNy7oA5X8UyOHgqctSigR0Vb635Dac3lrSE69AfucLOKrhALKLGUDcL3nV/exec',
-      
       request(action, params = {}) {
         return new Promise((resolve, reject) => {
           const callbackName = 'jsonp_cb_' + Math.round(1000000 * Math.random()) + '_' + Date.now();
@@ -846,7 +929,7 @@
           
           const timeout = setTimeout(() => {
             cleanup();
-            reject(new Error('Request timed out after 15 seconds.'));
+            reject(new Error('Request timed out.'));
           }, 15000);
           
           window[callbackName] = (data) => {
@@ -858,10 +941,7 @@
             }
           };
           
-          script.onerror = () => {
-            cleanup();
-            reject(new Error('Network error or script blocked.'));
-          };
+          script.onerror = () => { cleanup(); reject(new Error('Network error.')); };
           
           function cleanup() {
             clearTimeout(timeout);
@@ -875,12 +955,15 @@
       }
     };
 
+    // ---------------------------------------------------------
+    // APPLICATION LOGIC
+    // ---------------------------------------------------------
     const app = {
       currentUser: null,
       users: ["Lakshya", "Archita"],
       
-      // Caches
-      currentDashboardData: null,
+      // Data Caches
+      dashboardData: null,
       pendingCounts: { Lakshya: 0, Archita: 0 },
       cachedHistory: [],
       cachedPending: [],
@@ -891,105 +974,112 @@
           this.currentUser = savedUser;
           this.showApp();
         } else {
-          this.showSelectUser();
+          document.getElementById('view-select-user').classList.remove('hidden');
         }
+        
+        // Setup Close Modal on Backdrop Click
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+          modal.addEventListener('click', (e) => {
+            if(e.target === modal) this.closeModals();
+          });
+        });
       },
 
-      /* --- UTILS --- */
+      /* --- UI UTILS --- */
       escapeHTML(str) {
         if (!str) return '';
-        return String(str).replace(/[&<>'"]/g, 
-          tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-        );
+        return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
       },
+      showToast(msg, isError = false) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${isError ? 'error' : ''}`;
+        toast.textContent = msg;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(20px)';
+          toast.style.transition = 'all 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }, 4000);
+      },
+      
+      /* --- DATE UTILS --- */
       getLocalDateString(offsetDays = 0) {
         const d = new Date();
         d.setDate(d.getDate() + offsetDays);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`; // YYYY-MM-DD
+        return `${y}-${m}-${day}`;
       },
-      formatDateFriendly(dateString) {
-        if (!dateString) return '';
-        const parts = dateString.split('-');
-        if(parts.length !== 3) return this.escapeHTML(dateString);
-        const date = new Date(parts[0], parts[1]-1, parts[2]);
-        if (isNaN(date.getTime())) return this.escapeHTML(dateString);
-        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-        return date.toLocaleDateString('en-GB', options);
+      formatDateFriendly(dateStr) {
+        if (!dateStr) return '';
+        const p = dateStr.split('-');
+        if(p.length !== 3) return this.escapeHTML(dateStr);
+        const date = new Date(p[0], p[1]-1, p[2]);
+        if(isNaN(date.getTime())) return this.escapeHTML(dateStr);
+        return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
       },
-      formatDateTime(isoString) {
-        if(!isoString) return '';
-        const d = new Date(isoString);
-        if(isNaN(d.getTime())) return this.escapeHTML(isoString);
-        return d.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'}).replace(',', ' ·');
-      },
-      getOtherUser() {
-        return this.currentUser === "Lakshya" ? "Archita" : "Lakshya";
-      },
-      showMsg(elementId, text, isError = false) {
-        const el = document.getElementById(elementId);
-        el.textContent = text;
-        el.className = `message ${isError ? 'error' : 'success'}`;
-        el.classList.remove('hidden');
-        if(!isError) setTimeout(() => el.classList.add('hidden'), 4000);
+      getGreeting() {
+        const hr = new Date().getHours();
+        if(hr < 12) return 'Good morning';
+        if(hr < 18) return 'Good afternoon';
+        return 'Good evening';
       },
 
-      /* --- NAVIGATION --- */
-      showSelectUser() {
-        document.getElementById('app-shell').classList.add('hidden');
-        document.getElementById('view-select-user').classList.remove('hidden');
-      },
-      showApp() {
-        document.getElementById('view-select-user').classList.add('hidden');
-        document.getElementById('app-shell').classList.remove('hidden');
-        document.getElementById('header-current-user').textContent = this.currentUser;
-        this.switchView('dashboard');
-      },
+      /* --- AUTH & NAVIGATION --- */
+      getOtherUser() { return this.currentUser === "Lakshya" ? "Archita" : "Lakshya"; },
+      
       selectUser(username) {
         this.currentUser = username;
         localStorage.setItem('askback_user', username);
+        document.getElementById('view-select-user').classList.add('hidden');
         this.showApp();
       },
-      switchUser() {
-        this.currentUser = null;
-        localStorage.removeItem('askback_user');
-        this.showSelectUser();
+      
+      toggleUserMenu() {
+        document.getElementById('user-menu').classList.toggle('open');
       },
+      
+      switchUser(username) {
+        document.getElementById('user-menu').classList.remove('open');
+        this.selectUser(username);
+      },
+
+      showApp() {
+        document.getElementById('app-shell').classList.remove('hidden');
+        document.getElementById('header-current-user').textContent = this.currentUser;
+        this.switchView('today');
+      },
+
       async switchView(viewId) {
-        // Update Tabs
+        // Active Tab Styling
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-        const activeTab = document.getElementById(`nav-${viewId}`);
-        if(activeTab) activeTab.classList.add('active');
+        document.getElementById(`nav-${viewId}`).classList.add('active');
 
-        // Hide all views
+        // Hide views
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-        document.getElementById('global-msg').classList.add('hidden');
-
-        // Show global loading
-        const globalLoad = document.getElementById('global-loading');
-        globalLoad.classList.remove('hidden');
+        document.getElementById('global-loading').classList.remove('hidden');
 
         try {
-          if (viewId === 'dashboard') {
+          if (viewId === 'today' || viewId === 'plan') {
             await this.fetchDashboardData();
-            this.renderDashboard();
-          } else if (viewId === 'goals') {
-            if(!this.currentDashboardData) await this.fetchDashboardData();
-            this.renderGoalsView();
-          } else if (viewId === 'qex') {
-            await this.loadQex();
+            if(viewId === 'today') this.renderToday();
+            if(viewId === 'plan') this.renderPlan();
+          } else if (viewId === 'questions') {
+            await this.loadQuestions();
           } else if (viewId === 'history') {
             await this.loadHistory();
           }
           document.getElementById(`view-${viewId}`).classList.remove('hidden');
         } catch(e) {
-          this.showMsg('global-msg', 'Failed to load data: ' + e.message, true);
+          this.showToast('Failed to load data.', true);
         } finally {
-          globalLoad.classList.add('hidden');
+          document.getElementById('global-loading').classList.add('hidden');
         }
       },
+
       updateNavBadge() {
         const badge = document.getElementById('nav-qex-badge');
         const count = this.pendingCounts[this.currentUser] || 0;
@@ -998,264 +1088,194 @@
         else badge.classList.add('empty');
       },
 
-      /* --- DASHBOARD / SHARED DATA FETCHING --- */
+      /* --- DATA FETCHING --- */
       async fetchDashboardData() {
-        const [dashRes, lakshyaCountRes, architaCountRes] = await Promise.all([
+        const [dashRes, myCountRes, otherCountRes] = await Promise.all([
           apiLayer.request('dashboard'),
-          apiLayer.request('count', { user: 'Lakshya' }),
-          apiLayer.request('count', { user: 'Archita' })
+          apiLayer.request('count', { user: this.currentUser }),
+          apiLayer.request('count', { user: this.getOtherUser() })
         ]);
-        this.currentDashboardData = dashRes.dashboard;
-        this.pendingCounts = {
-          Lakshya: lakshyaCountRes.count || 0,
-          Archita: architaCountRes.count || 0
-        };
+        this.dashboardData = dashRes.dashboard;
+        this.pendingCounts[this.currentUser] = myCountRes.count || 0;
+        this.pendingCounts[this.getOtherUser()] = otherCountRes.count || 0;
         this.updateNavBadge();
       },
 
-      /* --- RENDER DASHBOARD --- */
-      renderDashboard() {
-        const data = this.currentDashboardData;
-        document.getElementById('dash-today-date').textContent = this.formatDateFriendly(data.today.date);
-        document.getElementById('dash-tomorrow-date').textContent = this.formatDateFriendly(data.tomorrow.date);
+      /* --- RENDER: TODAY --- */
+      renderToday() {
+        const myData = this.dashboardData.today.users[this.currentUser];
+        const partnerData = this.dashboardData.today.users[this.getOtherUser()];
         
-        const todayGrid = document.getElementById('dash-today-grid');
-        const tomorrowGrid = document.getElementById('dash-tomorrow-grid');
-        todayGrid.innerHTML = '';
-        tomorrowGrid.innerHTML = '';
-
-        this.users.forEach(user => {
-          todayGrid.innerHTML += this.buildTodayCard(user, data.today.users[user], this.pendingCounts[user]);
-          tomorrowGrid.innerHTML += this.buildTomorrowCard(user, data.tomorrow.users[user]);
-        });
-      },
-
-      /* --- RENDER GOALS VIEW --- */
-      renderGoalsView() {
-        const data = this.currentDashboardData;
-        const todayContainer = document.getElementById('goals-today-card');
-        const tomorrowContainer = document.getElementById('goals-tomorrow-card');
+        // Greeting
+        document.getElementById('today-date-display').textContent = `Today — ${this.formatDateFriendly(this.dashboardData.today.date)}`;
+        document.getElementById('today-greeting').textContent = `${this.getGreeting()}, ${this.currentUser}.`;
         
-        todayContainer.innerHTML = this.buildTodayCard(this.currentUser, data.today.users[this.currentUser], this.pendingCounts[this.currentUser]);
-        tomorrowContainer.innerHTML = this.buildTomorrowCard(this.currentUser, data.tomorrow.users[this.currentUser]);
-      },
-
-      /* --- CARD BUILDERS --- */
-      buildTodayCard(user, data, pendingCount) {
-        const isMe = (user === this.currentUser);
-        const badgeHtml = (pendingCount > 0 && isMe)
-          ? `<div class="badge badge-pending" onclick="app.switchView('qex')">${pendingCount} Pending Questions</div>` 
-          : '';
-
-        let goalsHtml = '<div class="empty-state">No goals set for today.</div>';
-        if (data.goals && data.goals.length > 0) {
-          goalsHtml = '<ul class="goal-list">';
-          data.goals.forEach(g => {
-            const isCompCls = g.completed ? 'completed' : '';
-            const isChkAttr = g.completed ? 'checked' : '';
-            // Only current user can click checkboxes
-            const disabledAttr = isMe ? '' : 'disabled';
-            
-            goalsHtml += `
-              <li id="goal-item-${g.id}" class="goal-item ${isCompCls}">
-                <input type="checkbox" id="goal-chk-${g.id}" class="goal-checkbox" ${isChkAttr} ${disabledAttr}
-                       onchange="app.toggleGoal('${g.id}', '${user}', this.checked)">
-                <span>${this.escapeHTML(g.goal)}</span>
-              </li>
-            `;
-          });
-          goalsHtml += '</ul>';
+        // Alert
+        const pendingCount = this.pendingCounts[this.currentUser];
+        const alertBlock = document.getElementById('today-attention-block');
+        if (pendingCount > 0) {
+          document.getElementById('today-attention-text').textContent = `${pendingCount} question${pendingCount>1?'s':''} waiting for you.`;
+          alertBlock.classList.remove('hidden');
+        } else {
+          alertBlock.classList.add('hidden');
         }
 
-        const studyHours = data.studyHours !== null ? `${data.studyHours} hrs` : '--';
-        const noteHtml = data.note ? `<div class="note-text">"${this.escapeHTML(data.note)}"</div>` : '';
+        // Progress
+        const comp = myData.completion;
+        const pct = comp.total > 0 ? Math.round((comp.completed / comp.total) * 100) : 0;
+        document.getElementById('today-percent').textContent = `${pct}%`;
+        document.getElementById('today-fraction').textContent = `${comp.completed} of ${comp.total}`;
+        document.getElementById('today-hours').textContent = myData.studyHours !== null ? `${myData.studyHours}h` : '0h';
 
-        return `
-          <div class="card" style="height: 100%;">
-            <div class="card-header">
-              <h4>${user}</h4>
-              ${badgeHtml}
-            </div>
-            ${goalsHtml}
-            <div class="stats-block">
-              <div class="stat-row">
-                <span class="stat-label">Goals Completed</span>
-                <span class="stat-value" id="stats-completed-${user}">${data.completion.completed} / ${data.completion.total}</span>
+        // Goals List
+        const listEl = document.getElementById('today-goals-list');
+        if (!myData.goals || myData.goals.length === 0) {
+          listEl.innerHTML = '<div class="empty-state">No goals set for today. Plan tomorrow tonight.</div>';
+        } else {
+          let html = '';
+          myData.goals.forEach(g => {
+            const isComp = g.completed ? 'completed' : '';
+            const isChk = g.completed ? 'checked' : '';
+            html += `
+              <div class="goal-item">
+                <label id="goal-item-${g.id}" class="goal-label ${isComp}">
+                  <input type="checkbox" id="goal-chk-${g.id}" class="goal-checkbox" ${isChk} 
+                         onchange="app.toggleGoal('${g.id}', this.checked)">
+                  <span class="custom-check"></span>
+                  <span class="goal-text">${this.escapeHTML(g.goal)}</span>
+                </label>
               </div>
-              <div class="stat-row">
-                <span class="stat-label">Study Hours</span>
-                <span class="stat-value">${studyHours}</span>
-              </div>
-              ${noteHtml}
-            </div>
-            <div id="goal-error-${user}" class="message error hidden" style="margin-top: 12px;"></div>
-          </div>
-        `;
-      },
-
-      buildTomorrowCard(user, data) {
-        let goalsHtml = '<div class="empty-state">No goals set for tomorrow yet.</div>';
-        let targetCount = 0;
-        
-        if (data.goals && data.goals.length > 0) {
-          targetCount = data.goals.length;
-          goalsHtml = '<ul class="goal-list">';
-          data.goals.forEach(g => {
-            goalsHtml += `
-              <li class="goal-item" style="color: var(--text-secondary);">
-                <div class="checkbox-mock" style="border-style: dashed;"></div>
-                <span>${this.escapeHTML(g.goal)}</span>
-              </li>
             `;
           });
-          goalsHtml += '</ul>';
+          listEl.innerHTML = html;
         }
 
-        return `
-          <div class="card" style="height: 100%;">
-            <div class="card-header">
-              <h4>${user}</h4>
-              <span style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500;">
-                ${targetCount} Target${targetCount !== 1 ? 's' : ''}
-              </span>
-            </div>
-            ${goalsHtml}
-          </div>
-        `;
+        // Partner Setup
+        const partnerName = this.getOtherUser();
+        document.getElementById('partner-name').textContent = partnerName;
+        document.getElementById('partner-initial').textContent = partnerName.charAt(0);
+        document.getElementById('partner-fraction').textContent = `${partnerData.completion.completed}/${partnerData.completion.total}`;
+        document.getElementById('partner-hours').textContent = partnerData.studyHours !== null ? `${partnerData.studyHours}h` : '0h';
       },
 
-      /* --- TOGGLE GOAL --- */
-      async toggleGoal(goalId, cardUser, isCompleted) {
-        if(cardUser !== this.currentUser) return; // safety
-        
+      async toggleGoal(goalId, isCompleted) {
         const chk = document.getElementById(`goal-chk-${goalId}`);
-        const listItem = document.getElementById(`goal-item-${goalId}`);
-        const errorDiv = document.getElementById(`goal-error-${cardUser}`);
-        const statsSpan = document.getElementById(`stats-completed-${cardUser}`);
-
+        const label = document.getElementById(`goal-item-${goalId}`);
         chk.disabled = true;
-        if (errorDiv) errorDiv.classList.add('hidden');
 
         try {
+          // EXPLICIT String format requested
           await apiLayer.request('completeGoal', {
             id: goalId,
-            user: this.currentUser, 
+            user: this.currentUser,
             completed: String(isCompleted)
           });
+          
+          // Optimistic local update
+          const myData = this.dashboardData.today.users[this.currentUser];
+          const target = myData.goals.find(g => g.id === goalId);
+          if (target) target.completed = isCompleted;
+          
+          const completedCount = myData.goals.filter(g => g.completed).length;
+          myData.completion.completed = completedCount;
+          
+          const pct = myData.completion.total > 0 ? Math.round((completedCount / myData.completion.total) * 100) : 0;
+          document.getElementById('today-percent').textContent = `${pct}%`;
+          document.getElementById('today-fraction').textContent = `${completedCount} of ${myData.completion.total}`;
 
-          // Optimistically update cache
-          if (this.currentDashboardData && this.currentDashboardData.today.users[cardUser]) {
-            const userData = this.currentDashboardData.today.users[cardUser];
-            const targetGoal = userData.goals.find(g => g.id === goalId);
-            if (targetGoal) targetGoal.completed = isCompleted;
-            
-            const completedCount = userData.goals.filter(g => g.completed).length;
-            userData.completion.completed = completedCount;
-            if (statsSpan) statsSpan.textContent = `${completedCount} / ${userData.completion.total}`;
-          }
-
-          if (isCompleted) listItem.classList.add('completed');
-          else listItem.classList.remove('completed');
-        } catch (error) {
-          chk.checked = !isCompleted; 
-          if (errorDiv) {
-            errorDiv.textContent = error.message;
-            errorDiv.classList.remove('hidden');
-          }
+          if (isCompleted) label.classList.add('completed');
+          else label.classList.remove('completed');
+          
+        } catch(e) {
+          chk.checked = !isCompleted;
+          this.showToast('Failed to update goal.', true);
         } finally {
           chk.disabled = false;
         }
       },
 
-      /* --- MODALS --- */
-      closeModals() {
-        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+      /* --- RENDER: PLAN --- */
+      renderPlan() {
+        const data = this.dashboardData.tomorrow.users[this.currentUser];
+        document.getElementById('plan-date-display').textContent = this.formatDateFriendly(this.dashboardData.tomorrow.date);
+        
+        const listEl = document.getElementById('plan-goals-list');
+        if (!data.goals || data.goals.length === 0) {
+          listEl.innerHTML = '<div class="empty-state">Nothing planned for tomorrow yet.</div>';
+        } else {
+          let html = '<ol class="plan-list">';
+          data.goals.forEach(g => {
+            html += `<li class="plan-item">${this.escapeHTML(g.goal)}</li>`;
+          });
+          html += '</ol>';
+          listEl.innerHTML = html;
+        }
       },
 
-      // Set Tomorrow's Goals
-      openGoalsModal() {
-        document.getElementById('modal-goals-msg').classList.add('hidden');
-        document.getElementById('modal-goals-date').textContent = "For " + this.formatDateFriendly(this.getLocalDateString(1));
-        
-        const container = document.getElementById('goals-input-container');
-        container.innerHTML = '';
-        
-        // Load existing
-        let existing = [];
-        if(this.currentDashboardData && this.currentDashboardData.tomorrow.users[this.currentUser]) {
-           existing = this.currentDashboardData.tomorrow.users[this.currentUser].goals;
-        }
-        
-        if (existing.length > 0) {
-          existing.forEach(g => this.addGoalInput(g.goal));
-        } else {
-          this.addGoalInput('');
-        }
-        
-        document.getElementById('modal-goals').classList.remove('hidden');
+      /* --- MODALS: PLAN & LOG --- */
+      closeModals() {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
       },
-      addGoalInput(val = '') {
-        const container = document.getElementById('goals-input-container');
+      openModal(id) {
+        document.getElementById(id).classList.add('open');
+      },
+
+      openPlanModal() {
+        const container = document.getElementById('modal-plan-inputs');
+        container.innerHTML = '';
+        const existing = this.dashboardData.tomorrow.users[this.currentUser].goals || [];
+        if (existing.length > 0) {
+          existing.forEach(g => this.addPlanInput(g.goal));
+        } else {
+          this.addPlanInput('');
+        }
+        this.openModal('modal-plan');
+      },
+      addPlanInput(val = '') {
+        const container = document.getElementById('modal-plan-inputs');
         const div = document.createElement('div');
         div.className = 'dynamic-list-item';
         div.innerHTML = `
-          <input type="text" class="form-input goal-input-field" placeholder="Enter goal..." value="${this.escapeHTML(val)}">
-          <button class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
+          <input type="text" class="form-input plan-input-field" placeholder="Target..." value="${this.escapeHTML(val)}">
+          <button class="btn-icon" onclick="this.parentElement.remove()">✕</button>
         `;
         container.appendChild(div);
       },
-      async saveGoals() {
-        const btn = document.getElementById('btn-save-goals');
+      async savePlan() {
+        const btn = document.getElementById('btn-save-plan');
         btn.disabled = true;
         btn.textContent = 'Saving...';
         
         try {
-          const inputs = document.querySelectorAll('.goal-input-field');
+          const inputs = document.querySelectorAll('.plan-input-field');
           let goals = [];
-          inputs.forEach(inp => {
-            const val = inp.value.trim();
-            if(val) goals.push(val);
-          });
+          inputs.forEach(inp => { const v = inp.value.trim(); if(v) goals.push(v); });
           
-          if(goals.length === 0) throw new Error("Please add at least one goal.");
+          if(goals.length === 0) throw new Error("Please add at least one target.");
 
           await apiLayer.request('saveGoals', {
             user: this.currentUser,
-            date: this.getLocalDateString(1), // Tomorrow
+            date: this.getLocalDateString(1), 
             goals: JSON.stringify(goals)
           });
           
           this.closeModals();
-          // Refresh current view (either Dashboard or Goals)
-          const activeView = document.querySelector('.nav-tab.active').id.replace('nav-', '');
-          this.switchView(activeView);
+          this.showToast("Tomorrow's plan saved.");
+          this.switchView('plan'); // Refresh
           
-        } catch (error) {
-          this.showMsg('modal-goals-msg', error.message, true);
+        } catch (e) {
+          this.showToast(e.message, true);
         } finally {
           btn.disabled = false;
-          btn.textContent = "Save Tomorrow's Goals";
+          btn.textContent = 'Save Plan';
         }
       },
 
-      // Log Today's Study
       openLogModal() {
-        document.getElementById('modal-log-msg').classList.add('hidden');
-        document.getElementById('modal-log-date').textContent = "For " + this.formatDateFriendly(this.getLocalDateString(0));
-        
-        const hInput = document.getElementById('log-hours');
-        const nInput = document.getElementById('log-note');
-        hInput.value = '';
-        nInput.value = '';
-        
-        // Load existing
-        if(this.currentDashboardData && this.currentDashboardData.today.users[this.currentUser]) {
-           const currentData = this.currentDashboardData.today.users[this.currentUser];
-           if(currentData.studyHours !== null) hInput.value = currentData.studyHours;
-           if(currentData.note) nInput.value = currentData.note;
-        }
-
-        document.getElementById('modal-log').classList.remove('hidden');
+        const myData = this.dashboardData.today.users[this.currentUser];
+        document.getElementById('log-hours').value = myData.studyHours !== null ? myData.studyHours : '';
+        document.getElementById('log-note').value = myData.note || '';
+        this.openModal('modal-log');
       },
       async saveLog() {
         const btn = document.getElementById('btn-save-log');
@@ -1266,109 +1286,75 @@
         btn.textContent = 'Saving...';
 
         try {
-          if(hours === '') throw new Error("Study hours are required.");
+          if(hours === '') throw new Error("Hours required.");
           
           await apiLayer.request('saveLog', {
             user: this.currentUser,
-            date: this.getLocalDateString(0), // Today
+            date: this.getLocalDateString(0),
             studyHours: hours,
             note: note
           });
           
           this.closeModals();
-          const activeView = document.querySelector('.nav-tab.active').id.replace('nav-', '');
-          this.switchView(activeView);
-        } catch (error) {
-          this.showMsg('modal-log-msg', error.message, true);
+          this.showToast("Study log updated.");
+          this.switchView('today'); // Refresh
+        } catch (e) {
+          this.showToast(e.message, true);
         } finally {
           btn.disabled = false;
-          btn.textContent = "Save";
+          btn.textContent = 'Save Log';
         }
       },
 
-      /* --- QUESTION EXCHANGE --- */
-      async loadQex() {
+      /* --- QUESTIONS (EXCHANGE) --- */
+      async loadQuestions() {
         document.getElementById('qex-ask-recipient').textContent = this.getOtherUser();
-        document.getElementById('qex-ask-subject').selectedIndex = 0;
         document.getElementById('qex-ask-text').value = '';
-        document.getElementById('qex-ask-msg').classList.add('hidden');
         
         const listEl = document.getElementById('qex-pending-list');
-        listEl.innerHTML = '<div class="loading-state">Loading pending questions...</div>';
+        listEl.innerHTML = '<div class="loading-state">Checking questions...</div>';
         
         const res = await apiLayer.request('pending', { user: this.currentUser });
         this.cachedPending = res.questions || [];
-        
-        // Update nav badge to match accurate count
         this.pendingCounts[this.currentUser] = this.cachedPending.length;
         this.updateNavBadge();
         
-        this.renderPendingQex();
+        this.renderPendingQuestions();
       },
-      renderPendingQex() {
+      renderPendingQuestions() {
         const listEl = document.getElementById('qex-pending-list');
         if(this.cachedPending.length === 0) {
-          listEl.innerHTML = '<div class="empty-state">You have no pending questions.</div>';
+          listEl.innerHTML = '<div class="empty-state">You\'re all caught up.</div>';
           return;
         }
         
-        let html = '<div style="display: flex; flex-direction: column; gap: var(--spacing-md);">';
+        let html = '';
         this.cachedPending.forEach(q => {
+          const dObj = new Date(q.createdAt);
+          const dateStr = isNaN(dObj.getTime()) ? q.createdAt : dObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
           html += `
-            <div class="card" id="q-card-${q.id}">
-              <div class="card-meta">
-                <span class="badge badge-subject">${this.escapeHTML(q.subject)}</span>
-                <span>From ${this.escapeHTML(q.creator)} &middot; ${this.formatDateTime(q.createdAt)}</span>
+            <div class="q-card" id="q-card-${q.id}">
+              <div class="q-meta">
+                <span class="tag">${this.escapeHTML(q.subject)}</span>
+                <span>Asked by ${this.escapeHTML(q.creator)} &middot; ${dateStr}</span>
               </div>
-              <div style="font-size: 1.125rem; font-weight: 500; margin-bottom: var(--spacing-md); white-space: pre-wrap;">${this.escapeHTML(q.question)}</div>
-              
+              <div class="q-text">${this.escapeHTML(q.question)}</div>
               <div id="qex-answer-area-${q.id}">
-                 <button class="btn btn-primary" onclick="app.showAnswerBox('${q.id}')">Answer</button>
+                 <button class="btn btn-outline" onclick="app.showAnswerBox('${q.id}')">Answer</button>
               </div>
             </div>
           `;
         });
-        html += '</div>';
         listEl.innerHTML = html;
-      },
-      async submitQuestion() {
-        const btn = document.getElementById('btn-submit-qex');
-        const subject = document.getElementById('qex-ask-subject').value;
-        const text = document.getElementById('qex-ask-text').value.trim();
-        
-        if(!text) return;
-        
-        btn.disabled = true;
-        btn.textContent = 'Sending...';
-        
-        try {
-          await apiLayer.request('create', {
-            creator: this.currentUser,
-            recipient: this.getOtherUser(),
-            subject: subject,
-            question: text
-          });
-          
-          document.getElementById('qex-ask-text').value = '';
-          document.getElementById('qex-ask-subject').selectedIndex = 0;
-          this.showMsg('qex-ask-msg', 'Question sent successfully!');
-          
-        } catch (e) {
-          this.showMsg('qex-ask-msg', e.message, true);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Send Question';
-        }
       },
       showAnswerBox(id) {
         const area = document.getElementById(`qex-answer-area-${id}`);
         area.innerHTML = `
-          <div class="answer-box">
-            <textarea id="qex-ans-text-${id}" class="form-input" placeholder="Type your answer here..."></textarea>
-            <div id="qex-ans-msg-${id}" class="message hidden" style="margin-top: 8px;"></div>
-            <div style="text-align: right; margin-top: 8px;">
-               <button class="btn btn-secondary" onclick="app.renderPendingQex()">Cancel</button>
-               <button id="qex-ans-btn-${id}" class="btn btn-primary" onclick="app.submitAnswer('${id}')">Submit Answer</button>
+          <div class="q-answer-box">
+            <textarea id="qex-ans-text-${id}" class="form-input" placeholder="Your answer..."></textarea>
+            <div style="text-align: right; margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px;">
+               <button class="btn btn-text" onclick="app.renderPendingQuestions()">Cancel</button>
+               <button id="qex-ans-btn-${id}" class="btn btn-primary" onclick="app.submitAnswer('${id}')">Submit</button>
             </div>
           </div>
         `;
@@ -1383,22 +1369,41 @@
         btn.textContent = 'Submitting...';
         
         try {
-          await apiLayer.request('answer', {
-            id: id,
-            user: this.currentUser,
-            answer: text
-          });
-          
-          // Remove from local cache and re-render
+          await apiLayer.request('answer', { id: id, user: this.currentUser, answer: text });
           this.cachedPending = this.cachedPending.filter(q => q.id !== id);
           this.pendingCounts[this.currentUser] = this.cachedPending.length;
           this.updateNavBadge();
-          this.renderPendingQex();
-          
+          this.renderPendingQuestions();
+          this.showToast('Answer submitted.');
         } catch(e) {
-          this.showMsg(`qex-ans-msg-${id}`, e.message, true);
+          this.showToast(e.message, true);
           btn.disabled = false;
-          btn.textContent = 'Submit Answer';
+          btn.textContent = 'Submit';
+        }
+      },
+      async submitQuestion() {
+        const btn = document.getElementById('btn-submit-qex');
+        const subject = document.getElementById('qex-ask-subject').value;
+        const text = document.getElementById('qex-ask-text').value.trim();
+        
+        if(!text) return;
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        
+        try {
+          await apiLayer.request('create', {
+            creator: this.currentUser,
+            recipient: this.getOtherUser(),
+            subject: subject,
+            question: text
+          });
+          document.getElementById('qex-ask-text').value = '';
+          this.showToast('Question sent to ' + this.getOtherUser());
+        } catch (e) {
+          this.showToast(e.message, true);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Send Question';
         }
       },
 
@@ -1410,57 +1415,49 @@
         
         const res = await apiLayer.request('history', { user: this.currentUser });
         this.cachedHistory = res.questions || [];
-        this.renderHistory(true);
+        this.renderHistory();
       },
-      renderHistory(isInitial = false) {
+      renderHistory() {
         const filter = document.getElementById('history-filter').value;
         const listEl = document.getElementById('history-list');
         
-        let displayData = this.cachedHistory;
-        if(filter !== 'All') {
-          displayData = displayData.filter(q => q.subject === filter);
-        }
+        let data = this.cachedHistory;
+        if(filter !== 'All') data = data.filter(q => q.subject === filter);
 
-        if(displayData.length === 0) {
-          listEl.innerHTML = '<div class="empty-state">No questions found.</div>';
+        if(data.length === 0) {
+          listEl.innerHTML = '<div class="empty-state">No question history.</div>';
           return;
         }
 
         let html = '';
-        displayData.forEach(q => {
-          const isAns = q.status === 'Answered';
-          const badgeClass = isAns ? 'badge-answered' : 'badge-pending';
+        data.forEach(q => {
+          const dObj = new Date(q.createdAt);
+          const dateStr = isNaN(dObj.getTime()) ? q.createdAt : dObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
           
           html += `
-            <div class="card">
-              <div class="card-header" style="border: none; padding: 0; margin-bottom: var(--spacing-sm);">
-                <div class="card-meta" style="margin: 0;">
-                  <span class="badge badge-subject">${this.escapeHTML(q.subject)}</span>
-                  <span>${this.escapeHTML(q.creator)} &rarr; ${this.escapeHTML(q.recipient)}</span>
-                  <span>&middot; ${this.formatDateTime(q.createdAt)}</span>
-                </div>
-                <span class="badge ${badgeClass}">${this.escapeHTML(q.status)}</span>
+            <div class="q-card" style="position: relative;">
+              <div style="position: absolute; top: 32px; right: 32px; font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">${dateStr}</div>
+              <div class="q-meta">
+                <span class="tag">${this.escapeHTML(q.subject)}</span>
+                <span>${this.escapeHTML(q.creator)} &rarr; ${this.escapeHTML(q.recipient)}</span>
               </div>
-              <div style="font-size: 1.0625rem; font-weight: 500; white-space: pre-wrap;">${this.escapeHTML(q.question)}</div>
+              <div class="q-text" style="margin-bottom: ${q.answer ? '0' : '0'};">${this.escapeHTML(q.question)}</div>
           `;
-          
-          if(isAns && q.answer) {
+          if(q.status === 'Answered' && q.answer) {
              html += `
-               <div class="answer-display">
-                 <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px;">Answer</div>
-                 <div>${this.escapeHTML(q.answer)}</div>
+               <div class="timeline-answer">
+                 <div class="section-label">Answer</div>
+                 <div style="font-size: 1.0625rem; font-weight: 500; color: var(--text-main); white-space: pre-wrap;">${this.escapeHTML(q.answer)}</div>
                </div>
              `;
           }
           html += '</div>';
         });
-        
         listEl.innerHTML = html;
       }
-
     };
 
-    // Boot app
+    // Boot App
     app.init();
   </script>
 </body>
