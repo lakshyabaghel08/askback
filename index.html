@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AskBack - Ask. Recall. Answer.</title>
+  <title>AskBack - Dashboard</title>
   <style>
     /* 
       Premium Academic Study Tool Theme
       Clean, minimal, high-readability with generous whitespace and soft geometry.
+      Gloomy gradients are strictly avoided.
     */
     :root {
       /* Color Palette */
@@ -20,21 +21,15 @@
       
       --brand-primary: #1e293b;
       --brand-hover: #0f172a;
+      --brand-accent: #3b82f6; /* Subtle accent for active elements */
       
       --border-light: #e2e8f0;
-      --border-focus: #94a3b8;
       
       --status-success-bg: #f0fdf4;
       --status-success-text: #166534;
-      --status-success-border: #bbf7d0;
-      
-      --status-error-bg: #fef2f2;
-      --status-error-text: #991b1b;
-      --status-error-border: #fecaca;
       
       --status-pending-bg: #fffbeb;
-      --status-pending-text: #92400e;
-      --status-pending-border: #fde68a;
+      --status-pending-text: #b45309;
 
       /* Metrics */
       --radius-sm: 6px;
@@ -48,10 +43,8 @@
       
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-      --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
       
       --transition-fast: 0.15s ease-in-out;
-      --transition-smooth: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     * {
@@ -81,22 +74,32 @@
     }
 
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 0 auto;
       width: 100%;
       padding: 0 var(--spacing-lg);
     }
 
     /* Typography */
-    h1, h2, h3 {
+    h1, h2, h3, h4 {
       color: var(--text-primary);
       line-height: 1.3;
     }
 
     h2 {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       font-weight: 600;
       letter-spacing: -0.025em;
+      margin-bottom: var(--spacing-md);
+    }
+    
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--spacing-sm);
     }
 
     /* Header & Navigation */
@@ -148,11 +151,11 @@
       display: flex;
       gap: var(--spacing-xl);
       overflow-x: auto;
-      scrollbar-width: none; /* Firefox */
+      scrollbar-width: none;
     }
     
     .app-nav::-webkit-scrollbar {
-      display: none; /* Chrome/Safari */
+      display: none;
     }
 
     .nav-tab {
@@ -166,9 +169,6 @@
       border-bottom: 2px solid transparent;
       white-space: nowrap;
       transition: color var(--transition-fast);
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
 
     .nav-tab:hover:not(:disabled) {
@@ -179,41 +179,6 @@
       color: var(--brand-primary);
       border-bottom-color: var(--brand-primary);
       font-weight: 600;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--brand-primary);
-      color: #fff;
-      font-size: 0.65rem;
-      font-weight: 700;
-      height: 18px;
-      min-width: 18px;
-      padding: 0 5px;
-      border-radius: 9px;
-      transition: opacity var(--transition-fast);
-    }
-
-    .badge.empty {
-      background: var(--border-light);
-      color: var(--text-secondary);
-    }
-
-    /* Main Content */
-    .main-content {
-      flex-grow: 1;
-      padding: var(--spacing-xl) 0 64px 0;
-    }
-    
-    .view-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: var(--spacing-lg);
-      flex-wrap: wrap;
-      gap: var(--spacing-md);
     }
 
     /* Buttons */
@@ -231,22 +196,12 @@
       border: 1px solid transparent;
     }
 
-    .btn:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 3px var(--border-light);
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
     .btn-primary {
       background-color: var(--brand-primary);
       color: #fff;
     }
 
-    .btn-primary:hover:not(:disabled) {
+    .btn-primary:hover {
       background-color: var(--brand-hover);
       box-shadow: var(--shadow-sm);
     }
@@ -257,11 +212,10 @@
       border-color: var(--border-light);
     }
 
-    .btn-secondary:hover:not(:disabled) {
+    .btn-secondary:hover {
       background-color: var(--bg-subtle);
-      border-color: var(--border-focus);
     }
-
+    
     .btn-text {
       background: none;
       border: none;
@@ -271,245 +225,193 @@
       font-weight: 500;
       text-decoration: underline;
       text-underline-offset: 2px;
+      cursor: pointer;
     }
 
-    .btn-text:hover:not(:disabled) {
+    .btn-text:hover {
       color: var(--text-primary);
     }
 
-    /* Form Elements */
-    .form-group {
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .form-label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: var(--spacing-xs);
-    }
-
-    .form-static {
-      font-size: 1rem;
-      color: var(--text-secondary);
-      padding: var(--spacing-sm) 0;
-      border-bottom: 1px solid var(--border-light);
-    }
-
-    .form-input {
-      width: 100%;
-      font-family: inherit;
-      padding: 12px 16px;
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-sm);
-      font-size: 1rem;
-      background-color: var(--bg-surface);
-      color: var(--text-primary);
-      transition: all var(--transition-fast);
-    }
-    
-    .form-input::placeholder {
-      color: var(--text-tertiary);
-    }
-
-    .form-input:focus {
-      outline: none;
-      border-color: var(--brand-primary);
-      box-shadow: 0 0 0 1px var(--brand-primary);
-    }
-
-    textarea.form-input {
-      resize: vertical;
-      min-height: 120px;
-      line-height: 1.5;
-    }
-
-    .form-container {
+    /* Quick Actions */
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-xl);
+      padding: var(--spacing-lg);
       background: var(--bg-surface);
-      border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
-      padding: var(--spacing-xl);
+      border: 1px solid var(--border-light);
       box-shadow: var(--shadow-sm);
     }
 
-    /* Cards */
-    .cards-grid {
+    /* Dashboard Layout */
+    .main-content {
+      flex-grow: 1;
+      padding: var(--spacing-xl) 0 64px 0;
+    }
+
+    .section-block {
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .users-grid {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: var(--spacing-lg);
     }
 
-    .card {
+    /* User Cards */
+    .user-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
       padding: var(--spacing-lg);
       box-shadow: var(--shadow-sm);
-      transition: box-shadow var(--transition-smooth);
       display: flex;
       flex-direction: column;
     }
-    
-    .card:hover {
-      box-shadow: var(--shadow-md);
-    }
 
-    .card-header {
+    .user-card-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: var(--spacing-md);
-      flex-wrap: wrap;
-      gap: var(--spacing-sm);
-    }
-    
-    .card-header-left {
-      display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid var(--border-light);
     }
 
-    .badge-subject {
-      display: inline-block;
+    .user-card-header h4 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .badge-notification {
+      background-color: var(--status-pending-bg);
+      color: var(--status-pending-text);
       font-size: 0.75rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--brand-primary);
-      background-color: var(--bg-subtle);
       padding: 4px 10px;
-      border-radius: 4px;
+      border-radius: 12px;
+      cursor: pointer;
+      border: 1px solid #fde68a;
+      transition: background-color var(--transition-fast);
+    }
+    
+    .badge-notification:hover {
+      background-color: #fef3c7;
     }
 
-    .card-meta {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-
-    .card-body {
+    /* Goal Lists */
+    .goal-list {
+      list-style: none;
+      margin-bottom: var(--spacing-md);
       flex-grow: 1;
     }
 
-    .question-text {
-      font-size: 1.125rem;
-      font-weight: 500;
-      color: var(--text-primary);
-      margin-bottom: var(--spacing-md);
-      white-space: pre-wrap;
-      word-break: break-word;
-      line-height: 1.5;
-    }
-
-    .card-actions {
-      margin-top: auto;
-      padding-top: var(--spacing-md);
-      border-top: 1px solid var(--bg-body);
+    .goal-item {
       display: flex;
-      justify-content: flex-end;
-    }
-    
-    /* Answer Display (History) */
-    .answer-display {
-      margin-top: var(--spacing-md);
-      padding: var(--spacing-md);
-      background-color: var(--bg-body);
-      border-left: 3px solid var(--border-light);
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    }
-    
-    .answer-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-secondary);
-      margin-bottom: 6px;
-    }
-    
-    .answer-text {
-      font-size: 0.9375rem;
-      color: var(--text-primary);
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    /* Answer Inline Box */
-    .answer-box-inline {
-      margin-top: var(--spacing-md);
-      padding-top: var(--spacing-md);
-      border-top: 1px solid var(--border-light);
-      animation: fadeIn var(--transition-fast);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .answer-box-actions {
-      margin-top: var(--spacing-md);
-      display: flex;
+      align-items: flex-start;
       gap: var(--spacing-sm);
-      justify-content: flex-end;
+      margin-bottom: var(--spacing-sm);
+      font-size: 0.9375rem;
+      transition: color var(--transition-fast);
     }
 
-    /* Status Badges */
-    .status-badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.025em;
+    /* Real Interactive Checkboxes */
+    .goal-checkbox {
+      width: 16px;
+      height: 16px;
+      margin-top: 4px;
+      flex-shrink: 0;
+      cursor: pointer;
+      accent-color: var(--status-success-text);
     }
     
-    .status-badge.answered {
-      background: var(--status-success-bg);
-      color: var(--status-success-text);
-      border: 1px solid var(--status-success-border);
-    }
-    
-    .status-badge.pending {
-      background: var(--status-pending-bg);
-      color: var(--status-pending-text);
-      border: 1px solid var(--status-pending-border);
+    .goal-checkbox:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
     }
 
-    /* Messages & States */
-    .message {
-      padding: 12px 16px;
+    /* Mock Checkbox for Tomorrow (Non-interactive) */
+    .checkbox-mock {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--text-tertiary);
+      border-radius: 4px;
+      margin-top: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .goal-item.completed {
+      color: var(--text-secondary);
+      text-decoration: line-through;
+      text-decoration-color: var(--border-light);
+    }
+
+    /* Stats Block */
+    .stats-block {
+      background: var(--bg-subtle);
       border-radius: var(--radius-sm);
-      margin-bottom: var(--spacing-lg);
-      font-size: 0.875rem;
-      font-weight: 500;
-      display: none;
+      padding: var(--spacing-md);
+      margin-top: auto;
     }
 
-    .message.success {
-      display: block;
-      background-color: var(--status-success-bg);
-      color: var(--status-success-text);
-      border: 1px solid var(--status-success-border);
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-xs);
+      font-size: 0.875rem;
+    }
+    
+    .stat-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .note-text {
+      margin-top: var(--spacing-sm);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-style: italic;
+      border-left: 2px solid var(--border-light);
+      padding-left: var(--spacing-sm);
+    }
+
+    /* Utilities */
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-tertiary);
+      font-size: 0.9375rem;
+      font-weight: 500;
+    }
+    
+    .loading-state {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--text-secondary);
+      font-size: 1rem;
     }
     
     .message.error {
-      display: block;
-      background-color: var(--status-error-bg);
-      color: var(--status-error-text);
-      border: 1px solid var(--status-error-border);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 64px 24px;
-      background: var(--bg-surface);
-      border: 1px dashed var(--border-focus);
-      border-radius: var(--radius-md);
-      color: var(--text-secondary);
-      font-size: 0.9375rem;
+      background-color: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-sm);
     }
 
     /* User Selection Screen */
@@ -534,28 +436,6 @@
       box-shadow: var(--shadow-md);
     }
 
-    .select-user-card h1 {
-      font-size: 2rem;
-      margin-bottom: 4px;
-      letter-spacing: -0.025em;
-    }
-    
-    .select-user-card .tagline {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      margin-bottom: 40px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 500;
-    }
-
-    .select-user-card h2 {
-      font-size: 1rem;
-      color: var(--text-secondary);
-      margin-bottom: var(--spacing-lg);
-      font-weight: 500;
-    }
-
     .user-btn {
       display: block;
       width: 100%;
@@ -565,30 +445,20 @@
       border-radius: var(--radius-sm);
     }
 
-    /* Responsive */
     @media (max-width: 640px) {
       .header-top {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--spacing-md);
       }
-      
-      .app-nav {
-        gap: var(--spacing-md);
-      }
-      
-      .view-header {
+      .quick-actions {
         flex-direction: column;
-        align-items: flex-start;
       }
-      
-      .form-container, .select-user-card {
-        padding: var(--spacing-lg);
+      .quick-actions .btn {
+        width: 100%;
       }
-      
-      .card-header-left {
-        flex-direction: column;
-        align-items: flex-start;
+      .users-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -598,9 +468,9 @@
   <!-- SELECT USER VIEW -->
   <div id="view-select-user" class="hidden">
     <div class="select-user-card">
-      <h1>AskBack</h1>
-      <div class="tagline">Ask. Recall. Answer.</div>
-      <h2>Select User</h2>
+      <h1 style="font-size: 2rem; letter-spacing: -0.025em; margin-bottom: 4px;">AskBack</h1>
+      <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 40px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">Ask. Recall. Answer.</div>
+      <h2 style="font-size: 1rem; color: var(--text-secondary); font-weight: 500;">Who is studying today?</h2>
       <button class="btn btn-secondary user-btn" onclick="app.selectUser('Lakshya')">Lakshya</button>
       <button class="btn btn-secondary user-btn" onclick="app.selectUser('Archita')">Archita</button>
     </div>
@@ -622,11 +492,10 @@
           </div>
         </div>
         <nav class="app-nav">
-          <button id="tab-pending" class="nav-tab active" onclick="app.switchView('view-pending')">
-            Questions for Me <span id="nav-pending-badge" class="badge empty">...</span>
-          </button>
-          <button id="tab-ask" class="nav-tab" onclick="app.switchView('view-ask')">Ask a Question</button>
-          <button id="tab-history" class="nav-tab" onclick="app.switchView('view-history')">Question History</button>
+          <button class="nav-tab active">Dashboard</button>
+          <button class="nav-tab" onclick="app.placeholderNav('Goals')">Daily Goals</button>
+          <button class="nav-tab" onclick="app.placeholderNav('Question Exchange')">Question Exchange</button>
+          <button class="nav-tab" onclick="app.placeholderNav('History')">History</button>
         </nav>
       </div>
     </header>
@@ -634,86 +503,34 @@
     <main class="main-content">
       <div class="container">
         
-        <!-- PENDING QUESTIONS VIEW -->
-        <div id="view-pending" class="view hidden">
-          <div class="view-header">
-            <h2>Questions for Me</h2>
-          </div>
-          <div id="pending-list" class="cards-grid"></div>
+        <!-- QUICK ACTIONS -->
+        <div class="quick-actions">
+          <button class="btn btn-primary" onclick="app.placeholderAction('Set Tomorrow\\'s Goals')">Set Tomorrow's Goals</button>
+          <button class="btn btn-secondary" onclick="app.placeholderAction('Log Today\\'s Study')">Log Today's Study</button>
+          <button class="btn btn-secondary" onclick="app.placeholderAction('Ask a Question')">Ask a Question</button>
+          <button class="btn btn-secondary" onclick="app.placeholderAction('Answer Pending Questions')">Answer Pending Questions</button>
         </div>
 
-        <!-- ASK A QUESTION VIEW -->
-        <div id="view-ask" class="view hidden">
-          <div class="view-header">
-            <h2>Ask a Question</h2>
-          </div>
-          
-          <div class="form-container">
-            <div id="ask-success-msg" class="message success hidden">Question sent successfully!</div>
-            <div id="ask-error-msg" class="message error hidden"></div>
-
-            <div class="form-group">
-              <label class="form-label">Recipient</label>
-              <div id="ask-recipient" class="form-static"></div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="ask-subject">Subject</label>
-              <select id="ask-subject" class="form-input">
-                <option value="Art & Culture">Art & Culture</option>
-                <option value="Ancient History">Ancient History</option>
-                <option value="Medieval History">Medieval History</option>
-                <option value="Modern History">Modern History</option>
-                <option value="Polity">Polity</option>
-                <option value="Governance">Governance</option>
-                <option value="Geography">Geography</option>
-                <option value="Economy">Economy</option>
-                <option value="Environment">Environment</option>
-                <option value="Science & Technology">Science & Technology</option>
-                <option value="Society">Society</option>
-                <option value="International Relations">International Relations</option>
-                <option value="Current Affairs">Current Affairs</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="ask-text">Question</label>
-              <textarea id="ask-text" class="form-input" placeholder="Type your question here..."></textarea>
-            </div>
-
-            <div style="text-align: right; margin-top: var(--spacing-xl);">
-              <button id="btn-submit-ask" class="btn btn-primary" onclick="app.submitQuestion()">Send Question</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- HISTORY VIEW -->
-        <div id="view-history" class="view hidden">
-          <div class="view-header">
-            <h2>Question History</h2>
-            <div class="history-filters">
-              <select id="history-subject-filter" class="form-input" style="min-width: 200px;" onchange="app.renderHistory(false)">
-                <option value="All">All Subjects</option>
-                <option value="Art & Culture">Art & Culture</option>
-                <option value="Ancient History">Ancient History</option>
-                <option value="Medieval History">Medieval History</option>
-                <option value="Modern History">Modern History</option>
-                <option value="Polity">Polity</option>
-                <option value="Governance">Governance</option>
-                <option value="Geography">Geography</option>
-                <option value="Economy">Economy</option>
-                <option value="Environment">Environment</option>
-                <option value="Science & Technology">Science & Technology</option>
-                <option value="Society">Society</option>
-                <option value="International Relations">International Relations</option>
-                <option value="Current Affairs">Current Affairs</option>
-                <option value="Other">Other</option>
-              </select>
+        <div id="dashboard-loading" class="loading-state">Loading Dashboard Data...</div>
+        
+        <div id="dashboard-content" class="hidden">
+          <!-- TODAY SECTION -->
+          <div class="section-block">
+            <h2>Today's Overview</h2>
+            <h3 id="today-date-label"></h3>
+            <div class="users-grid" id="today-grid">
+              <!-- Rendered via JS -->
             </div>
           </div>
 
-          <div id="history-list" class="cards-grid"></div>
+          <!-- TOMORROW SECTION -->
+          <div class="section-block" style="margin-top: 48px;">
+            <h2>Tomorrow's Plan</h2>
+            <h3 id="tomorrow-date-label"></h3>
+            <div class="users-grid" id="tomorrow-grid">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
         </div>
 
       </div>
@@ -721,9 +538,9 @@
   </div>
 
   <script>
-    // Reusable API JSONP Layer
+    // Reusable API JSONP Layer exactly as designed for Apps Script
     const apiLayer = {
-      baseUrl: 'https://script.google.com/macros/s/AKfycbypDbQyR7Q1PG8Uz7FW3tPoUrHGnGJIIPHFyLyzeYRWrnOQtBppa0Pk7Pl5yTbeJMxG/exec',
+      baseUrl: 'https://script.google.com/macros/s/AKfycbwZdsLkAtPNy7oA5X8UyOHgqctSigR0Vb635Dac3lrSE69AfucLOKrhALKLGUDcL3nV/exec',
       
       request(action, params = {}) {
         return new Promise((resolve, reject) => {
@@ -769,20 +586,15 @@
     const app = {
       currentUser: null,
       users: ["Lakshya", "Archita"],
-      cachedHistory: [],
-      isSubmitting: false,
+      currentDashboardData: null, // Cache data to update UI dynamically
       
-      // Initialize application
       init() {
         const savedUser = localStorage.getItem('askback_user');
         if (savedUser && this.users.includes(savedUser)) {
           this.currentUser = savedUser;
-          document.getElementById('view-select-user').classList.add('hidden');
-          document.getElementById('app-shell').classList.remove('hidden');
-          this.switchView('view-pending');
+          this.showApp();
         } else {
-          document.getElementById('app-shell').classList.add('hidden');
-          document.getElementById('view-select-user').classList.remove('hidden');
+          this.showSelectUser();
         }
       },
 
@@ -801,291 +613,239 @@
       },
 
       // Date Formatting
-      formatDate(dateString) {
+      formatDateFriendly(dateString) {
         if (!dateString) return '';
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return this.escapeHTML(dateString);
-        const options = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return date.toLocaleDateString('en-GB', options).replace(',', ' ·');
+        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        return date.toLocaleDateString('en-GB', options);
       },
 
-      // Data Operations (API Backend)
-      getPendingCount() {
-        return apiLayer.request('count', { user: this.currentUser });
+      // Navigation & State
+      showSelectUser() {
+        document.getElementById('app-shell').classList.add('hidden');
+        document.getElementById('view-select-user').classList.remove('hidden');
       },
 
-      getPendingQuestions() {
-        return apiLayer.request('pending', { user: this.currentUser });
-      },
-
-      getHistoryData() {
-        return apiLayer.request('history', { user: this.currentUser });
-      },
-
-      createQuestion(subject, text) {
-        return apiLayer.request('create', {
-          creator: this.currentUser,
-          recipient: this.getOtherUser(),
-          subject: subject,
-          question: text
-        });
-      },
-
-      answerQuestion(id, answerText) {
-        return apiLayer.request('answer', {
-          id: id,
-          user: this.currentUser,
-          answer: answerText
-        });
-      },
-
-      getOtherUser() {
-        return this.currentUser === "Lakshya" ? "Archita" : "Lakshya";
-      },
-
-      // UI Navigation
-      switchView(viewId) {
-        // Update tabs
-        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-        const activeTab = document.getElementById(`tab-${viewId.replace('view-', '')}`);
-        if(activeTab) activeTab.classList.add('active');
-
-        // Update views
-        document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
-        document.getElementById(viewId).classList.remove('hidden');
-
-        this.updateHeaderState();
-
-        if (viewId === 'view-pending') this.renderPending();
-        if (viewId === 'view-ask') this.renderAsk();
-        if (viewId === 'view-history') this.renderHistory(true);
+      showApp() {
+        document.getElementById('view-select-user').classList.add('hidden');
+        document.getElementById('app-shell').classList.remove('hidden');
+        document.getElementById('header-current-user').textContent = this.currentUser;
+        this.loadDashboard();
       },
 
       selectUser(username) {
         this.currentUser = username;
         localStorage.setItem('askback_user', username);
-        document.getElementById('view-select-user').classList.add('hidden');
-        document.getElementById('app-shell').classList.remove('hidden');
-        this.switchView('view-pending');
+        this.showApp();
       },
 
       switchUser() {
         this.currentUser = null;
         localStorage.removeItem('askback_user');
-        document.getElementById('app-shell').classList.add('hidden');
-        document.getElementById('view-select-user').classList.remove('hidden');
+        this.showSelectUser();
       },
 
-      async updateHeaderState() {
-        if(!this.currentUser) return;
-        document.getElementById('header-current-user').textContent = this.currentUser;
+      placeholderAction(actionName) {
+        alert(`Quick Action: "${actionName}" will be implemented in the next stage.`);
+      },
+
+      placeholderNav(navName) {
+        alert(`Navigation: "${navName}" section will be built in a future stage. Stay on Dashboard for now.`);
+      },
+
+      // API Data Fetching & Rendering
+      async loadDashboard() {
+        const loadingEl = document.getElementById('dashboard-loading');
+        const contentEl = document.getElementById('dashboard-content');
         
-        const badge = document.getElementById('nav-pending-badge');
-        try {
-          const res = await this.getPendingCount();
-          const count = res.count !== undefined ? res.count : (res.questions ? res.questions.length : 0);
-          badge.textContent = count;
-          if (count === 0) badge.classList.add('empty');
-          else badge.classList.remove('empty');
-        } catch (e) {
-          badge.textContent = '?';
-          badge.classList.add('empty');
-        }
-      },
-
-      // Render Logic
-      async renderPending() {
-        const container = document.getElementById('pending-list');
-        container.innerHTML = `<div class="empty-state">Loading your questions...</div>`;
+        loadingEl.classList.remove('hidden');
+        contentEl.classList.add('hidden');
 
         try {
-          const res = await this.getPendingQuestions();
-          const questions = res.questions || [];
-          container.innerHTML = '';
+          // Fetch the main dashboard data and individual pending counts in parallel
+          const [dashRes, lakshyaCountRes, architaCountRes] = await Promise.all([
+            apiLayer.request('dashboard'),
+            apiLayer.request('count', { user: 'Lakshya' }),
+            apiLayer.request('count', { user: 'Archita' })
+          ]);
 
-          if (questions.length === 0) {
-            container.innerHTML = `<div class="empty-state">You have no pending questions. Excellent!</div>`;
-            return;
-          }
+          this.currentDashboardData = dashRes.dashboard;
+          const pendingCounts = {
+            Lakshya: lakshyaCountRes.count || 0,
+            Archita: architaCountRes.count || 0
+          };
 
-          questions.forEach(q => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            
-            const questionBody = q.question || q.text || '';
-            const dateStr = q.createdAt || q.timestamp || q.date;
-            
-            card.innerHTML = `
-              <div class="card-header">
-                <div class="card-header-left">
-                  <span class="badge-subject">${this.escapeHTML(q.subject)}</span>
-                  <span class="card-meta">From ${this.escapeHTML(q.creator)} &middot; ${this.formatDate(dateStr)}</span>
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="question-text">${this.escapeHTML(questionBody)}</div>
-              </div>
-              <div id="action-area-${q.id}" class="card-actions">
-                <button class="btn btn-primary" onclick="app.showAnswerBox('${q.id}')">Answer Question</button>
-              </div>
-            `;
-            container.appendChild(card);
-          });
+          this.renderDashboard(this.currentDashboardData, pendingCounts);
+          
+          loadingEl.classList.add('hidden');
+          contentEl.classList.remove('hidden');
+
         } catch (error) {
-          container.innerHTML = `<div class="empty-state message error" style="display: block;">Failed to load questions. Please try again.</div>`;
+          loadingEl.textContent = 'Failed to load dashboard. Please try refreshing.';
+          loadingEl.style.color = '#991b1b';
+          console.error("Dashboard Load Error:", error);
         }
       },
 
-      showAnswerBox(id) {
-        const area = document.getElementById(`action-area-${id}`);
-        area.className = 'answer-box-inline';
-        area.innerHTML = `
-          <label class="form-label" for="answer-input-${id}">Your Answer</label>
-          <textarea class="form-input" id="answer-input-${id}" placeholder="Type your answer here..." rows="4"></textarea>
-          <div id="answer-error-${id}" class="message error hidden" style="margin-top: 12px; margin-bottom: 0;"></div>
-          <div class="answer-box-actions">
-            <button id="btn-cancel-${id}" class="btn btn-secondary" onclick="app.renderPending()">Cancel</button>
-            <button id="btn-submit-${id}" class="btn btn-primary" onclick="app.submitAnswer('${id}')">Submit Answer</button>
+      renderDashboard(data, pendingCounts) {
+        // Render Today
+        document.getElementById('today-date-label').textContent = this.formatDateFriendly(data.today.date);
+        const todayGrid = document.getElementById('today-grid');
+        todayGrid.innerHTML = '';
+        
+        // Render Tomorrow
+        document.getElementById('tomorrow-date-label').textContent = this.formatDateFriendly(data.tomorrow.date);
+        const tomorrowGrid = document.getElementById('tomorrow-grid');
+        tomorrowGrid.innerHTML = '';
+
+        this.users.forEach(user => {
+          // Construct Today Card
+          const todayData = data.today.users[user];
+          const count = pendingCounts[user];
+          todayGrid.innerHTML += this.buildTodayCard(user, todayData, count);
+
+          // Construct Tomorrow Card
+          const tomorrowData = data.tomorrow.users[user];
+          tomorrowGrid.innerHTML += this.buildTomorrowCard(user, tomorrowData);
+        });
+      },
+
+      buildTodayCard(user, data, pendingCount) {
+        const badgeHtml = pendingCount > 0 
+          ? `<div class="badge-notification" onclick="app.placeholderNav('Question Exchange')">${pendingCount} Pending Questions</div>` 
+          : '';
+
+        let goalsHtml = '<div class="empty-state">No goals set for today.</div>';
+        if (data.goals && data.goals.length > 0) {
+          goalsHtml = '<ul class="goal-list">';
+          data.goals.forEach(g => {
+            const isCompletedClass = g.completed ? 'completed' : '';
+            const isCheckedAttr = g.completed ? 'checked' : '';
+            
+            goalsHtml += `
+              <li id="goal-item-${g.id}" class="goal-item ${isCompletedClass}">
+                <input type="checkbox" id="goal-chk-${g.id}" class="goal-checkbox" ${isCheckedAttr} 
+                       onchange="app.toggleGoal('${g.id}', '${user}', this.checked)">
+                <span>${this.escapeHTML(g.goal)}</span>
+              </li>
+            `;
+          });
+          goalsHtml += '</ul>';
+        }
+
+        const studyHours = data.studyHours !== null ? `${data.studyHours} hrs` : '--';
+        const noteHtml = data.note ? `<div class="note-text">"${this.escapeHTML(data.note)}"</div>` : '';
+
+        return `
+          <div class="user-card">
+            <div class="user-card-header">
+              <h4>${user}</h4>
+              ${badgeHtml}
+            </div>
+            ${goalsHtml}
+            <div class="stats-block">
+              <div class="stat-row">
+                <span class="stat-label">Goals Completed</span>
+                <span class="stat-value" id="stats-completed-${user}">${data.completion.completed} / ${data.completion.total}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Study Hours</span>
+                <span class="stat-value">${studyHours}</span>
+              </div>
+              ${noteHtml}
+            </div>
+            <div id="goal-error-${user}" class="message error hidden" style="margin-top: 12px; font-size: 0.875rem; padding: 8px;"></div>
           </div>
         `;
-        document.getElementById(`answer-input-${id}`).focus();
       },
 
-      async submitAnswer(id) {
-        const text = document.getElementById(`answer-input-${id}`).value.trim();
-        if (!text) return;
-
-        const btnSubmit = document.getElementById(`btn-submit-${id}`);
-        const btnCancel = document.getElementById(`btn-cancel-${id}`);
-        const errorMsg = document.getElementById(`answer-error-${id}`);
+      buildTomorrowCard(user, data) {
+        let goalsHtml = '<div class="empty-state">No goals set for tomorrow yet.</div>';
+        let targetCount = 0;
         
-        btnSubmit.disabled = true;
-        btnSubmit.textContent = 'Submitting...';
-        btnCancel.disabled = true;
-        errorMsg.classList.add('hidden');
-
-        try {
-          await this.answerQuestion(id, text);
-          this.updateHeaderState();
-          this.renderPending();
-        } catch (error) {
-          btnSubmit.disabled = false;
-          btnSubmit.textContent = 'Submit Answer';
-          btnCancel.disabled = false;
-          errorMsg.textContent = error.message;
-          errorMsg.classList.remove('hidden');
-        }
-      },
-
-      renderAsk() {
-        document.getElementById('ask-recipient').textContent = this.getOtherUser();
-        document.getElementById('ask-subject').selectedIndex = 0;
-        document.getElementById('ask-text').value = '';
-        document.getElementById('ask-success-msg').classList.add('hidden');
-        document.getElementById('ask-error-msg').classList.add('hidden');
-      },
-
-      async submitQuestion() {
-        if (this.isSubmitting) return;
-
-        const subject = document.getElementById('ask-subject').value;
-        const text = document.getElementById('ask-text').value.trim();
-        
-        if (!text) return;
-
-        this.isSubmitting = true;
-        const btnSubmit = document.getElementById('btn-submit-ask');
-        const successMsg = document.getElementById('ask-success-msg');
-        const errorMsg = document.getElementById('ask-error-msg');
-        
-        btnSubmit.disabled = true;
-        btnSubmit.textContent = 'Sending...';
-        successMsg.classList.add('hidden');
-        errorMsg.classList.add('hidden');
-
-        try {
-          await this.createQuestion(subject, text);
-          
-          document.getElementById('ask-text').value = '';
-          document.getElementById('ask-subject').selectedIndex = 0;
-          
-          successMsg.classList.remove('hidden');
-          setTimeout(() => successMsg.classList.add('hidden'), 4000);
-          
-          this.updateHeaderState();
-        } catch (error) {
-          errorMsg.textContent = error.message;
-          errorMsg.classList.remove('hidden');
-        } finally {
-          this.isSubmitting = false;
-          btnSubmit.disabled = false;
-          btnSubmit.textContent = 'Send Question';
-        }
-      },
-
-      async renderHistory(fetchNew = true) {
-        const container = document.getElementById('history-list');
-        const filter = document.getElementById('history-subject-filter').value;
-        
-        if (fetchNew) {
-          container.innerHTML = `<div class="empty-state">Loading history...</div>`;
-          try {
-            const res = await this.getHistoryData();
-            this.cachedHistory = res.questions || [];
-          } catch (error) {
-            container.innerHTML = `<div class="empty-state message error" style="display: block;">Failed to load history. Please try again.</div>`;
-            return;
-          }
-        }
-
-        let history = this.cachedHistory;
-
-        if (filter !== "All") {
-          history = history.filter(q => q.subject === filter);
-        }
-
-        container.innerHTML = '';
-
-        if (history.length === 0) {
-          container.innerHTML = `<div class="empty-state">No questions found for this subject.</div>`;
-          return;
-        }
-
-        history.forEach(q => {
-          const isAnswered = q.status === 'Answered';
-          const badgeClass = isAnswered ? 'answered' : 'pending';
-          
-          const questionBody = q.question || q.text || '';
-          const answerBody = q.answer || q.answerText || '';
-          const dateStr = q.createdAt || q.timestamp || q.date;
-
-          let html = `
-            <div class="card">
-              <div class="card-header">
-                <div class="card-header-left">
-                  <span class="badge-subject">${this.escapeHTML(q.subject)}</span>
-                  <span class="card-meta">${this.escapeHTML(q.creator)} &rarr; ${this.escapeHTML(q.recipient)} &middot; ${this.formatDate(dateStr)}</span>
-                </div>
-                <span class="status-badge ${badgeClass}">${this.escapeHTML(q.status)}</span>
-              </div>
-              <div class="card-body">
-                <div class="question-text">${this.escapeHTML(questionBody)}</div>
-          `;
-
-          if (isAnswered && answerBody) {
-            html += `
-                <div class="answer-display">
-                  <div class="answer-label">Answer</div>
-                  <div class="answer-text">${this.escapeHTML(answerBody)}</div>
-                </div>
+        if (data.goals && data.goals.length > 0) {
+          targetCount = data.goals.length;
+          goalsHtml = '<ul class="goal-list">';
+          data.goals.forEach(g => {
+            goalsHtml += `
+              <li class="goal-item" style="color: var(--text-secondary);">
+                <div class="checkbox-mock" style="border-style: dashed;"></div>
+                <span>${this.escapeHTML(g.goal)}</span>
+              </li>
             `;
+          });
+          goalsHtml += '</ul>';
+        }
+
+        return `
+          <div class="user-card">
+            <div class="user-card-header">
+              <h4>${user}</h4>
+              <span style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500;">
+                ${targetCount} Target${targetCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+            ${goalsHtml}
+          </div>
+        `;
+      },
+
+      // Interaction: Toggle Goal Completion
+      async toggleGoal(goalId, cardUser, isCompleted) {
+        const chk = document.getElementById(`goal-chk-${goalId}`);
+        const listItem = document.getElementById(`goal-item-${goalId}`);
+        const errorDiv = document.getElementById(`goal-error-${cardUser}`);
+        const statsSpan = document.getElementById(`stats-completed-${cardUser}`);
+
+        // Temporarily disable while API request runs
+        chk.disabled = true;
+        if (errorDiv) errorDiv.classList.add('hidden');
+
+        try {
+          // Perform API request using the logged in user as the initiator
+          await apiLayer.request('completeGoal', {
+            id: goalId,
+            user: this.currentUser, 
+            completed: String(isCompleted)
+          });
+
+          // Optimistically update internal cached state
+          if (this.currentDashboardData && this.currentDashboardData.today.users[cardUser]) {
+            const userData = this.currentDashboardData.today.users[cardUser];
+            const targetGoal = userData.goals.find(g => g.id === goalId);
+            
+            if (targetGoal) {
+              targetGoal.completed = isCompleted;
+            }
+
+            // Recalculate and update the UI stats block
+            const completedCount = userData.goals.filter(g => g.completed).length;
+            userData.completion.completed = completedCount;
+            
+            if (statsSpan) {
+              statsSpan.textContent = `${completedCount} / ${userData.completion.total}`;
+            }
           }
 
-          html += `
-              </div>
-            </div>`;
-          container.innerHTML += html;
-        });
+          // Visually cross off the item
+          if (isCompleted) {
+            listItem.classList.add('completed');
+          } else {
+            listItem.classList.remove('completed');
+          }
+
+        } catch (error) {
+          // Failure: Restore previous state
+          chk.checked = !isCompleted; 
+          if (errorDiv) {
+            errorDiv.textContent = error.message;
+            errorDiv.classList.remove('hidden');
+          }
+        } finally {
+          // Always re-enable the checkbox
+          chk.disabled = false;
+        }
       }
     };
 
