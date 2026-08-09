@@ -1,1 +1,894 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AskBack - Ask. Recall. Answer.</title>
+  <style>
+    /* 
+      Restrained Academic/Productivity Theme 
+      Using system fonts and a clean, high-contrast palette
+    */
+    :root {
+      --bg-color: #f3f4f6;
+      --surface-color: #ffffff;
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --border-color: #d1d5db;
+      --primary-color: #1f2937;
+      --primary-hover: #111827;
+      --success-bg: #ecfdf5;
+      --success-text: #065f46;
+      --success-border: #a7f3d0;
+      --focus-ring: rgba(31, 41, 55, 0.2);
+      --border-radius: 6px;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Layout Shell */
+    #app-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header & Navigation */
+    .app-header {
+      background-color: var(--surface-color);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-md) var(--spacing-xl);
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .brand-area h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+
+    .brand-area .tagline {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .app-nav {
+      display: flex;
+      gap: var(--spacing-lg);
+      padding: 0 var(--spacing-xl);
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      padding: var(--spacing-md) 0;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: color 0.15s ease;
+    }
+
+    .nav-tab:hover {
+      color: var(--text-main);
+    }
+
+    .nav-tab.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--primary-color);
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .badge.empty {
+      background: var(--text-muted);
+      opacity: 0.5;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      padding: var(--spacing-xl);
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      flex-grow: 1;
+    }
+
+    /* Typography */
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-lg);
+      color: var(--text-main);
+    }
+
+    /* Buttons */
+    button {
+      font-family: inherit;
+      background-color: var(--primary-color);
+      color: #fff;
+      border: 1px solid var(--primary-color);
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    button.secondary {
+      background-color: var(--surface-color);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+
+    button.secondary:hover {
+      background-color: var(--bg-color);
+      border-color: #9ca3af;
+    }
+
+    button.text-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0;
+      font-size: 13px;
+      text-decoration: underline;
+    }
+
+    button.text-btn:hover {
+      color: var(--text-main);
+      background: none;
+    }
+
+    /* Layout Grids */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: var(--spacing-lg);
+      align-items: start;
+    }
+
+    .form-container {
+      max-width: 600px; /* Constrain forms for readability */
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--spacing-xl);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--spacing-lg);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+    }
+
+    .card-meta-left {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .card-meta span.dot {
+      margin: 0 6px;
+      color: #9ca3af;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: var(--spacing-lg);
+      line-height: 1.6;
+      flex-grow: 1;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .card-answer-box {
+      margin-top: auto;
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .card-answer-display {
+      margin-top: var(--spacing-md);
+      padding: var(--spacing-md);
+      background-color: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 15px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    
+    .card-answer-display strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--bg-color);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+    
+    .status-badge.answered {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border-color: var(--success-border);
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .static-field {
+      font-size: 15px;
+      font-weight: 500;
+      padding: 8px 0;
+      color: var(--text-muted);
+    }
+
+    select, textarea {
+      width: 100%;
+      font-family: inherit;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 15px;
+      background-color: var(--surface-color);
+      color: var(--text-main);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .history-filters {
+      margin-bottom: var(--spacing-lg);
+      max-width: 300px;
+    }
+
+    /* Utilities */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 64px 24px;
+      background: var(--surface-color);
+      border: 1px dashed var(--border-color);
+      border-radius: var(--border-radius);
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    .message {
+      padding: 12px 16px;
+      border-radius: var(--border-radius);
+      margin-bottom: var(--spacing-lg);
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+    }
+
+    .message.success {
+      display: block;
+      background-color: var(--success-bg);
+      color: var(--success-text);
+      border: 1px solid var(--success-border);
+    }
+
+    /* Select User Screen */
+    #view-select-user {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding: var(--spacing-xl);
+    }
+    
+    .select-user-card {
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .select-user-card h1 {
+      font-size: 28px;
+      margin-bottom: 4px;
+    }
+    
+    .select-user-card .tagline {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+
+    .user-btn {
+      display: block;
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 14px;
+      font-size: 16px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+      }
+      
+      .app-nav {
+        padding: 0 var(--spacing-md);
+      }
+      
+      .main-content {
+        padding: var(--spacing-md);
+      }
+      
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SELECT USER VIEW -->
+  <div id="view-select-user" class="hidden">
+    <div class="select-user-card">
+      <h1>AskBack</h1>
+      <div class="tagline">Ask. Recall. Answer.</div>
+      <h2 style="margin-top: 32px; margin-bottom: 24px; font-size: 16px; color: var(--text-muted);">Select User</h2>
+      <button class="user-btn secondary" onclick="app.selectUser('Lakshya')">Lakshya</button>
+      <button class="user-btn secondary" onclick="app.selectUser('Archita')">Archita</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP SHELL -->
+  <div id="app-shell" class="hidden">
+    
+    <header class="app-header">
+      <div class="header-top">
+        <div class="brand-area">
+          <h1>AskBack</h1>
+          <div class="tagline">Ask. Recall. Answer.</div>
+        </div>
+        <div class="user-area">
+          <span id="header-current-user"></span>
+          <button class="text-btn" onclick="app.switchUser()">Switch User</button>
+        </div>
+      </div>
+      <nav class="app-nav">
+        <button id="tab-pending" class="nav-tab active" onclick="app.switchView('view-pending')">
+          Questions for Me <span id="nav-pending-badge" class="badge">0</span>
+        </button>
+        <button id="tab-ask" class="nav-tab" onclick="app.switchView('view-ask')">Ask a Question</button>
+        <button id="tab-history" class="nav-tab" onclick="app.switchView('view-history')">Question History</button>
+      </nav>
+    </header>
+
+    <main class="main-content">
+      
+      <!-- PENDING QUESTIONS VIEW -->
+      <div id="view-pending" class="view hidden">
+        <h2>Questions for Me</h2>
+        <div id="pending-list" class="cards-grid"></div>
+      </div>
+
+      <!-- ASK A QUESTION VIEW -->
+      <div id="view-ask" class="view hidden">
+        <h2>Ask a Question</h2>
+        
+        <div class="form-container">
+          <div id="ask-success-msg" class="message success hidden">Question sent successfully!</div>
+
+          <div class="form-group">
+            <label>Recipient</label>
+            <div id="ask-recipient" class="static-field"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="ask-subject">Subject</label>
+            <select id="ask-subject">
+              <option value="Art & Culture">Art & Culture</option>
+              <option value="Ancient History">Ancient History</option>
+              <option value="Medieval History">Medieval History</option>
+              <option value="Modern History">Modern History</option>
+              <option value="Polity">Polity</option>
+              <option value="Governance">Governance</option>
+              <option value="Geography">Geography</option>
+              <option value="Economy">Economy</option>
+              <option value="Environment">Environment</option>
+              <option value="Science & Technology">Science & Technology</option>
+              <option value="Society">Society</option>
+              <option value="International Relations">International Relations</option>
+              <option value="Current Affairs">Current Affairs</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="ask-text">Question</label>
+            <textarea id="ask-text" placeholder="Type your question here..."></textarea>
+          </div>
+
+          <div style="text-align: right;">
+            <button onclick="app.submitQuestion()">Send Question</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY VIEW -->
+      <div id="view-history" class="view hidden">
+        <h2>Question History</h2>
+        
+        <div class="history-filters">
+          <select id="history-subject-filter" onchange="app.renderHistory()">
+            <option value="All">All Subjects</option>
+            <option value="Art & Culture">Art & Culture</option>
+            <option value="Ancient History">Ancient History</option>
+            <option value="Medieval History">Medieval History</option>
+            <option value="Modern History">Modern History</option>
+            <option value="Polity">Polity</option>
+            <option value="Governance">Governance</option>
+            <option value="Geography">Geography</option>
+            <option value="Economy">Economy</option>
+            <option value="Environment">Environment</option>
+            <option value="Science & Technology">Science & Technology</option>
+            <option value="Society">Society</option>
+            <option value="International Relations">International Relations</option>
+            <option value="Current Affairs">Current Affairs</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div id="history-list" class="cards-grid"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const app = {
+      currentUser: null,
+      users: ["Lakshya", "Archita"],
+      
+      // Initialize application
+      init() {
+        this.initializeMockData();
+        const savedUser = localStorage.getItem('askback_user');
+        if (savedUser && this.users.includes(savedUser)) {
+          this.currentUser = savedUser;
+          document.getElementById('view-select-user').classList.add('hidden');
+          document.getElementById('app-shell').classList.remove('hidden');
+          this.switchView('view-pending');
+        } else {
+          document.getElementById('app-shell').classList.add('hidden');
+          document.getElementById('view-select-user').classList.remove('hidden');
+        }
+      },
+
+      // Utility: HTML Escaping
+      escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, 
+          tag => ({
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              "'": '&#39;',
+              '"': '&quot;'
+            }[tag] || tag)
+        );
+      },
+
+      // Data Operations (Mock Backend)
+      initializeMockData() {
+        if (!localStorage.getItem('askback_questions')) {
+          const now = new Date();
+          const yesterday = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+          
+          const mockData = [
+            {
+              id: this.generateId(),
+              creator: "Archita",
+              recipient: "Lakshya",
+              subject: "Modern History",
+              text: "What was the significance of the Swadeshi Movement?",
+              answerText: null,
+              createdAt: yesterday.toISOString(),
+              status: "Pending"
+            },
+            {
+              id: this.generateId(),
+              creator: "Lakshya",
+              recipient: "Archita",
+              subject: "Polity",
+              text: "Explain the basic structure doctrine introduced in the Kesavananda Bharati case.",
+              answerText: null,
+              createdAt: new Date(now.getTime() - (2 * 60 * 60 * 1000)).toISOString(),
+              status: "Pending"
+            },
+            {
+              id: this.generateId(),
+              creator: "Archita",
+              recipient: "Lakshya",
+              subject: "Geography",
+              text: "What are the primary factors influencing the Indian Monsoon?",
+              answerText: "The primary factors include differential heating and cooling of land and water, the shift of the ITCZ, the presence of the high-pressure area east of Madagascar, and the Tibetan plateau getting intensely heated.",
+              createdAt: new Date(now.getTime() - (48 * 60 * 60 * 1000)).toISOString(),
+              status: "Answered"
+            }
+          ];
+          localStorage.setItem('askback_questions', JSON.stringify(mockData));
+        }
+      },
+
+      getQuestions() {
+        return JSON.parse(localStorage.getItem('askback_questions') || '[]');
+      },
+
+      saveQuestions(questions) {
+        localStorage.setItem('askback_questions', JSON.stringify(questions));
+      },
+
+      getCurrentUser() {
+        return this.currentUser;
+      },
+      
+      getOtherUser() {
+        return this.currentUser === "Lakshya" ? "Archita" : "Lakshya";
+      },
+
+      getQuestionsForUser() {
+        return this.getQuestions().filter(q => q.recipient === this.currentUser && q.status === 'Pending');
+      },
+
+      getHistory() {
+        return this.getQuestions().filter(q => 
+          q.creator === this.currentUser || q.recipient === this.currentUser
+        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      },
+
+      createQuestion(subject, text) {
+        const questions = this.getQuestions();
+        questions.push({
+          id: this.generateId(),
+          creator: this.currentUser,
+          recipient: this.getOtherUser(),
+          subject: subject,
+          text: text,
+          answerText: null,
+          createdAt: new Date().toISOString(),
+          status: "Pending"
+        });
+        this.saveQuestions(questions);
+      },
+
+      answerQuestion(id, answerText) {
+        const questions = this.getQuestions();
+        const index = questions.findIndex(q => q.id === id);
+        if (index > -1) {
+          questions[index].answerText = answerText;
+          questions[index].status = "Answered";
+          this.saveQuestions(questions);
+        }
+      },
+
+      generateId() {
+        return Math.random().toString(36).substr(2, 9);
+      },
+      
+      formatDate(isoString) {
+        const date = new Date(isoString);
+        const options = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return date.toLocaleDateString('en-GB', options).replace(',', ' ·');
+      },
+
+      // UI Navigation
+      switchView(viewId) {
+        // Update tabs
+        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+        const activeTab = document.getElementById(`tab-${viewId.replace('view-', '')}`);
+        if(activeTab) activeTab.classList.add('active');
+
+        // Update views
+        document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+        document.getElementById(viewId).classList.remove('hidden');
+
+        this.updateHeaderState();
+
+        if (viewId === 'view-pending') this.renderPending();
+        if (viewId === 'view-ask') this.renderAsk();
+        if (viewId === 'view-history') this.renderHistory();
+      },
+
+      selectUser(username) {
+        this.currentUser = username;
+        localStorage.setItem('askback_user', username);
+        document.getElementById('view-select-user').classList.add('hidden');
+        document.getElementById('app-shell').classList.remove('hidden');
+        this.switchView('view-pending');
+      },
+
+      switchUser() {
+        this.currentUser = null;
+        localStorage.removeItem('askback_user');
+        document.getElementById('app-shell').classList.add('hidden');
+        document.getElementById('view-select-user').classList.remove('hidden');
+      },
+
+      updateHeaderState() {
+        if(!this.currentUser) return;
+        document.getElementById('header-current-user').textContent = this.currentUser;
+        
+        const pendingCount = this.getQuestionsForUser().length;
+        const badge = document.getElementById('nav-pending-badge');
+        badge.textContent = pendingCount;
+        
+        if (pendingCount === 0) {
+          badge.classList.add('empty');
+        } else {
+          badge.classList.remove('empty');
+        }
+      },
+
+      // Render Logic
+      renderPending() {
+        const container = document.getElementById('pending-list');
+        const questions = this.getQuestionsForUser();
+        container.innerHTML = '';
+
+        if (questions.length === 0) {
+          container.innerHTML = `<div class="empty-state">You have no pending questions. Excellent!</div>`;
+          return;
+        }
+
+        questions.forEach(q => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="card-meta">
+              <div class="card-meta-left">
+                <strong>${this.escapeHTML(q.subject)}</strong> 
+                <span class="dot">•</span> 
+                From ${this.escapeHTML(q.creator)}
+              </div>
+              <div>${this.formatDate(q.createdAt)}</div>
+            </div>
+            <div class="card-title">${this.escapeHTML(q.text)}</div>
+            <div id="action-area-${q.id}" class="card-answer-box" style="border-top: none; padding-top: 0;">
+              <button class="secondary" onclick="app.showAnswerBox('${q.id}')">Answer Question</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      },
+
+      showAnswerBox(id) {
+        const area = document.getElementById(`action-area-${id}`);
+        area.innerHTML = `
+          <div class="card-answer-box">
+            <label for="answer-input-${id}">Your Answer</label>
+            <textarea id="answer-input-${id}" placeholder="Type your answer..."></textarea>
+            <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end;">
+              <button class="secondary" onclick="app.renderPending()">Cancel</button>
+              <button onclick="app.submitAnswer('${id}')">Submit Answer</button>
+            </div>
+          </div>
+        `;
+        document.getElementById(`answer-input-${id}`).focus();
+      },
+
+      submitAnswer(id) {
+        const text = document.getElementById(`answer-input-${id}`).value.trim();
+        if (!text) return;
+        this.answerQuestion(id, text);
+        this.updateHeaderState();
+        this.renderPending();
+      },
+
+      renderAsk() {
+        document.getElementById('ask-recipient').textContent = this.getOtherUser();
+        document.getElementById('ask-subject').selectedIndex = 0;
+        document.getElementById('ask-text').value = '';
+        document.getElementById('ask-success-msg').classList.add('hidden');
+      },
+
+      submitQuestion() {
+        const subject = document.getElementById('ask-subject').value;
+        const text = document.getElementById('ask-text').value.trim();
+        
+        if (!text) return;
+
+        this.createQuestion(subject, text);
+        
+        document.getElementById('ask-text').value = '';
+        document.getElementById('ask-subject').selectedIndex = 0;
+        
+        const msg = document.getElementById('ask-success-msg');
+        msg.classList.remove('hidden');
+        setTimeout(() => msg.classList.add('hidden'), 3000);
+      },
+
+      renderHistory() {
+        const container = document.getElementById('history-list');
+        const filter = document.getElementById('history-subject-filter').value;
+        let history = this.getHistory();
+
+        if (filter !== "All") {
+          history = history.filter(q => q.subject === filter);
+        }
+
+        container.innerHTML = '';
+
+        if (history.length === 0) {
+          container.innerHTML = `<div class="empty-state">No questions found for this subject.</div>`;
+          return;
+        }
+
+        history.forEach(q => {
+          const isAnswered = q.status === 'Answered';
+          const badgeClass = isAnswered ? 'answered' : '';
+          
+          let html = `
+            <div class="card">
+              <div class="card-meta">
+                <div class="card-meta-left">
+                  <strong>${this.escapeHTML(q.subject)}</strong> 
+                  <span class="dot">•</span> 
+                  ${this.escapeHTML(q.creator)} → ${this.escapeHTML(q.recipient)}
+                </div>
+                <div class="status-badge ${badgeClass}">${q.status}</div>
+              </div>
+              <div class="card-meta" style="text-transform: none; font-weight: normal;">
+                ${this.formatDate(q.createdAt)}
+              </div>
+              <div class="card-title" style="margin-bottom: ${isAnswered ? '0' : 'var(--spacing-md)'};">
+                ${this.escapeHTML(q.text)}
+              </div>
+          `;
+
+          if (isAnswered && q.answerText) {
+            html += `
+              <div class="card-answer-display">
+                <strong>Answer</strong>
+                ${this.escapeHTML(q.answerText)}
+              </div>
+            `;
+          }
+
+          html += `</div>`;
+          container.innerHTML += html;
+        });
+      }
+    };
+
+    // Boot app
+    app.init();
+  </script>
+</body>
+</html>
