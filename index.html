@@ -6,27 +6,52 @@
   <title>AskBack - Ask. Recall. Answer.</title>
   <style>
     /* 
-      Restrained Academic/Productivity Theme 
-      Using system fonts and a clean, high-contrast palette
+      Premium Academic Study Tool Theme
+      Clean, minimal, high-readability with generous whitespace and soft geometry.
     */
     :root {
-      --bg-color: #f3f4f6;
-      --surface-color: #ffffff;
-      --text-main: #111827;
-      --text-muted: #4b5563;
-      --border-color: #d1d5db;
-      --primary-color: #1f2937;
-      --primary-hover: #111827;
-      --success-bg: #ecfdf5;
-      --success-text: #065f46;
-      --success-border: #a7f3d0;
-      --focus-ring: rgba(31, 41, 55, 0.2);
-      --border-radius: 6px;
+      /* Color Palette */
+      --bg-body: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-tertiary: #94a3b8;
+      
+      --brand-primary: #1e293b;
+      --brand-hover: #0f172a;
+      
+      --border-light: #e2e8f0;
+      --border-focus: #94a3b8;
+      
+      --status-success-bg: #f0fdf4;
+      --status-success-text: #166534;
+      --status-success-border: #bbf7d0;
+      
+      --status-error-bg: #fef2f2;
+      --status-error-text: #991b1b;
+      --status-error-border: #fecaca;
+      
+      --status-pending-bg: #fffbeb;
+      --status-pending-text: #92400e;
+      --status-pending-border: #fde68a;
+
+      /* Metrics */
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
       --spacing-xs: 4px;
       --spacing-sm: 8px;
       --spacing-md: 16px;
       --spacing-lg: 24px;
       --spacing-xl: 32px;
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+      
+      --transition-fast: 0.15s ease-in-out;
+      --transition-smooth: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     * {
@@ -36,424 +61,534 @@
     }
 
     body {
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      line-height: 1.5;
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     .hidden {
       display: none !important;
     }
 
-    /* Layout Shell */
+    /* Layout */
     #app-shell {
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
 
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 0 var(--spacing-lg);
+    }
+
+    /* Typography */
+    h1, h2, h3 {
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+    }
+
     /* Header & Navigation */
     .app-header {
-      background-color: var(--surface-color);
-      border-bottom: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-light);
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 50;
+      box-shadow: var(--shadow-sm);
     }
 
     .header-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: var(--spacing-md) var(--spacing-xl);
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
+      padding: var(--spacing-md) 0;
+    }
+
+    .brand-area {
+      display: flex;
+      flex-direction: column;
     }
 
     .brand-area h1 {
-      font-size: 20px;
+      font-size: 1.25rem;
       font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--text-main);
+      letter-spacing: -0.025em;
     }
 
     .brand-area .tagline {
-      font-size: 13px;
-      color: var(--text-muted);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
       font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .user-area {
       display: flex;
       align-items: center;
       gap: var(--spacing-md);
-      font-size: 14px;
+      font-size: 0.875rem;
       font-weight: 500;
+      color: var(--text-secondary);
     }
 
     .app-nav {
       display: flex;
-      gap: var(--spacing-lg);
-      padding: 0 var(--spacing-xl);
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
+      gap: var(--spacing-xl);
       overflow-x: auto;
+      scrollbar-width: none; /* Firefox */
+    }
+    
+    .app-nav::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
     }
 
     .nav-tab {
       background: none;
       border: none;
-      color: var(--text-muted);
-      font-size: 14px;
-      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 500;
       padding: var(--spacing-md) 0;
       cursor: pointer;
       border-bottom: 2px solid transparent;
       white-space: nowrap;
-      transition: color 0.15s ease;
+      transition: color var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .nav-tab:hover:not(:disabled) {
-      color: var(--text-main);
+      color: var(--text-primary);
     }
 
     .nav-tab.active {
-      color: var(--primary-color);
-      border-bottom-color: var(--primary-color);
+      color: var(--brand-primary);
+      border-bottom-color: var(--brand-primary);
+      font-weight: 600;
     }
 
     .badge {
-      display: inline-block;
-      background: var(--primary-color);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--brand-primary);
       color: #fff;
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 10px;
-      margin-left: 4px;
-      vertical-align: middle;
+      font-size: 0.65rem;
+      font-weight: 700;
+      height: 18px;
+      min-width: 18px;
+      padding: 0 5px;
+      border-radius: 9px;
+      transition: opacity var(--transition-fast);
     }
 
     .badge.empty {
-      background: var(--text-muted);
-      opacity: 0.5;
+      background: var(--border-light);
+      color: var(--text-secondary);
     }
 
-    /* Main Content Area */
+    /* Main Content */
     .main-content {
-      padding: var(--spacing-xl);
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
       flex-grow: 1;
+      padding: var(--spacing-xl) 0 64px 0;
     }
-
-    /* Typography */
-    h2 {
-      font-size: 20px;
-      font-weight: 600;
+    
+    .view-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
       margin-bottom: var(--spacing-lg);
-      color: var(--text-main);
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
     }
 
     /* Buttons */
-    button {
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       font-family: inherit;
-      background-color: var(--primary-color);
-      color: #fff;
-      border: 1px solid var(--primary-color);
-      padding: 8px 16px;
-      border-radius: var(--border-radius);
-      font-size: 14px;
+      font-size: 0.875rem;
       font-weight: 500;
+      border-radius: var(--radius-sm);
+      padding: 10px 18px;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all var(--transition-fast);
+      border: 1px solid transparent;
     }
 
-    button:hover:not(:disabled) {
-      background-color: var(--primary-hover);
-    }
-
-    button:focus-visible {
+    .btn:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 3px var(--focus-ring);
+      box-shadow: 0 0 0 3px var(--border-light);
     }
 
-    button:disabled {
+    .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
 
-    button.secondary {
-      background-color: var(--surface-color);
-      color: var(--text-main);
-      border-color: var(--border-color);
+    .btn-primary {
+      background-color: var(--brand-primary);
+      color: #fff;
     }
 
-    button.secondary:hover:not(:disabled) {
-      background-color: var(--bg-color);
-      border-color: #9ca3af;
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--brand-hover);
+      box-shadow: var(--shadow-sm);
     }
 
-    button.text-btn {
+    .btn-secondary {
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      border-color: var(--border-light);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: var(--bg-subtle);
+      border-color: var(--border-focus);
+    }
+
+    .btn-text {
       background: none;
       border: none;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       padding: 0;
-      font-size: 13px;
-      text-decoration: underline;
-    }
-
-    button.text-btn:hover:not(:disabled) {
-      color: var(--text-main);
-      background: none;
-    }
-
-    /* Layout Grids */
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: var(--spacing-lg);
-      align-items: start;
-    }
-
-    .form-container {
-      max-width: 600px; /* Constrain forms for readability */
-      background: var(--surface-color);
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      padding: var(--spacing-xl);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Cards */
-    .card {
-      background: var(--surface-color);
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      padding: var(--spacing-lg);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .card-meta {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: var(--spacing-sm);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: var(--spacing-sm);
-    }
-
-    .card-meta-left {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .card-meta span.dot {
-      margin: 0 6px;
-      color: #9ca3af;
-    }
-
-    .card-title {
-      font-size: 16px;
+      font-size: 0.875rem;
       font-weight: 500;
-      margin-bottom: var(--spacing-lg);
-      line-height: 1.6;
-      flex-grow: 1;
-      white-space: pre-wrap;
-      word-break: break-word;
+      text-decoration: underline;
+      text-underline-offset: 2px;
     }
 
-    .card-answer-box {
-      margin-top: auto;
-      padding-top: var(--spacing-md);
-      border-top: 1px solid var(--border-color);
-    }
-    
-    .card-answer-display {
-      margin-top: var(--spacing-md);
-      padding: var(--spacing-md);
-      background-color: #f8fafc;
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      font-size: 15px;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    
-    .card-answer-display strong {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 12px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      letter-spacing: 0.5px;
+    .btn-text:hover:not(:disabled) {
+      color: var(--text-primary);
     }
 
-    .status-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-      background: var(--bg-color);
-      color: var(--text-muted);
-      border: 1px solid var(--border-color);
-    }
-    
-    .status-badge.answered {
-      background: var(--success-bg);
-      color: var(--success-text);
-      border-color: var(--success-border);
-    }
-
-    /* Forms */
+    /* Form Elements */
     .form-group {
       margin-bottom: var(--spacing-lg);
     }
 
-    label {
+    .form-label {
       display: block;
-      font-size: 13px;
+      font-size: 0.875rem;
       font-weight: 600;
-      color: var(--text-main);
+      color: var(--text-primary);
       margin-bottom: var(--spacing-xs);
     }
 
-    .static-field {
-      font-size: 15px;
-      font-weight: 500;
-      padding: 8px 0;
-      color: var(--text-muted);
+    .form-static {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid var(--border-light);
     }
 
-    select, textarea {
+    .form-input {
       width: 100%;
       font-family: inherit;
-      padding: 10px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      font-size: 15px;
-      background-color: var(--surface-color);
-      color: var(--text-main);
-      transition: border-color 0.15s, box-shadow 0.15s;
+      padding: 12px 16px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      transition: all var(--transition-fast);
+    }
+    
+    .form-input::placeholder {
+      color: var(--text-tertiary);
     }
 
-    select:focus, textarea:focus {
+    .form-input:focus {
       outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px var(--focus-ring);
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 1px var(--brand-primary);
     }
 
-    textarea {
+    textarea.form-input {
       resize: vertical;
       min-height: 120px;
+      line-height: 1.5;
     }
 
-    .history-filters {
-      margin-bottom: var(--spacing-lg);
-      max-width: 300px;
+    .form-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-xl);
+      box-shadow: var(--shadow-sm);
     }
 
-    /* Utilities */
-    .empty-state {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 64px 24px;
-      background: var(--surface-color);
-      border: 1px dashed var(--border-color);
-      border-radius: var(--border-radius);
-      color: var(--text-muted);
-      font-size: 15px;
+    /* Cards */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-lg);
     }
 
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow var(--transition-smooth);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--spacing-md);
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+    }
+    
+    .card-header-left {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+    }
+
+    .badge-subject {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--brand-primary);
+      background-color: var(--bg-subtle);
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .card-meta {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .card-body {
+      flex-grow: 1;
+    }
+
+    .question-text {
+      font-size: 1.125rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: var(--spacing-md);
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.5;
+    }
+
+    .card-actions {
+      margin-top: auto;
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--bg-body);
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    /* Answer Display (History) */
+    .answer-display {
+      margin-top: var(--spacing-md);
+      padding: var(--spacing-md);
+      background-color: var(--bg-body);
+      border-left: 3px solid var(--border-light);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    
+    .answer-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    
+    .answer-text {
+      font-size: 0.9375rem;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Answer Inline Box */
+    .answer-box-inline {
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--border-light);
+      animation: fadeIn var(--transition-fast);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .answer-box-actions {
+      margin-top: var(--spacing-md);
+      display: flex;
+      gap: var(--spacing-sm);
+      justify-content: flex-end;
+    }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+    
+    .status-badge.answered {
+      background: var(--status-success-bg);
+      color: var(--status-success-text);
+      border: 1px solid var(--status-success-border);
+    }
+    
+    .status-badge.pending {
+      background: var(--status-pending-bg);
+      color: var(--status-pending-text);
+      border: 1px solid var(--status-pending-border);
+    }
+
+    /* Messages & States */
     .message {
       padding: 12px 16px;
-      border-radius: var(--border-radius);
+      border-radius: var(--radius-sm);
       margin-bottom: var(--spacing-lg);
-      font-size: 14px;
+      font-size: 0.875rem;
       font-weight: 500;
       display: none;
     }
 
     .message.success {
       display: block;
-      background-color: var(--success-bg);
-      color: var(--success-text);
-      border: 1px solid var(--success-border);
+      background-color: var(--status-success-bg);
+      color: var(--status-success-text);
+      border: 1px solid var(--status-success-border);
+    }
+    
+    .message.error {
+      display: block;
+      background-color: var(--status-error-bg);
+      color: var(--status-error-text);
+      border: 1px solid var(--status-error-border);
     }
 
-    /* Select User Screen */
+    .empty-state {
+      text-align: center;
+      padding: 64px 24px;
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-focus);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+    }
+
+    /* User Selection Screen */
     #view-select-user {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background-color: var(--bg-color);
+      background-color: var(--bg-body);
       padding: var(--spacing-xl);
     }
     
     .select-user-card {
-      background: var(--surface-color);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 40px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 48px;
       width: 100%;
-      max-width: 400px;
+      max-width: 440px;
       text-align: center;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      box-shadow: var(--shadow-md);
     }
 
     .select-user-card h1 {
-      font-size: 28px;
+      font-size: 2rem;
       margin-bottom: 4px;
+      letter-spacing: -0.025em;
     }
     
     .select-user-card .tagline {
-      font-size: 15px;
-      color: var(--text-muted);
-      margin-bottom: 32px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 500;
+    }
+
+    .select-user-card h2 {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-lg);
+      font-weight: 500;
     }
 
     .user-btn {
       display: block;
       width: 100%;
-      margin-bottom: 12px;
-      padding: 14px;
-      font-size: 16px;
+      margin-bottom: var(--spacing-md);
+      padding: 16px;
+      font-size: 1rem;
+      border-radius: var(--radius-sm);
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
+    /* Responsive */
+    @media (max-width: 640px) {
       .header-top {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--spacing-md);
-        padding: var(--spacing-md);
       }
       
       .app-nav {
-        padding: 0 var(--spacing-md);
+        gap: var(--spacing-md);
       }
       
-      .main-content {
-        padding: var(--spacing-md);
+      .view-header {
+        flex-direction: column;
+        align-items: flex-start;
       }
       
-      .cards-grid {
-        grid-template-columns: 1fr;
+      .form-container, .select-user-card {
+        padding: var(--spacing-lg);
+      }
+      
+      .card-header-left {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
@@ -465,9 +600,9 @@
     <div class="select-user-card">
       <h1>AskBack</h1>
       <div class="tagline">Ask. Recall. Answer.</div>
-      <h2 style="margin-top: 32px; margin-bottom: 24px; font-size: 16px; color: var(--text-muted);">Select User</h2>
-      <button class="user-btn secondary" onclick="app.selectUser('Lakshya')">Lakshya</button>
-      <button class="user-btn secondary" onclick="app.selectUser('Archita')">Archita</button>
+      <h2>Select User</h2>
+      <button class="btn btn-secondary user-btn" onclick="app.selectUser('Lakshya')">Lakshya</button>
+      <button class="btn btn-secondary user-btn" onclick="app.selectUser('Archita')">Archita</button>
     </div>
   </div>
 
@@ -475,104 +610,113 @@
   <div id="app-shell" class="hidden">
     
     <header class="app-header">
-      <div class="header-top">
-        <div class="brand-area">
-          <h1>AskBack</h1>
-          <div class="tagline">Ask. Recall. Answer.</div>
+      <div class="container">
+        <div class="header-top">
+          <div class="brand-area">
+            <h1>AskBack</h1>
+            <div class="tagline">Ask. Recall. Answer.</div>
+          </div>
+          <div class="user-area">
+            <span id="header-current-user"></span>
+            <button class="btn-text" onclick="app.switchUser()">Switch User</button>
+          </div>
         </div>
-        <div class="user-area">
-          <span id="header-current-user"></span>
-          <button class="text-btn" onclick="app.switchUser()">Switch User</button>
-        </div>
+        <nav class="app-nav">
+          <button id="tab-pending" class="nav-tab active" onclick="app.switchView('view-pending')">
+            Questions for Me <span id="nav-pending-badge" class="badge empty">...</span>
+          </button>
+          <button id="tab-ask" class="nav-tab" onclick="app.switchView('view-ask')">Ask a Question</button>
+          <button id="tab-history" class="nav-tab" onclick="app.switchView('view-history')">Question History</button>
+        </nav>
       </div>
-      <nav class="app-nav">
-        <button id="tab-pending" class="nav-tab active" onclick="app.switchView('view-pending')">
-          Questions for Me <span id="nav-pending-badge" class="badge empty">...</span>
-        </button>
-        <button id="tab-ask" class="nav-tab" onclick="app.switchView('view-ask')">Ask a Question</button>
-        <button id="tab-history" class="nav-tab" onclick="app.switchView('view-history')">Question History</button>
-      </nav>
     </header>
 
     <main class="main-content">
-      
-      <!-- PENDING QUESTIONS VIEW -->
-      <div id="view-pending" class="view hidden">
-        <h2>Questions for Me</h2>
-        <div id="pending-list" class="cards-grid"></div>
-      </div>
-
-      <!-- ASK A QUESTION VIEW -->
-      <div id="view-ask" class="view hidden">
-        <h2>Ask a Question</h2>
+      <div class="container">
         
-        <div class="form-container">
-          <div id="ask-success-msg" class="message success hidden">Question sent successfully!</div>
-          <div id="ask-error-msg" class="message hidden" style="background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca;"></div>
-
-          <div class="form-group">
-            <label>Recipient</label>
-            <div id="ask-recipient" class="static-field"></div>
+        <!-- PENDING QUESTIONS VIEW -->
+        <div id="view-pending" class="view hidden">
+          <div class="view-header">
+            <h2>Questions for Me</h2>
           </div>
-
-          <div class="form-group">
-            <label for="ask-subject">Subject</label>
-            <select id="ask-subject">
-              <option value="Art & Culture">Art & Culture</option>
-              <option value="Ancient History">Ancient History</option>
-              <option value="Medieval History">Medieval History</option>
-              <option value="Modern History">Modern History</option>
-              <option value="Polity">Polity</option>
-              <option value="Governance">Governance</option>
-              <option value="Geography">Geography</option>
-              <option value="Economy">Economy</option>
-              <option value="Environment">Environment</option>
-              <option value="Science & Technology">Science & Technology</option>
-              <option value="Society">Society</option>
-              <option value="International Relations">International Relations</option>
-              <option value="Current Affairs">Current Affairs</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="ask-text">Question</label>
-            <textarea id="ask-text" placeholder="Type your question here..."></textarea>
-          </div>
-
-          <div style="text-align: right;">
-            <button id="btn-submit-ask" onclick="app.submitQuestion()">Send Question</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- HISTORY VIEW -->
-      <div id="view-history" class="view hidden">
-        <h2>Question History</h2>
-        
-        <div class="history-filters">
-          <select id="history-subject-filter" onchange="app.renderHistory(false)">
-            <option value="All">All Subjects</option>
-            <option value="Art & Culture">Art & Culture</option>
-            <option value="Ancient History">Ancient History</option>
-            <option value="Medieval History">Medieval History</option>
-            <option value="Modern History">Modern History</option>
-            <option value="Polity">Polity</option>
-            <option value="Governance">Governance</option>
-            <option value="Geography">Geography</option>
-            <option value="Economy">Economy</option>
-            <option value="Environment">Environment</option>
-            <option value="Science & Technology">Science & Technology</option>
-            <option value="Society">Society</option>
-            <option value="International Relations">International Relations</option>
-            <option value="Current Affairs">Current Affairs</option>
-            <option value="Other">Other</option>
-          </select>
+          <div id="pending-list" class="cards-grid"></div>
         </div>
 
-        <div id="history-list" class="cards-grid"></div>
-      </div>
+        <!-- ASK A QUESTION VIEW -->
+        <div id="view-ask" class="view hidden">
+          <div class="view-header">
+            <h2>Ask a Question</h2>
+          </div>
+          
+          <div class="form-container">
+            <div id="ask-success-msg" class="message success hidden">Question sent successfully!</div>
+            <div id="ask-error-msg" class="message error hidden"></div>
 
+            <div class="form-group">
+              <label class="form-label">Recipient</label>
+              <div id="ask-recipient" class="form-static"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="ask-subject">Subject</label>
+              <select id="ask-subject" class="form-input">
+                <option value="Art & Culture">Art & Culture</option>
+                <option value="Ancient History">Ancient History</option>
+                <option value="Medieval History">Medieval History</option>
+                <option value="Modern History">Modern History</option>
+                <option value="Polity">Polity</option>
+                <option value="Governance">Governance</option>
+                <option value="Geography">Geography</option>
+                <option value="Economy">Economy</option>
+                <option value="Environment">Environment</option>
+                <option value="Science & Technology">Science & Technology</option>
+                <option value="Society">Society</option>
+                <option value="International Relations">International Relations</option>
+                <option value="Current Affairs">Current Affairs</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="ask-text">Question</label>
+              <textarea id="ask-text" class="form-input" placeholder="Type your question here..."></textarea>
+            </div>
+
+            <div style="text-align: right; margin-top: var(--spacing-xl);">
+              <button id="btn-submit-ask" class="btn btn-primary" onclick="app.submitQuestion()">Send Question</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORY VIEW -->
+        <div id="view-history" class="view hidden">
+          <div class="view-header">
+            <h2>Question History</h2>
+            <div class="history-filters">
+              <select id="history-subject-filter" class="form-input" style="min-width: 200px;" onchange="app.renderHistory(false)">
+                <option value="All">All Subjects</option>
+                <option value="Art & Culture">Art & Culture</option>
+                <option value="Ancient History">Ancient History</option>
+                <option value="Medieval History">Medieval History</option>
+                <option value="Modern History">Modern History</option>
+                <option value="Polity">Polity</option>
+                <option value="Governance">Governance</option>
+                <option value="Geography">Geography</option>
+                <option value="Economy">Economy</option>
+                <option value="Environment">Environment</option>
+                <option value="Science & Technology">Science & Technology</option>
+                <option value="Society">Society</option>
+                <option value="International Relations">International Relations</option>
+                <option value="Current Affairs">Current Affairs</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="history-list" class="cards-grid"></div>
+        </div>
+
+      </div>
     </main>
   </div>
 
@@ -772,37 +916,36 @@
             const dateStr = q.createdAt || q.timestamp || q.date;
             
             card.innerHTML = `
-              <div class="card-meta">
-                <div class="card-meta-left">
-                  <strong>${this.escapeHTML(q.subject)}</strong> 
-                  <span class="dot">•</span> 
-                  From ${this.escapeHTML(q.creator)}
+              <div class="card-header">
+                <div class="card-header-left">
+                  <span class="badge-subject">${this.escapeHTML(q.subject)}</span>
+                  <span class="card-meta">From ${this.escapeHTML(q.creator)} &middot; ${this.formatDate(dateStr)}</span>
                 </div>
-                <div>${this.formatDate(dateStr)}</div>
               </div>
-              <div class="card-title">${this.escapeHTML(questionBody)}</div>
-              <div id="action-area-${q.id}" class="card-answer-box" style="border-top: none; padding-top: 0;">
-                <button class="secondary" onclick="app.showAnswerBox('${q.id}')">Answer Question</button>
+              <div class="card-body">
+                <div class="question-text">${this.escapeHTML(questionBody)}</div>
+              </div>
+              <div id="action-area-${q.id}" class="card-actions">
+                <button class="btn btn-primary" onclick="app.showAnswerBox('${q.id}')">Answer Question</button>
               </div>
             `;
             container.appendChild(card);
           });
         } catch (error) {
-          container.innerHTML = `<div class="empty-state" style="color: #991b1b; border-color: #fecaca; background-color: #fef2f2;">Failed to load questions. Please try again.</div>`;
+          container.innerHTML = `<div class="empty-state message error" style="display: block;">Failed to load questions. Please try again.</div>`;
         }
       },
 
       showAnswerBox(id) {
         const area = document.getElementById(`action-area-${id}`);
+        area.className = 'answer-box-inline';
         area.innerHTML = `
-          <div class="card-answer-box">
-            <label for="answer-input-${id}">Your Answer</label>
-            <textarea id="answer-input-${id}" placeholder="Type your answer..."></textarea>
-            <div id="answer-error-${id}" class="message hidden" style="margin-top: 8px; margin-bottom: 0; background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca;"></div>
-            <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end;">
-              <button id="btn-cancel-${id}" class="secondary" onclick="app.renderPending()">Cancel</button>
-              <button id="btn-submit-${id}" onclick="app.submitAnswer('${id}')">Submit Answer</button>
-            </div>
+          <label class="form-label" for="answer-input-${id}">Your Answer</label>
+          <textarea class="form-input" id="answer-input-${id}" placeholder="Type your answer here..." rows="4"></textarea>
+          <div id="answer-error-${id}" class="message error hidden" style="margin-top: 12px; margin-bottom: 0;"></div>
+          <div class="answer-box-actions">
+            <button id="btn-cancel-${id}" class="btn btn-secondary" onclick="app.renderPending()">Cancel</button>
+            <button id="btn-submit-${id}" class="btn btn-primary" onclick="app.submitAnswer('${id}')">Submit Answer</button>
           </div>
         `;
         document.getElementById(`answer-input-${id}`).focus();
@@ -831,7 +974,6 @@
           btnCancel.disabled = false;
           errorMsg.textContent = error.message;
           errorMsg.classList.remove('hidden');
-          errorMsg.style.display = 'block';
         }
       },
 
@@ -874,7 +1016,6 @@
         } catch (error) {
           errorMsg.textContent = error.message;
           errorMsg.classList.remove('hidden');
-          errorMsg.style.display = 'block';
         } finally {
           this.isSubmitting = false;
           btnSubmit.disabled = false;
@@ -892,7 +1033,7 @@
             const res = await this.getHistoryData();
             this.cachedHistory = res.questions || [];
           } catch (error) {
-            container.innerHTML = `<div class="empty-state" style="color: #991b1b; border-color: #fecaca; background-color: #fef2f2;">Failed to load history. Please try again.</div>`;
+            container.innerHTML = `<div class="empty-state message error" style="display: block;">Failed to load history. Please try again.</div>`;
             return;
           }
         }
@@ -912,7 +1053,7 @@
 
         history.forEach(q => {
           const isAnswered = q.status === 'Answered';
-          const badgeClass = isAnswered ? 'answered' : '';
+          const badgeClass = isAnswered ? 'answered' : 'pending';
           
           const questionBody = q.question || q.text || '';
           const answerBody = q.answer || q.answerText || '';
@@ -920,32 +1061,29 @@
 
           let html = `
             <div class="card">
-              <div class="card-meta">
-                <div class="card-meta-left">
-                  <strong>${this.escapeHTML(q.subject)}</strong> 
-                  <span class="dot">•</span> 
-                  ${this.escapeHTML(q.creator)} → ${this.escapeHTML(q.recipient)}
+              <div class="card-header">
+                <div class="card-header-left">
+                  <span class="badge-subject">${this.escapeHTML(q.subject)}</span>
+                  <span class="card-meta">${this.escapeHTML(q.creator)} &rarr; ${this.escapeHTML(q.recipient)} &middot; ${this.formatDate(dateStr)}</span>
                 </div>
-                <div class="status-badge ${badgeClass}">${this.escapeHTML(q.status)}</div>
+                <span class="status-badge ${badgeClass}">${this.escapeHTML(q.status)}</span>
               </div>
-              <div class="card-meta" style="text-transform: none; font-weight: normal;">
-                ${this.formatDate(dateStr)}
-              </div>
-              <div class="card-title" style="margin-bottom: ${isAnswered ? '0' : 'var(--spacing-md)'};">
-                ${this.escapeHTML(questionBody)}
-              </div>
+              <div class="card-body">
+                <div class="question-text">${this.escapeHTML(questionBody)}</div>
           `;
 
           if (isAnswered && answerBody) {
             html += `
-              <div class="card-answer-display">
-                <strong>Answer</strong>
-                ${this.escapeHTML(answerBody)}
-              </div>
+                <div class="answer-display">
+                  <div class="answer-label">Answer</div>
+                  <div class="answer-text">${this.escapeHTML(answerBody)}</div>
+                </div>
             `;
           }
 
-          html += `</div>`;
+          html += `
+              </div>
+            </div>`;
           container.innerHTML += html;
         });
       }
