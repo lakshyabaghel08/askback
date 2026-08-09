@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -118,7 +117,7 @@
       transition: color 0.15s ease;
     }
 
-    .nav-tab:hover {
+    .nav-tab:hover:not(:disabled) {
       color: var(--text-main);
     }
 
@@ -174,7 +173,7 @@
       transition: all 0.15s ease;
     }
 
-    button:hover {
+    button:hover:not(:disabled) {
       background-color: var(--primary-hover);
     }
 
@@ -183,13 +182,18 @@
       box-shadow: 0 0 0 3px var(--focus-ring);
     }
 
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     button.secondary {
       background-color: var(--surface-color);
       color: var(--text-main);
       border-color: var(--border-color);
     }
 
-    button.secondary:hover {
+    button.secondary:hover:not(:disabled) {
       background-color: var(--bg-color);
       border-color: #9ca3af;
     }
@@ -203,7 +207,7 @@
       text-decoration: underline;
     }
 
-    button.text-btn:hover {
+    button.text-btn:hover:not(:disabled) {
       color: var(--text-main);
       background: none;
     }
@@ -483,7 +487,7 @@
       </div>
       <nav class="app-nav">
         <button id="tab-pending" class="nav-tab active" onclick="app.switchView('view-pending')">
-          Questions for Me <span id="nav-pending-badge" class="badge">0</span>
+          Questions for Me <span id="nav-pending-badge" class="badge empty">...</span>
         </button>
         <button id="tab-ask" class="nav-tab" onclick="app.switchView('view-ask')">Ask a Question</button>
         <button id="tab-history" class="nav-tab" onclick="app.switchView('view-history')">Question History</button>
@@ -504,6 +508,7 @@
         
         <div class="form-container">
           <div id="ask-success-msg" class="message success hidden">Question sent successfully!</div>
+          <div id="ask-error-msg" class="message hidden" style="background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca;"></div>
 
           <div class="form-group">
             <label>Recipient</label>
@@ -536,7 +541,7 @@
           </div>
 
           <div style="text-align: right;">
-            <button onclick="app.submitQuestion()">Send Question</button>
+            <button id="btn-submit-ask" onclick="app.submitQuestion()">Send Question</button>
           </div>
         </div>
       </div>
@@ -546,7 +551,7 @@
         <h2>Question History</h2>
         
         <div class="history-filters">
-          <select id="history-subject-filter" onchange="app.renderHistory()">
+          <select id="history-subject-filter" onchange="app.renderHistory(false)">
             <option value="All">All Subjects</option>
             <option value="Art & Culture">Art & Culture</option>
             <option value="Ancient History">Ancient History</option>
@@ -572,13 +577,59 @@
   </div>
 
   <script>
+    // Reusable API JSONP Layer
+    const apiLayer = {
+      baseUrl: 'https://script.google.com/macros/s/AKfycbypDbQyR7Q1PG8Uz7FW3tPoUrHGnGJIIPHFyLyzeYRWrnOQtBppa0Pk7Pl5yTbeJMxG/exec',
+      
+      request(action, params = {}) {
+        return new Promise((resolve, reject) => {
+          const callbackName = 'jsonp_cb_' + Math.round(1000000 * Math.random()) + '_' + Date.now();
+          const script = document.createElement('script');
+          
+          let url = `${this.baseUrl}?action=${encodeURIComponent(action)}&callback=${callbackName}`;
+          for (const key in params) {
+            url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
+          }
+          
+          const timeout = setTimeout(() => {
+            cleanup();
+            reject(new Error('Request timed out after 15 seconds.'));
+          }, 15000);
+          
+          window[callbackName] = (data) => {
+            cleanup();
+            if (data && data.success === false) {
+              reject(new Error(data.error || data.message || 'API responded with an error.'));
+            } else {
+              resolve(data);
+            }
+          };
+          
+          script.onerror = () => {
+            cleanup();
+            reject(new Error('Network error or script blocked.'));
+          };
+          
+          function cleanup() {
+            clearTimeout(timeout);
+            if (script.parentNode) script.parentNode.removeChild(script);
+            delete window[callbackName];
+          }
+          
+          script.src = url;
+          document.head.appendChild(script);
+        });
+      }
+    };
+
     const app = {
       currentUser: null,
       users: ["Lakshya", "Archita"],
+      cachedHistory: [],
+      isSubmitting: false,
       
       // Initialize application
       init() {
-        this.initializeMockData();
         const savedUser = localStorage.getItem('askback_user');
         if (savedUser && this.users.includes(savedUser)) {
           this.currentUser = savedUser;
@@ -594,7 +645,7 @@
       // Utility: HTML Escaping
       escapeHTML(str) {
         if (!str) return '';
-        return str.replace(/[&<>'"]/g, 
+        return String(str).replace(/[&<>'"]/g, 
           tag => ({
               '&': '&amp;',
               '<': '&lt;',
@@ -605,107 +656,47 @@
         );
       },
 
-      // Data Operations (Mock Backend)
-      initializeMockData() {
-        if (!localStorage.getItem('askback_questions')) {
-          const now = new Date();
-          const yesterday = new Date(now.getTime() - (24 * 60 * 60 * 1000));
-          
-          const mockData = [
-            {
-              id: this.generateId(),
-              creator: "Archita",
-              recipient: "Lakshya",
-              subject: "Modern History",
-              text: "What was the significance of the Swadeshi Movement?",
-              answerText: null,
-              createdAt: yesterday.toISOString(),
-              status: "Pending"
-            },
-            {
-              id: this.generateId(),
-              creator: "Lakshya",
-              recipient: "Archita",
-              subject: "Polity",
-              text: "Explain the basic structure doctrine introduced in the Kesavananda Bharati case.",
-              answerText: null,
-              createdAt: new Date(now.getTime() - (2 * 60 * 60 * 1000)).toISOString(),
-              status: "Pending"
-            },
-            {
-              id: this.generateId(),
-              creator: "Archita",
-              recipient: "Lakshya",
-              subject: "Geography",
-              text: "What are the primary factors influencing the Indian Monsoon?",
-              answerText: "The primary factors include differential heating and cooling of land and water, the shift of the ITCZ, the presence of the high-pressure area east of Madagascar, and the Tibetan plateau getting intensely heated.",
-              createdAt: new Date(now.getTime() - (48 * 60 * 60 * 1000)).toISOString(),
-              status: "Answered"
-            }
-          ];
-          localStorage.setItem('askback_questions', JSON.stringify(mockData));
-        }
+      // Date Formatting
+      formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return this.escapeHTML(dateString);
+        const options = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return date.toLocaleDateString('en-GB', options).replace(',', ' ·');
       },
 
-      getQuestions() {
-        return JSON.parse(localStorage.getItem('askback_questions') || '[]');
+      // Data Operations (API Backend)
+      getPendingCount() {
+        return apiLayer.request('count', { user: this.currentUser });
       },
 
-      saveQuestions(questions) {
-        localStorage.setItem('askback_questions', JSON.stringify(questions));
+      getPendingQuestions() {
+        return apiLayer.request('pending', { user: this.currentUser });
       },
 
-      getCurrentUser() {
-        return this.currentUser;
-      },
-      
-      getOtherUser() {
-        return this.currentUser === "Lakshya" ? "Archita" : "Lakshya";
-      },
-
-      getQuestionsForUser() {
-        return this.getQuestions().filter(q => q.recipient === this.currentUser && q.status === 'Pending');
-      },
-
-      getHistory() {
-        return this.getQuestions().filter(q => 
-          q.creator === this.currentUser || q.recipient === this.currentUser
-        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      getHistoryData() {
+        return apiLayer.request('history', { user: this.currentUser });
       },
 
       createQuestion(subject, text) {
-        const questions = this.getQuestions();
-        questions.push({
-          id: this.generateId(),
+        return apiLayer.request('create', {
           creator: this.currentUser,
           recipient: this.getOtherUser(),
           subject: subject,
-          text: text,
-          answerText: null,
-          createdAt: new Date().toISOString(),
-          status: "Pending"
+          question: text
         });
-        this.saveQuestions(questions);
       },
 
       answerQuestion(id, answerText) {
-        const questions = this.getQuestions();
-        const index = questions.findIndex(q => q.id === id);
-        if (index > -1) {
-          questions[index].answerText = answerText;
-          questions[index].status = "Answered";
-          this.saveQuestions(questions);
-        }
+        return apiLayer.request('answer', {
+          id: id,
+          user: this.currentUser,
+          answer: answerText
+        });
       },
 
-      generateId() {
-        return Math.random().toString(36).substr(2, 9);
-      },
-      
-      formatDate(isoString) {
-        const date = new Date(isoString);
-        const options = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return date.toLocaleDateString('en-GB', options).replace(',', ' ·');
+      getOtherUser() {
+        return this.currentUser === "Lakshya" ? "Archita" : "Lakshya";
       },
 
       // UI Navigation
@@ -723,7 +714,7 @@
 
         if (viewId === 'view-pending') this.renderPending();
         if (viewId === 'view-ask') this.renderAsk();
-        if (viewId === 'view-history') this.renderHistory();
+        if (viewId === 'view-history') this.renderHistory(true);
       },
 
       selectUser(username) {
@@ -741,51 +732,64 @@
         document.getElementById('view-select-user').classList.remove('hidden');
       },
 
-      updateHeaderState() {
+      async updateHeaderState() {
         if(!this.currentUser) return;
         document.getElementById('header-current-user').textContent = this.currentUser;
         
-        const pendingCount = this.getQuestionsForUser().length;
         const badge = document.getElementById('nav-pending-badge');
-        badge.textContent = pendingCount;
-        
-        if (pendingCount === 0) {
+        try {
+          const res = await this.getPendingCount();
+          const count = res.count !== undefined ? res.count : (res.questions ? res.questions.length : 0);
+          badge.textContent = count;
+          if (count === 0) badge.classList.add('empty');
+          else badge.classList.remove('empty');
+        } catch (e) {
+          badge.textContent = '?';
           badge.classList.add('empty');
-        } else {
-          badge.classList.remove('empty');
         }
       },
 
       // Render Logic
-      renderPending() {
+      async renderPending() {
         const container = document.getElementById('pending-list');
-        const questions = this.getQuestionsForUser();
-        container.innerHTML = '';
+        container.innerHTML = `<div class="empty-state">Loading your questions...</div>`;
 
-        if (questions.length === 0) {
-          container.innerHTML = `<div class="empty-state">You have no pending questions. Excellent!</div>`;
-          return;
-        }
+        try {
+          const res = await this.getPendingQuestions();
+          const questions = res.questions || [];
+          container.innerHTML = '';
 
-        questions.forEach(q => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <div class="card-meta">
-              <div class="card-meta-left">
-                <strong>${this.escapeHTML(q.subject)}</strong> 
-                <span class="dot">•</span> 
-                From ${this.escapeHTML(q.creator)}
+          if (questions.length === 0) {
+            container.innerHTML = `<div class="empty-state">You have no pending questions. Excellent!</div>`;
+            return;
+          }
+
+          questions.forEach(q => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const questionBody = q.question || q.text || '';
+            const dateStr = q.createdAt || q.timestamp || q.date;
+            
+            card.innerHTML = `
+              <div class="card-meta">
+                <div class="card-meta-left">
+                  <strong>${this.escapeHTML(q.subject)}</strong> 
+                  <span class="dot">•</span> 
+                  From ${this.escapeHTML(q.creator)}
+                </div>
+                <div>${this.formatDate(dateStr)}</div>
               </div>
-              <div>${this.formatDate(q.createdAt)}</div>
-            </div>
-            <div class="card-title">${this.escapeHTML(q.text)}</div>
-            <div id="action-area-${q.id}" class="card-answer-box" style="border-top: none; padding-top: 0;">
-              <button class="secondary" onclick="app.showAnswerBox('${q.id}')">Answer Question</button>
-            </div>
-          `;
-          container.appendChild(card);
-        });
+              <div class="card-title">${this.escapeHTML(questionBody)}</div>
+              <div id="action-area-${q.id}" class="card-answer-box" style="border-top: none; padding-top: 0;">
+                <button class="secondary" onclick="app.showAnswerBox('${q.id}')">Answer Question</button>
+              </div>
+            `;
+            container.appendChild(card);
+          });
+        } catch (error) {
+          container.innerHTML = `<div class="empty-state" style="color: #991b1b; border-color: #fecaca; background-color: #fef2f2;">Failed to load questions. Please try again.</div>`;
+        }
       },
 
       showAnswerBox(id) {
@@ -794,21 +798,41 @@
           <div class="card-answer-box">
             <label for="answer-input-${id}">Your Answer</label>
             <textarea id="answer-input-${id}" placeholder="Type your answer..."></textarea>
+            <div id="answer-error-${id}" class="message hidden" style="margin-top: 8px; margin-bottom: 0; background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca;"></div>
             <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end;">
-              <button class="secondary" onclick="app.renderPending()">Cancel</button>
-              <button onclick="app.submitAnswer('${id}')">Submit Answer</button>
+              <button id="btn-cancel-${id}" class="secondary" onclick="app.renderPending()">Cancel</button>
+              <button id="btn-submit-${id}" onclick="app.submitAnswer('${id}')">Submit Answer</button>
             </div>
           </div>
         `;
         document.getElementById(`answer-input-${id}`).focus();
       },
 
-      submitAnswer(id) {
+      async submitAnswer(id) {
         const text = document.getElementById(`answer-input-${id}`).value.trim();
         if (!text) return;
-        this.answerQuestion(id, text);
-        this.updateHeaderState();
-        this.renderPending();
+
+        const btnSubmit = document.getElementById(`btn-submit-${id}`);
+        const btnCancel = document.getElementById(`btn-cancel-${id}`);
+        const errorMsg = document.getElementById(`answer-error-${id}`);
+        
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Submitting...';
+        btnCancel.disabled = true;
+        errorMsg.classList.add('hidden');
+
+        try {
+          await this.answerQuestion(id, text);
+          this.updateHeaderState();
+          this.renderPending();
+        } catch (error) {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Submit Answer';
+          btnCancel.disabled = false;
+          errorMsg.textContent = error.message;
+          errorMsg.classList.remove('hidden');
+          errorMsg.style.display = 'block';
+        }
       },
 
       renderAsk() {
@@ -816,28 +840,64 @@
         document.getElementById('ask-subject').selectedIndex = 0;
         document.getElementById('ask-text').value = '';
         document.getElementById('ask-success-msg').classList.add('hidden');
+        document.getElementById('ask-error-msg').classList.add('hidden');
       },
 
-      submitQuestion() {
+      async submitQuestion() {
+        if (this.isSubmitting) return;
+
         const subject = document.getElementById('ask-subject').value;
         const text = document.getElementById('ask-text').value.trim();
         
         if (!text) return;
 
-        this.createQuestion(subject, text);
+        this.isSubmitting = true;
+        const btnSubmit = document.getElementById('btn-submit-ask');
+        const successMsg = document.getElementById('ask-success-msg');
+        const errorMsg = document.getElementById('ask-error-msg');
         
-        document.getElementById('ask-text').value = '';
-        document.getElementById('ask-subject').selectedIndex = 0;
-        
-        const msg = document.getElementById('ask-success-msg');
-        msg.classList.remove('hidden');
-        setTimeout(() => msg.classList.add('hidden'), 3000);
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Sending...';
+        successMsg.classList.add('hidden');
+        errorMsg.classList.add('hidden');
+
+        try {
+          await this.createQuestion(subject, text);
+          
+          document.getElementById('ask-text').value = '';
+          document.getElementById('ask-subject').selectedIndex = 0;
+          
+          successMsg.classList.remove('hidden');
+          setTimeout(() => successMsg.classList.add('hidden'), 4000);
+          
+          this.updateHeaderState();
+        } catch (error) {
+          errorMsg.textContent = error.message;
+          errorMsg.classList.remove('hidden');
+          errorMsg.style.display = 'block';
+        } finally {
+          this.isSubmitting = false;
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Send Question';
+        }
       },
 
-      renderHistory() {
+      async renderHistory(fetchNew = true) {
         const container = document.getElementById('history-list');
         const filter = document.getElementById('history-subject-filter').value;
-        let history = this.getHistory();
+        
+        if (fetchNew) {
+          container.innerHTML = `<div class="empty-state">Loading history...</div>`;
+          try {
+            const res = await this.getHistoryData();
+            this.cachedHistory = res.questions || [];
+          } catch (error) {
+            container.innerHTML = `<div class="empty-state" style="color: #991b1b; border-color: #fecaca; background-color: #fef2f2;">Failed to load history. Please try again.</div>`;
+            return;
+          }
+        }
+
+        let history = this.cachedHistory;
 
         if (filter !== "All") {
           history = history.filter(q => q.subject === filter);
@@ -854,6 +914,10 @@
           const isAnswered = q.status === 'Answered';
           const badgeClass = isAnswered ? 'answered' : '';
           
+          const questionBody = q.question || q.text || '';
+          const answerBody = q.answer || q.answerText || '';
+          const dateStr = q.createdAt || q.timestamp || q.date;
+
           let html = `
             <div class="card">
               <div class="card-meta">
@@ -862,21 +926,21 @@
                   <span class="dot">•</span> 
                   ${this.escapeHTML(q.creator)} → ${this.escapeHTML(q.recipient)}
                 </div>
-                <div class="status-badge ${badgeClass}">${q.status}</div>
+                <div class="status-badge ${badgeClass}">${this.escapeHTML(q.status)}</div>
               </div>
               <div class="card-meta" style="text-transform: none; font-weight: normal;">
-                ${this.formatDate(q.createdAt)}
+                ${this.formatDate(dateStr)}
               </div>
               <div class="card-title" style="margin-bottom: ${isAnswered ? '0' : 'var(--spacing-md)'};">
-                ${this.escapeHTML(q.text)}
+                ${this.escapeHTML(questionBody)}
               </div>
           `;
 
-          if (isAnswered && q.answerText) {
+          if (isAnswered && answerBody) {
             html += `
               <div class="card-answer-display">
                 <strong>Answer</strong>
-                ${this.escapeHTML(q.answerText)}
+                ${this.escapeHTML(answerBody)}
               </div>
             `;
           }
