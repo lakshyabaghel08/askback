@@ -1378,35 +1378,36 @@
         document.getElementById('log-hours').value = myData.studyHours !== null ? myData.studyHours : '';
         document.getElementById('log-note').value = myData.note || '';
         this.openModal('modal-log');
-      },
-      async saveLog() {
-        const btn = document.getElementById('btn-save-log');
-        const hours = document.getElementById('log-hours').value;
-        const note = document.getElementById('log-note').value;
-        
-        btn.disabled = true;
-        btn.textContent = 'Saving...';
+      },async saveLog() {
+  const btn = document.getElementById('btn-save-log');
+  const hours = document.getElementById('log-hours').value;
+  const note = document.getElementById('log-note').value;
 
-        try {
-          if(hours === '') throw new Error("Hours required.");
-          
-          await apiLayer.request('saveLog', {
-            user: this.currentUser,
-            date: this.getLocalDateString(0),
-            studyHours: hours,
-            note: note
-          });
-          
-          this.closeModals();
-          this.showToast("Study log updated.");
-          this.switchView('today'); // Refresh
-        } catch (e) {
-          this.showToast(e.message, true);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Save Log';
-        }
-      },
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    if (hours === '') throw new Error("Hours required.");
+
+    await apiLayer.request('saveLog', {
+      user: this.currentUser,
+      date: this.getLocalDateString(0),
+      studyHours: hours,
+      note: note
+    });
+
+    this.closeModals();
+    await this.fetchDashboardData();
+    this.renderToday();
+    this.showToast("Study log updated.");
+
+  } catch (e) {
+    this.showToast(e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Log';
+  }
+}
 
       /* --- QUESTIONS (EXCHANGE) --- */
       async loadQuestions() {
