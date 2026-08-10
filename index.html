@@ -439,7 +439,7 @@
       padding-top: 24px;
       border-top: 1px dashed var(--border);
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
     }
 
     /* Needs Attention Block */
@@ -748,7 +748,8 @@
           <div class="checklist-container">
             <div id="today-goals-list"></div>
             
-            <div class="context-action">
+            <div class="context-action" style="justify-content: space-between;">
+              <button class="btn btn-outline" onclick="app.openTodayModal()">Edit Today's Goals</button>
               <button class="btn btn-outline" onclick="app.openModal('modal-log')">Log Study Time</button>
             </div>
           </div>
@@ -875,6 +876,19 @@
   <!-- ========================================== -->
   <!-- MODALS -->
   <!-- ========================================== -->
+
+  <!-- Edit Today's Goals Modal -->
+  <div id="modal-today" class="modal-overlay">
+    <div class="modal-content">
+      <h3 class="serif" style="margin-bottom: 32px; font-size: 1.75rem;">Edit Today's Goals</h3>
+      <div id="modal-today-inputs"></div>
+      <button class="btn btn-outline" style="width: 100%; margin: 16px 0 40px 0; border-style: dashed;" onclick="app.addTodayInput()">+ Add Goal</button>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="btn btn-text" onclick="app.closeModals()">Cancel</button>
+        <button id="btn-save-today" class="btn btn-primary" onclick="app.saveToday()">Save Today's Goals</button>
+      </div>
+    </div>
+  </div>
   
   <!-- Plan Tomorrow Modal -->
   <div id="modal-plan" class="modal-overlay">
@@ -1212,12 +1226,98 @@
         }
       },
 
-      /* --- MODALS: PLAN & LOG --- */
+      /* --- MODALS: EDIT TODAY, PLAN & LOG --- */
       closeModals() {
         document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
       },
       openModal(id) {
         document.getElementById(id).classList.add('open');
+      },
+
+      openTodayModal() {
+        const container = document.getElementById('modal-today-inputs');
+        container.innerHTML = '';
+        
+        let existing = [];
+        if (this.dashboardData && this.dashboardData.today.users[this.currentUser]) {
+          existing = this.dashboardData.today.users[this.currentUser].goals || [];
+        }
+        
+        if (existing.length > 0) {
+          existing.forEach(g => this.addTodayInput(g.goal));
+        } else {
+          this.addTodayInput('');
+        }
+        this.openModal('modal-today');
+      },
+
+      addTodayInput(val = '') {
+        const container = document.getElementById('modal-today-inputs');
+        const div = document.createElement('div');
+        div.className = 'dynamic-list-item';
+        div.innerHTML = `
+          <input type="text" class="form-input today-input-field" placeholder="Target..." value="${this.escapeHTML(val)}">
+          <button class="btn-icon" onclick="this.parentElement.remove()">✕</button>
+        `;
+        container.appendChild(div);
+      },
+
+      async saveToday() {
+        const btn = document.getElementById('btn-save-today');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        
+        try {
+          const inputs = document.querySelectorAll('.today-input-field');
+          let newGoals = [];
+          inputs.forEach(inp => { const v = inp.value.trim(); if(v) newGoals.push(v); });
+          
+          if(newGoals.length === 0) throw new Error("Please add at least one target.");
+
+          const currentData = this.dashboardData.today.users[this.currentUser];
+          const completedGoalTexts = (currentData.goals || [])
+            .filter(g => g.completed)
+            .map(g => g.goal.trim());
+
+          const saveRes = await apiLayer.request('saveGoals', {
+            user: this.currentUser,
+            date: this.getLocalDateString(0),
+            goals: JSON.stringify(newGoals)
+          });
+          
+          const newlySavedGoals = saveRes.goals || [];
+          const completionPromises = [];
+          
+          for (const goal of newlySavedGoals) {
+            const matchIndex = completedGoalTexts.indexOf(goal.goal.trim());
+            if (matchIndex > -1) {
+              completionPromises.push(
+                apiLayer.request('completeGoal', {
+                  id: goal.id,
+                  user: this.currentUser,
+                  completed: "true"
+                })
+              );
+              completedGoalTexts.splice(matchIndex, 1);
+            }
+          }
+          
+          if (completionPromises.length > 0) {
+            await Promise.all(completionPromises);
+          }
+          
+          this.closeModals();
+          this.showToast("Today's goals updated.");
+          
+          await this.fetchDashboardData();
+          this.renderToday();
+          
+        } catch (e) {
+          this.showToast(e.message, true);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Save Today's Goals";
+        }
       },
 
       openPlanModal() {
@@ -1231,6 +1331,7 @@
         }
         this.openModal('modal-plan');
       },
+      
       addPlanInput(val = '') {
         const container = document.getElementById('modal-plan-inputs');
         const div = document.createElement('div');
@@ -1241,6 +1342,7 @@
         `;
         container.appendChild(div);
       },
+      
       async savePlan() {
         const btn = document.getElementById('btn-save-plan');
         btn.disabled = true;
