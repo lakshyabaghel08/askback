@@ -1350,7 +1350,7 @@
       populateSubjectsUI() {
         // QEX Ask Checklist
         const cont = document.getElementById('qex-ask-subjects-container');
-        if (cont && cont.innerHTML.trim() === '') {
+        if (cont && cont.children.length === 0) {
           let html = '';
           Object.keys(dbState.subjects).forEach(subj => {
             html += `
