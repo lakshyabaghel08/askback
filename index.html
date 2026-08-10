@@ -10,6 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     /* 
       Vibrant Premium Design System
@@ -356,7 +359,7 @@
     .stat-line { font-size: 1rem; color: var(--text-muted); }
     .stat-line strong { color: var(--text-main); font-weight: 700; font-size: 1.125rem;}
 
-    /* Today's Focus Checklist (Bento Style) */
+    /* Today's Focus Checklist */
     .checklist-container {
       background: var(--bg-surface);
       border: 1px solid var(--border);
@@ -656,22 +659,15 @@
 </head>
 <body>
 
-  <!-- SELECT USER SCREEN (Vibrant & Premium) -->
+  <!-- SELECT USER SCREEN -->
   <div id="view-select-user" class="hidden">
     <div class="login-brand">
       <h1>AskBack</h1>
       <p>Study Journal & Accountability</p>
     </div>
     
-    <div class="login-cards-container">
-      <div class="user-profile-card" onclick="app.selectUser('Lakshya')">
-        <div class="user-avatar">L</div>
-        <h3>Lakshya</h3>
-      </div>
-      <div class="user-profile-card archita" onclick="app.selectUser('Archita')">
-        <div class="user-avatar" style="background: linear-gradient(135deg, #f43f5e, #fb923c);">A</div>
-        <h3>Archita</h3>
-      </div>
+    <div class="login-cards-container" id="login-cards">
+      <!-- Dynamic users rendered here -->
     </div>
   </div>
 
@@ -691,8 +687,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="user-switcher-menu" id="user-menu">
-              <button onclick="app.switchUser('Lakshya')">Lakshya</button>
-              <button onclick="app.switchUser('Archita')">Archita</button>
+              <!-- Dynamic users rendered here -->
             </div>
           </div>
         </div>
@@ -810,28 +805,22 @@
         <div class="section-block">
           <span class="section-label">Ask A Question</span>
           <div class="checklist-container" style="padding: 40px;">
+            
             <div class="form-group">
-              <label class="form-label">Subject</label>
-              <select id="qex-ask-subject" class="form-input">
-                <option>Art & Culture</option>
-                <option>Ancient History</option>
-                <option>Medieval History</option>
-                <option>Modern History</option>
-                <option>Polity</option>
-                <option>Governance</option>
-                <option>Geography</option>
-                <option>Economy</option>
-                <option>Environment</option>
-                <option>Science & Technology</option>
-                <option>Society</option>
-                <option>International Relations</option>
-                <option>Current Affairs</option>
-                <option>Other</option>
-              </select>
+              <label class="form-label">Subjects (Select multiple)</label>
+              <div id="qex-ask-subjects-container" class="checklist-container" style="max-height: 200px; overflow-y: auto; padding: 16px;">
+                <!-- Rendered dynamically -->
+              </div>
             </div>
+
             <div class="form-group">
-              <label class="form-label">Question for <span id="qex-ask-recipient" style="color: var(--accent);"></span></label>
-              <textarea id="qex-ask-text" class="form-input" placeholder="Type your question..."></textarea>
+              <label class="form-label">Question</label>
+              <textarea id="qex-ask-text" class="form-input" placeholder="Write your question..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Question for</label>
+              <select id="qex-ask-recipient" class="form-input" style="color: var(--accent); font-weight: 600; padding: 8px;"></select>
             </div>
             <div style="text-align: right;">
               <button id="btn-submit-qex" class="btn btn-primary" onclick="app.submitQuestion()">Send Question</button>
@@ -846,22 +835,9 @@
       <div id="view-history" class="view hidden">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; flex-wrap: wrap; gap: 16px;">
           <h2 class="serif" style="margin: 0;">Timeline</h2>
-          <select id="history-filter" class="form-input" style="width: auto; min-width: 200px; padding: 10px 16px;" onchange="app.renderHistory(false)">
+          <select id="history-filter" class="form-input" style="width: auto; min-width: 200px; padding: 10px 16px;" onchange="app.renderHistory()">
               <option value="All">All Subjects</option>
-              <option>Art & Culture</option>
-              <option>Ancient History</option>
-              <option>Medieval History</option>
-              <option>Modern History</option>
-              <option>Polity</option>
-              <option>Governance</option>
-              <option>Geography</option>
-              <option>Economy</option>
-              <option>Environment</option>
-              <option>Science & Technology</option>
-              <option>Society</option>
-              <option>International Relations</option>
-              <option>Current Affairs</option>
-              <option>Other</option>
+              <!-- Rendered dynamically -->
           </select>
         </div>
         <div id="history-list"></div>
@@ -927,45 +903,282 @@
 
   <script>
     // ---------------------------------------------------------
-    // API LAYER (Unmodified JSONP logic, enhanced cleanup)
+    // SUPABASE CONFIG & INITIALIZATION
+    // ---------------------------------------------------------
+    const supabaseUrl = 'https://acvgfukzusjpatjdqsdj.supabase.co';
+    const supabaseKey = 'sb_publishable_CDLFJBRH1lDEzVFq96Ntcw_EDVgOiEz';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // ---------------------------------------------------------
+    // DATABASE STATE MAP (Avoids Hardcoding UUIDs)
+    // ---------------------------------------------------------
+    const dbState = {
+      group: null,
+      members: {},      // name -> id
+      membersById: {},  // id -> name
+      subjects: {},     // name -> id
+      subjectsById: {}, // id -> name
+      
+      async ensureInit() {
+        if (this.group) return; // Already initialized
+        
+        // 1. Resolve Group
+        const { data: g, error: gErr } = await supabase.from('groups').select('*').eq('name', 'AskBack Study Group').single();
+        if (gErr) throw new Error("Group fetch error: " + gErr.message);
+        this.group = g;
+        
+        // 2. Resolve Members
+        const { data: m, error: mErr } = await supabase.from('members').select('*').eq('group_id', g.id);
+        if (mErr) throw new Error("Members fetch error: " + mErr.message);
+        m.forEach(x => { this.members[x.name] = x.id; this.membersById[x.id] = x.name; });
+        
+        // 3. Resolve Subjects
+        const { data: s, error: sErr } = await supabase.from('subjects').select('*').eq('group_id', g.id);
+        if (sErr) throw new Error("Subjects fetch error: " + sErr.message);
+        s.forEach(x => { this.subjects[x.name] = x.id; this.subjectsById[x.id] = x.name; });
+      }
+    };
+
+    // ---------------------------------------------------------
+    // REWRITTEN API LAYER (Uses Supabase Client directly)
     // ---------------------------------------------------------
     const apiLayer = {
-      baseUrl: 'https://script.google.com/macros/s/AKfycbypDbQyR7Q1PG8Uz7FW3tPoUrHGnGJIIPHFyLyzeYRWrnOQtBppa0Pk7Pl5yTbeJMxG/exec',
-      request(action, params = {}) {
-        return new Promise((resolve, reject) => {
-          const callbackName = 'jsonp_cb_' + Math.round(1000000 * Math.random()) + '_' + Date.now();
-          const script = document.createElement('script');
+      async request(action, params = {}) {
+        await dbState.ensureInit();
+
+        if (action === 'dashboard') {
+          const today = app.getLocalDateString(0);
+          const tomorrow = app.getLocalDateString(1);
           
-          let url = `${this.baseUrl}?action=${encodeURIComponent(action)}&callback=${callbackName}`;
-          for (const key in params) {
-            url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
-          }
-          
-          const timeout = setTimeout(() => {
-            cleanup();
-            reject(new Error('Request timed out.'));
-          }, 15000);
-          
-          window[callbackName] = (data) => {
-            cleanup();
-            if (data && data.success === false) {
-              reject(new Error(data.error || data.message || 'API responded with an error.'));
-            } else {
-              resolve(data);
+          // Calculate week start for study hour grouping
+          const p = today.split('-');
+          const d = new Date(p[0], p[1]-1, p[2]);
+          const diff = d.getDay() === 0 ? 6 : d.getDay() - 1;
+          d.setDate(d.getDate() - diff);
+          const weekStart = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+          const [
+            { data: goals, error: gErr },
+            { data: todayLogs, error: lErr1 },
+            { data: weekLogs, error: lErr2 },
+            { data: totalLogs, error: lErr3 }
+          ] = await Promise.all([
+            supabase.from('goals').select('*').eq('group_id', dbState.group.id).in('goal_date', [today, tomorrow]),
+            supabase.from('study_logs').select('*').eq('group_id', dbState.group.id).eq('log_date', today),
+            supabase.from('study_logs').select('member_id, study_hours').eq('group_id', dbState.group.id).gte('log_date', weekStart).lte('log_date', today),
+            supabase.from('study_log_totals').select('*').eq('group_id', dbState.group.id)
+          ]);
+
+          if (gErr) throw new Error(gErr.message);
+          if (lErr1) throw new Error(lErr1.message);
+          if (lErr2) throw new Error(lErr2.message);
+          if (lErr3) throw new Error(lErr3.message);
+
+          const studyHours = { today: {}, thisWeek: {}, total: {} };
+          const todayLogsMap = {};
+
+          Object.keys(dbState.members).forEach(name => {
+            studyHours.today[name] = 0;
+            studyHours.thisWeek[name] = 0;
+            studyHours.total[name] = 0;
+          });
+
+          // Totals from optimized View
+          totalLogs.forEach(log => {
+            const name = dbState.membersById[log.member_id];
+            if (name) studyHours.total[name] = Number(log.total_hours);
+          });
+
+          // This Week
+          weekLogs.forEach(log => {
+            const name = dbState.membersById[log.member_id];
+            if (name) studyHours.thisWeek[name] += Number(log.study_hours);
+          });
+
+          // Today
+          todayLogs.forEach(log => {
+            const name = dbState.membersById[log.member_id];
+            if (name) {
+              studyHours.today[name] += Number(log.study_hours);
+              todayLogsMap[name] = log;
             }
-          };
+          });
+
+          const todayGoals = {};
+          const tomorrowGoals = {};
+          Object.keys(dbState.members).forEach(name => {
+             todayGoals[name] = [];
+             tomorrowGoals[name] = [];
+          });
+
+          goals.forEach(g => {
+            const name = dbState.membersById[g.member_id];
+            if(!name) return;
+            const fg = { id: g.id, date: g.goal_date, user: name, goal: g.goal, completed: g.completed };
+            if (g.goal_date === today) todayGoals[name].push(fg);
+            else if (g.goal_date === tomorrow) tomorrowGoals[name].push(fg);
+          });
+
+          const dashboard = { today: { date: today, users: {} }, tomorrow: { date: tomorrow, users: {} }, studyHours };
+
+          Object.keys(dbState.members).forEach(name => {
+            const ug = todayGoals[name] || [];
+            dashboard.today.users[name] = {
+              date: today, user: name, goals: ug,
+              completion: { completed: ug.filter(g=>g.completed).length, total: ug.length },
+              studyHours: todayLogsMap[name] ? Number(todayLogsMap[name].study_hours) : null,
+              note: todayLogsMap[name] ? (todayLogsMap[name].note || '') : ''
+            };
+            dashboard.tomorrow.users[name] = {
+              date: tomorrow, user: name, goals: tomorrowGoals[name] || []
+            };
+          });
+
+          return { dashboard };
+        }
+
+        if (action === 'count') {
+          const memberId = dbState.members[params.user];
+          const { count, error } = await supabase.from('questions')
+            .select('*', { count: 'exact', head: true })
+            .eq('recipient_id', memberId)
+            .eq('status', 'Pending');
+          if (error) throw new Error(error.message);
+          return { count: count || 0 };
+        }
+
+        if (action === 'pending') {
+          const memberId = dbState.members[params.user];
+          const { data, error } = await supabase.from('questions')
+            .select('*, question_subjects(subject_id)')
+            .eq('recipient_id', memberId)
+            .eq('status', 'Pending')
+            .order('created_at', { ascending: false });
+          if (error) throw new Error(error.message);
           
-          script.onerror = () => { cleanup(); reject(new Error('Network error.')); };
+          const questions = data.map(q => ({
+            id: q.id,
+            creator: dbState.membersById[q.creator_id],
+            recipient: dbState.membersById[q.recipient_id],
+            subject: q.question_subjects.map(qs => dbState.subjectsById[qs.subject_id]).join(', '),
+            question: q.question,
+            createdAt: q.created_at,
+            status: q.status
+          }));
+          return { questions };
+        }
+
+        if (action === 'history') {
+          const memberId = dbState.members[params.user];
+          const { data, error } = await supabase.from('questions')
+            .select('*, question_subjects(subject_id)')
+            .or(`creator_id.eq.${memberId},recipient_id.eq.${memberId}`)
+            .order('created_at', { ascending: false });
+          if (error) throw new Error(error.message);
           
-          function cleanup() {
-            clearTimeout(timeout);
-            if (script.parentNode) script.parentNode.removeChild(script);
-            try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+          const questions = data.map(q => ({
+            id: q.id,
+            creator: dbState.membersById[q.creator_id],
+            recipient: dbState.membersById[q.recipient_id],
+            subject: q.question_subjects.map(qs => dbState.subjectsById[qs.subject_id]).join(', '),
+            question: q.question,
+            answer: q.answer,
+            createdAt: q.created_at,
+            status: q.status
+          }));
+          return { questions };
+        }
+
+        if (action === 'saveGoals') {
+          const memberId = dbState.members[params.user];
+          
+          // Group safe deletion
+          const { error: delErr } = await supabase.from('goals')
+            .delete()
+            .eq('group_id', dbState.group.id)
+            .eq('member_id', memberId)
+            .eq('goal_date', params.date);
+          if (delErr) throw new Error(delErr.message);
+
+          const goalsArr = JSON.parse(params.goals);
+          if (goalsArr.length > 0) {
+            const toInsert = goalsArr.map(g => ({
+              group_id: dbState.group.id,
+              member_id: memberId,
+              goal_date: params.date,
+              goal: g,
+              completed: false
+            }));
+            const { data, error } = await supabase.from('goals').insert(toInsert).select();
+            if (error) throw new Error(error.message);
+            return { goals: data.map(g => ({ id: g.id, date: g.goal_date, user: params.user, goal: g.goal, completed: g.completed })) };
           }
-          
-          script.src = url;
-          document.head.appendChild(script);
-        });
+          return { goals: [] };
+        }
+
+        if (action === 'completeGoal') {
+          const { error } = await supabase.from('goals')
+            .update({ completed: params.completed === 'true' })
+            .eq('id', params.id);
+          if (error) throw new Error(error.message);
+          return { success: true };
+        }
+
+        if (action === 'saveLog') {
+          const memberId = dbState.members[params.user];
+          // Atomic Upsert reliant on the unique constraint
+          const { data, error } = await supabase.from('study_logs')
+            .upsert({
+              group_id: dbState.group.id,
+              member_id: memberId,
+              log_date: params.date,
+              study_hours: params.studyHours,
+              note: params.note
+            }, { onConflict: 'group_id, member_id, log_date' })
+            .select().single();
+            
+          if (error) throw new Error(error.message);
+          return { log: { studyHours: params.studyHours, note: params.note } };
+        }
+
+        if (action === 'create') {
+          const creatorId = dbState.members[params.creator];
+          const recipientId = dbState.members[params.recipient];
+          const subjectNames = JSON.parse(params.subject);
+
+          const { data: q, error: qErr } = await supabase.from('questions').insert({
+            group_id: dbState.group.id,
+            creator_id: creatorId,
+            recipient_id: recipientId,
+            question: params.question,
+            status: 'Pending'
+          }).select().single();
+          if (qErr) throw new Error(qErr.message);
+
+          if (subjectNames.length > 0) {
+            const qsInserts = subjectNames.map(name => ({
+              question_id: q.id,
+              subject_id: dbState.subjects[name]
+            }));
+            const { error: qsErr } = await supabase.from('question_subjects').insert(qsInserts);
+            if (qsErr) throw new Error(qsErr.message);
+          }
+          return { success: true };
+        }
+
+        if (action === 'answer') {
+          const { error } = await supabase.from('questions')
+            .update({ 
+              answer: params.answer, 
+              status: 'Answered', 
+              answered_at: new Date().toISOString() 
+            })
+            .eq('id', params.id);
+          if (error) throw new Error(error.message);
+          return { success: true };
+        }
+
+        throw new Error("Unknown API action");
       }
     };
 
@@ -974,28 +1187,38 @@
     // ---------------------------------------------------------
     const app = {
       currentUser: null,
-      users: ["Lakshya", "Archita"],
       
       // Data Caches & TTL setup
-      CACHE_TTL: 3 * 60 * 1000, // 3 minutes cache validity
+      CACHE_TTL: 3 * 60 * 1000,
       lastFetchTime: { dashboard: 0, questions: 0, history: 0 },
       
       dashboardData: null,
-      pendingCounts: { Lakshya: 0, Archita: 0 },
+      pendingCounts: {},
       cachedHistory: [],
       cachedPending: [],
       
-      init() {
+      async init() {
+        document.getElementById('global-loading').classList.remove('hidden');
+        try {
+          await dbState.ensureInit();
+        } catch(e) {
+          console.error("Init error", e);
+          this.showToast("Failed to connect to database.", true);
+          return;
+        }
+        
+        this.buildUserSelector();
+
         const savedUser = localStorage.getItem('askback_user');
-        if (savedUser && this.users.includes(savedUser)) {
+        if (savedUser && dbState.members[savedUser]) {
           this.currentUser = savedUser;
           document.getElementById('view-select-user').classList.add('hidden');
           this.showApp();
         } else {
+          document.getElementById('global-loading').classList.add('hidden');
           document.getElementById('view-select-user').classList.remove('hidden');
         }
         
-        // Setup Close Modal on Backdrop Click
         document.querySelectorAll('.modal-overlay').forEach(modal => {
           modal.addEventListener('click', (e) => {
             if(e.target === modal) this.closeModals();
@@ -1003,19 +1226,41 @@
         });
       },
 
+      buildUserSelector() {
+        const container = document.getElementById('login-cards');
+        container.innerHTML = '';
+        
+        const menu = document.getElementById('user-menu');
+        menu.innerHTML = '';
+
+        Object.keys(dbState.members).forEach((name, index) => {
+            // Main select screen cards
+            const isAlt = index % 2 !== 0; 
+            const styleStr = isAlt ? 'style="background: linear-gradient(135deg, #f43f5e, #fb923c);"' : '';
+            
+            const card = document.createElement('div');
+            card.className = `user-profile-card ${isAlt ? 'archita' : ''}`;
+            card.onclick = () => this.selectUser(name);
+            card.innerHTML = `
+              <div class="user-avatar" ${styleStr}>${name.charAt(0).toUpperCase()}</div>
+              <h3>${name}</h3>
+            `;
+            container.appendChild(card);
+            
+            // Dropdown Menu items
+            const btn = document.createElement('button');
+            btn.onclick = () => this.switchUser(name);
+            btn.textContent = name;
+            menu.appendChild(btn);
+        });
+      },
+
       /* --- SAFE DATA HELPERS --- */
       getSafeTodayData(user) {
-        return this.dashboardData?.today?.users?.[user] || {
-          goals: [],
-          completion: { completed: 0, total: 0 },
-          studyHours: null,
-          note: ''
-        };
+        return this.dashboardData?.today?.users?.[user] || { goals: [], completion: { completed: 0, total: 0 }, studyHours: null, note: '' };
       },
       getSafeTomorrowData(user) {
-        return this.dashboardData?.tomorrow?.users?.[user] || {
-          goals: []
-        };
+        return this.dashboardData?.tomorrow?.users?.[user] || { goals: [] };
       },
       getSafeStudyHours(user) {
         const globalHours = this.dashboardData?.studyHours?.today?.[user];
@@ -1043,9 +1288,9 @@
         }, 4000);
       },
       
-      /* --- DATE UTILS --- */
+      /* --- DATE UTILS (Strictly locked to India timezone) --- */
       getLocalDateString(offsetDays = 0) {
-        const d = new Date();
+        const d = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
         d.setDate(d.getDate() + offsetDays);
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -1061,24 +1306,25 @@
         return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
       },
       getGreeting() {
-        const hr = new Date().getHours();
+        const d = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+        const hr = d.getHours();
         if(hr < 12) return 'Good morning';
         if(hr < 18) return 'Good afternoon';
         return 'Good evening';
       },
 
       /* --- AUTH & NAVIGATION --- */
-      getOtherUser() { return this.currentUser === "Lakshya" ? "Archita" : "Lakshya"; },
+      getOtherUser() { 
+        const other = Object.keys(dbState.members).find(n => n !== this.currentUser);
+        return other || this.currentUser; 
+      },
       
       selectUser(username) {
         this.currentUser = username;
         localStorage.setItem('askback_user', username);
         
-        // Invalidate caches when changing user
         this.dashboardData = null;
-        this.lastFetchTime.dashboard = 0;
-        this.lastFetchTime.questions = 0;
-        this.lastFetchTime.history = 0;
+        this.lastFetchTime = { dashboard: 0, questions: 0, history: 0 };
         this.cachedPending = [];
         this.cachedHistory = [];
         
@@ -1086,28 +1332,55 @@
         this.showApp();
       },
       
-      toggleUserMenu() {
-        document.getElementById('user-menu').classList.toggle('open');
-      },
+      toggleUserMenu() { document.getElementById('user-menu').classList.toggle('open'); },
       
       switchUser(username) {
         document.getElementById('user-menu').classList.remove('open');
         this.selectUser(username);
       },
 
-      showApp() {
+      async showApp() {
         document.getElementById('app-shell').classList.remove('hidden');
         document.getElementById('header-current-user').textContent = this.currentUser;
+        
+        this.populateSubjectsUI();
         this.switchView('today');
       },
 
+      populateSubjectsUI() {
+        // QEX Ask Checklist
+        const cont = document.getElementById('qex-ask-subjects-container');
+        if (cont && cont.innerHTML.trim() === '') {
+          let html = '';
+          Object.keys(dbState.subjects).forEach(subj => {
+            html += `
+              <label class="goal-label" style="margin-bottom: 12px;">
+                <input type="checkbox" class="goal-checkbox qex-subject-chk" value="${this.escapeHTML(subj)}">
+                <span class="custom-check"></span>
+                <span class="goal-text" style="font-size: 0.9375rem;">${this.escapeHTML(subj)}</span>
+              </label>
+            `;
+          });
+          cont.innerHTML = html;
+        }
+        
+        // History Filter
+        const filter = document.getElementById('history-filter');
+        if (filter && filter.options.length <= 1) {
+          Object.keys(dbState.subjects).forEach(subj => {
+            const opt = document.createElement('option');
+            opt.value = subj;
+            opt.textContent = subj;
+            filter.appendChild(opt);
+          });
+        }
+      },
+
       async switchView(viewId) {
-        // Active Tab Styling
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         const navTab = document.getElementById(`nav-${viewId}`);
         if(navTab) navTab.classList.add('active');
 
-        // Hide views
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
 
         try {
@@ -1170,11 +1443,9 @@
         const myData = this.getSafeTodayData(this.currentUser);
         const partnerData = this.getSafeTodayData(this.getOtherUser());
         
-        // Greeting
         document.getElementById('today-date-display').textContent = `Today — ${this.formatDateFriendly(this.dashboardData.today.date)}`;
         document.getElementById('today-greeting').textContent = `${this.getGreeting()}, ${this.currentUser}.`;
         
-        // Alert
         const pendingCount = this.pendingCounts[this.currentUser];
         const alertBlock = document.getElementById('today-attention-block');
         if (pendingCount > 0) {
@@ -1184,7 +1455,6 @@
           alertBlock.classList.add('hidden');
         }
 
-        // Progress
         const comp = myData.completion;
         const pct = comp.total > 0 ? Math.round((comp.completed / comp.total) * 100) : 0;
         document.getElementById('today-percent').textContent = `${pct}%`;
@@ -1193,7 +1463,6 @@
         const myHours = this.getSafeStudyHours(this.currentUser);
         document.getElementById('today-hours').textContent = myHours !== null ? `${myHours}h` : '0h';
 
-        // Goals List
         const listEl = document.getElementById('today-goals-list');
         if (!myData.goals || myData.goals.length === 0) {
           listEl.innerHTML = '<div class="empty-state">No goals set for today. Plan tomorrow tonight.</div>';
@@ -1216,7 +1485,6 @@
           listEl.innerHTML = html;
         }
 
-        // Partner Setup
         const partnerName = this.getOtherUser();
         document.getElementById('partner-name').textContent = partnerName;
         document.getElementById('partner-initial').textContent = partnerName.charAt(0);
@@ -1232,13 +1500,8 @@
         chk.disabled = true;
 
         try {
-          await apiLayer.request('completeGoal', {
-            id: goalId,
-            user: this.currentUser,
-            completed: String(isCompleted)
-          });
+          await apiLayer.request('completeGoal', { id: goalId, user: this.currentUser, completed: String(isCompleted) });
           
-          // Optimistic local update safely
           if (this.dashboardData && this.dashboardData.today && this.dashboardData.today.users && this.dashboardData.today.users[this.currentUser]) {
             const myData = this.dashboardData.today.users[this.currentUser];
             const target = myData.goals.find(g => g.id === goalId);
@@ -1274,33 +1537,22 @@
           listEl.innerHTML = '<div class="empty-state">Nothing planned for tomorrow yet.</div>';
         } else {
           let html = '<ol class="plan-list">';
-          data.goals.forEach(g => {
-            html += `<li class="plan-item">${this.escapeHTML(g.goal)}</li>`;
-          });
+          data.goals.forEach(g => html += `<li class="plan-item">${this.escapeHTML(g.goal)}</li>`);
           html += '</ol>';
           listEl.innerHTML = html;
         }
       },
 
       /* --- MODALS: EDIT TODAY, PLAN & LOG --- */
-      closeModals() {
-        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
-      },
-      openModal(id) {
-        document.getElementById(id).classList.add('open');
-      },
+      closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open')); },
+      openModal(id) { document.getElementById(id).classList.add('open'); },
 
       openTodayModal() {
         const container = document.getElementById('modal-today-inputs');
         container.innerHTML = '';
-        
         const existing = this.getSafeTodayData(this.currentUser).goals || [];
-        
-        if (existing.length > 0) {
-          existing.forEach(g => this.addTodayInput(g.goal));
-        } else {
-          this.addTodayInput('');
-        }
+        if (existing.length > 0) existing.forEach(g => this.addTodayInput(g.goal));
+        else this.addTodayInput('');
         this.openModal('modal-today');
       },
 
@@ -1328,9 +1580,7 @@
           if(newGoals.length === 0) throw new Error("Please add at least one target.");
 
           const currentData = this.getSafeTodayData(this.currentUser);
-          const completedGoalTexts = (currentData.goals || [])
-            .filter(g => g.completed)
-            .map(g => g.goal.trim());
+          const completedGoalTexts = (currentData.goals || []).filter(g => g.completed).map(g => g.goal.trim());
 
           const saveRes = await apiLayer.request('saveGoals', {
             user: this.currentUser,
@@ -1344,13 +1594,7 @@
           for (const goal of newlySavedGoals) {
             const matchIndex = completedGoalTexts.indexOf(goal.goal.trim());
             if (matchIndex > -1) {
-              completionPromises.push(
-                apiLayer.request('completeGoal', {
-                  id: goal.id,
-                  user: this.currentUser,
-                  completed: "true"
-                })
-              );
+              completionPromises.push(apiLayer.request('completeGoal', { id: goal.id, user: this.currentUser, completed: "true" }));
               completedGoalTexts.splice(matchIndex, 1);
             }
           }
@@ -1375,7 +1619,6 @@
              this.dashboardData.today.users[this.currentUser].completion = { completed, total };
              if (document.querySelector('.nav-tab.active').id === 'nav-today') this.renderToday();
           }
-          
         } catch (e) {
           this.showToast(e.message, true);
         } finally {
@@ -1388,11 +1631,8 @@
         const container = document.getElementById('modal-plan-inputs');
         container.innerHTML = '';
         const existing = this.getSafeTomorrowData(this.currentUser).goals || [];
-        if (existing.length > 0) {
-          existing.forEach(g => this.addPlanInput(g.goal));
-        } else {
-          this.addPlanInput('');
-        }
+        if (existing.length > 0) existing.forEach(g => this.addPlanInput(g.goal));
+        else this.addPlanInput('');
         this.openModal('modal-plan');
       },
       
@@ -1432,7 +1672,6 @@
              this.dashboardData.tomorrow.users[this.currentUser].goals = res.goals || [];
              if (document.querySelector('.nav-tab.active').id === 'nav-plan') this.renderPlan();
           }
-          
         } catch (e) {
           this.showToast(e.message, true);
         } finally {
@@ -1447,6 +1686,7 @@
         document.getElementById('log-note').value = myData.note || '';
         this.openModal('modal-log');
       },
+      
       async saveLog() {
         const btn = document.getElementById('btn-save-log');
         const hours = document.getElementById('log-hours').value;
@@ -1468,7 +1708,6 @@
           this.closeModals();
           this.showToast("Study log updated.");
           
-          // Inject into cache safely
           if (this.dashboardData && this.dashboardData.today && this.dashboardData.today.users) {
             this.dashboardData.today.users[this.currentUser].studyHours = res.log.studyHours;
             this.dashboardData.today.users[this.currentUser].note = res.log.note;
@@ -1476,7 +1715,6 @@
             if (this.dashboardData.studyHours && this.dashboardData.studyHours.today) {
               this.dashboardData.studyHours.today[this.currentUser] = res.log.studyHours;
             }
-            
             if (document.querySelector('.nav-tab.active').id === 'nav-today') this.renderToday();
           }
         } catch (e) {
@@ -1489,17 +1727,34 @@
 
       /* --- QUESTIONS (EXCHANGE) --- */
       async loadQuestions() {
-        document.getElementById('qex-ask-recipient').textContent = this.getOtherUser();
+        const recipSelect = document.getElementById('qex-ask-recipient');
+        if (recipSelect) {
+            recipSelect.innerHTML = '';
+            Object.keys(dbState.members).forEach(name => {
+                if (name !== this.currentUser) {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    recipSelect.appendChild(opt);
+                }
+            });
+        }
         document.getElementById('qex-ask-text').value = '';
+        Array.from(document.querySelectorAll('.qex-subject-chk')).forEach(c => c.checked = false);
         
-        const res = await apiLayer.request('pending', { user: this.currentUser });
-        this.cachedPending = res.questions || [];
-        this.pendingCounts[this.currentUser] = this.cachedPending.length;
-        this.lastFetchTime.questions = Date.now();
-        
-        this.updateNavBadge();
-        this.renderPendingQuestions();
+        try {
+          const res = await apiLayer.request('pending', { user: this.currentUser });
+          this.cachedPending = res.questions || [];
+          this.pendingCounts[this.currentUser] = this.cachedPending.length;
+          this.lastFetchTime.questions = Date.now();
+          this.updateNavBadge();
+          this.renderPendingQuestions();
+        } catch(e) {
+          document.getElementById('qex-pending-list').innerHTML = '<div class="empty-state" style="color: #dc2626;">Failed to load questions.</div>';
+          console.error(e);
+        }
       },
+      
       renderPendingQuestions() {
         const listEl = document.getElementById('qex-pending-list');
         if(this.cachedPending.length === 0) {
@@ -1526,6 +1781,7 @@
         });
         listEl.innerHTML = html;
       },
+      
       showAnswerBox(id) {
         const area = document.getElementById(`qex-answer-area-${id}`);
         area.innerHTML = `
@@ -1539,6 +1795,7 @@
         `;
         document.getElementById(`qex-ans-text-${id}`).focus();
       },
+      
       async submitAnswer(id) {
         const text = document.getElementById(`qex-ans-text-${id}`).value.trim();
         if(!text) return;
@@ -1562,25 +1819,38 @@
           btn.textContent = 'Submit';
         }
       },
+      
       async submitQuestion() {
         const btn = document.getElementById('btn-submit-qex');
-        const subject = document.getElementById('qex-ask-subject').value;
+        const chks = document.querySelectorAll('.qex-subject-chk:checked');
+        const subjects = Array.from(chks).map(c => c.value);
         const text = document.getElementById('qex-ask-text').value.trim();
+        const recipientName = document.getElementById('qex-ask-recipient').value;
         
-        if(!text) return;
+        if(subjects.length === 0) {
+          this.showToast('Select at least one subject.', true);
+          return;
+        }
+        if(!text) {
+          this.showToast('Question text is required.', true);
+          return;
+        }
+        
         btn.disabled = true;
         btn.textContent = 'Sending...';
         
         try {
           await apiLayer.request('create', {
             creator: this.currentUser,
-            recipient: this.getOtherUser(),
-            subject: subject,
+            recipient: recipientName,
+            subject: JSON.stringify(subjects),
             question: text
           });
+          
           document.getElementById('qex-ask-text').value = '';
+          chks.forEach(c => c.checked = false);
           this.lastFetchTime.history = 0; // Invalidate history cache
-          this.showToast('Question sent to ' + this.getOtherUser());
+          this.showToast('Question sent to ' + recipientName);
         } catch (e) {
           this.showToast(e.message, true);
         } finally {
@@ -1592,17 +1862,22 @@
       /* --- HISTORY --- */
       async loadHistory() {
         document.getElementById('history-filter').selectedIndex = 0;
-        const res = await apiLayer.request('history', { user: this.currentUser });
-        this.cachedHistory = res.questions || [];
-        this.lastFetchTime.history = Date.now();
-        this.renderHistory();
+        try {
+          const res = await apiLayer.request('history', { user: this.currentUser });
+          this.cachedHistory = res.questions || [];
+          this.lastFetchTime.history = Date.now();
+          this.renderHistory();
+        } catch(e) {
+          document.getElementById('history-list').innerHTML = '<div class="empty-state" style="color: #dc2626;">Failed to load history.</div>';
+          console.error(e);
+        }
       },
       renderHistory() {
         const filter = document.getElementById('history-filter').value;
         const listEl = document.getElementById('history-list');
         
         let data = this.cachedHistory;
-        if(filter !== 'All') data = data.filter(q => q.subject === filter);
+        if(filter !== 'All') data = data.filter(q => q.subject.includes(filter));
 
         if(data.length === 0) {
           listEl.innerHTML = '<div class="empty-state">No question history.</div>';
