@@ -907,7 +907,7 @@
     // ---------------------------------------------------------
     const supabaseUrl = 'https://acvgfukzusjpatjdqsdj.supabase.co';
     const supabaseKey = 'sb_publishable_CDLFJBRH1lDEzVFq96Ntcw_EDVgOiEz';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     // ---------------------------------------------------------
     // DATABASE STATE MAP (Avoids Hardcoding UUIDs)
@@ -923,17 +923,17 @@
         if (this.group) return; // Already initialized
         
         // 1. Resolve Group
-        const { data: g, error: gErr } = await supabase.from('groups').select('*').eq('name', 'AskBack Study Group').single();
+        const { data: g, error: gErr } = await supabaseClient.from('groups').select('*').eq('name', 'AskBack Study Group').single();
         if (gErr) throw new Error("Group fetch error: " + gErr.message);
         this.group = g;
         
         // 2. Resolve Members
-        const { data: m, error: mErr } = await supabase.from('members').select('*').eq('group_id', g.id);
+        const { data: m, error: mErr } = await supabaseClient.from('members').select('*').eq('group_id', g.id);
         if (mErr) throw new Error("Members fetch error: " + mErr.message);
         m.forEach(x => { this.members[x.name] = x.id; this.membersById[x.id] = x.name; });
         
         // 3. Resolve Subjects
-        const { data: s, error: sErr } = await supabase.from('subjects').select('*').eq('group_id', g.id);
+        const { data: s, error: sErr } = await supabaseClient.from('subjects').select('*').eq('group_id', g.id);
         if (sErr) throw new Error("Subjects fetch error: " + sErr.message);
         s.forEach(x => { this.subjects[x.name] = x.id; this.subjectsById[x.id] = x.name; });
       }
@@ -963,10 +963,10 @@
             { data: weekLogs, error: lErr2 },
             { data: totalLogs, error: lErr3 }
           ] = await Promise.all([
-            supabase.from('goals').select('*').eq('group_id', dbState.group.id).in('goal_date', [today, tomorrow]),
-            supabase.from('study_logs').select('*').eq('group_id', dbState.group.id).eq('log_date', today),
-            supabase.from('study_logs').select('member_id, study_hours').eq('group_id', dbState.group.id).gte('log_date', weekStart).lte('log_date', today),
-            supabase.from('study_log_totals').select('*').eq('group_id', dbState.group.id)
+            supabaseClient.from('goals').select('*').eq('group_id', dbState.group.id).in('goal_date', [today, tomorrow]),
+            supabaseClient.from('study_logs').select('*').eq('group_id', dbState.group.id).eq('log_date', today),
+            supabaseClient.from('study_logs').select('member_id, study_hours').eq('group_id', dbState.group.id).gte('log_date', weekStart).lte('log_date', today),
+            supabaseClient.from('study_log_totals').select('*').eq('group_id', dbState.group.id)
           ]);
 
           if (gErr) throw new Error(gErr.message);
@@ -1039,7 +1039,7 @@
 
         if (action === 'count') {
           const memberId = dbState.members[params.user];
-          const { count, error } = await supabase.from('questions')
+          const { count, error } = await supabaseClient.from('questions')
             .select('*', { count: 'exact', head: true })
             .eq('recipient_id', memberId)
             .eq('status', 'Pending');
@@ -1049,7 +1049,7 @@
 
         if (action === 'pending') {
           const memberId = dbState.members[params.user];
-          const { data, error } = await supabase.from('questions')
+          const { data, error } = await supabaseClient.from('questions')
             .select('*, question_subjects(subject_id)')
             .eq('recipient_id', memberId)
             .eq('status', 'Pending')
@@ -1070,7 +1070,7 @@
 
         if (action === 'history') {
           const memberId = dbState.members[params.user];
-          const { data, error } = await supabase.from('questions')
+          const { data, error } = await supabaseClient.from('questions')
             .select('*, question_subjects(subject_id)')
             .or(`creator_id.eq.${memberId},recipient_id.eq.${memberId}`)
             .order('created_at', { ascending: false });
@@ -1093,7 +1093,7 @@
           const memberId = dbState.members[params.user];
           
           // Group safe deletion
-          const { error: delErr } = await supabase.from('goals')
+          const { error: delErr } = await supabaseClient.from('goals')
             .delete()
             .eq('group_id', dbState.group.id)
             .eq('member_id', memberId)
@@ -1109,7 +1109,7 @@
               goal: g,
               completed: false
             }));
-            const { data, error } = await supabase.from('goals').insert(toInsert).select();
+            const { data, error } = await supabaseClient.from('goals').insert(toInsert).select();
             if (error) throw new Error(error.message);
             return { goals: data.map(g => ({ id: g.id, date: g.goal_date, user: params.user, goal: g.goal, completed: g.completed })) };
           }
@@ -1117,7 +1117,7 @@
         }
 
         if (action === 'completeGoal') {
-          const { error } = await supabase.from('goals')
+          const { error } = await supabaseClient.from('goals')
             .update({ completed: params.completed === 'true' })
             .eq('id', params.id);
           if (error) throw new Error(error.message);
@@ -1127,7 +1127,7 @@
         if (action === 'saveLog') {
           const memberId = dbState.members[params.user];
           // Atomic Upsert reliant on the unique constraint
-          const { data, error } = await supabase.from('study_logs')
+          const { data, error } = await supabaseClient.from('study_logs')
             .upsert({
               group_id: dbState.group.id,
               member_id: memberId,
@@ -1146,7 +1146,7 @@
           const recipientId = dbState.members[params.recipient];
           const subjectNames = JSON.parse(params.subject);
 
-          const { data: q, error: qErr } = await supabase.from('questions').insert({
+          const { data: q, error: qErr } = await supabaseClient.from('questions').insert({
             group_id: dbState.group.id,
             creator_id: creatorId,
             recipient_id: recipientId,
@@ -1160,14 +1160,14 @@
               question_id: q.id,
               subject_id: dbState.subjects[name]
             }));
-            const { error: qsErr } = await supabase.from('question_subjects').insert(qsInserts);
+            const { error: qsErr } = await supabaseClient.from('question_subjects').insert(qsInserts);
             if (qsErr) throw new Error(qsErr.message);
           }
           return { success: true };
         }
 
         if (action === 'answer') {
-          const { error } = await supabase.from('questions')
+          const { error } = await supabaseClient.from('questions')
             .update({ 
               answer: params.answer, 
               status: 'Answered', 
@@ -1441,7 +1441,8 @@
         if (!this.dashboardData || !this.dashboardData.today) return;
         
         const myData = this.getSafeTodayData(this.currentUser);
-        const partnerData = this.getSafeTodayData(this.getOtherUser());
+        const partnerName = this.getOtherUser();
+        const partnerData = this.getSafeTodayData(partnerName);
         
         document.getElementById('today-date-display').textContent = `Today — ${this.formatDateFriendly(this.dashboardData.today.date)}`;
         document.getElementById('today-greeting').textContent = `${this.getGreeting()}, ${this.currentUser}.`;
@@ -1485,7 +1486,6 @@
           listEl.innerHTML = html;
         }
 
-        const partnerName = this.getOtherUser();
         document.getElementById('partner-name').textContent = partnerName;
         document.getElementById('partner-initial').textContent = partnerName.charAt(0);
         document.getElementById('partner-fraction').textContent = `${partnerData.completion.completed}/${partnerData.completion.total}`;
