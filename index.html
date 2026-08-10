@@ -927,7 +927,7 @@
 
   <script>
     // ---------------------------------------------------------
-    // API LAYER (Unmodified JSONP logic)
+    // API LAYER (Unmodified JSONP logic, enhanced cleanup)
     // ---------------------------------------------------------
     const apiLayer = {
       baseUrl: 'https://script.google.com/macros/s/AKfycbypDbQyR7Q1PG8Uz7FW3tPoUrHGnGJIIPHFyLyzeYRWrnOQtBppa0Pk7Pl5yTbeJMxG/exec',
@@ -960,7 +960,7 @@
           function cleanup() {
             clearTimeout(timeout);
             if (script.parentNode) script.parentNode.removeChild(script);
-            delete window[callbackName];
+            try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
           }
           
           script.src = url;
@@ -976,7 +976,10 @@
       currentUser: null,
       users: ["Lakshya", "Archita"],
       
-      // Data Caches
+      // Data Caches & TTL setup
+      CACHE_TTL: 3 * 60 * 1000, // 3 minutes cache validity
+      lastFetchTime: { dashboard: 0, questions: 0, history: 0 },
+      
       dashboardData: null,
       pendingCounts: { Lakshya: 0, Archita: 0 },
       cachedHistory: [],
@@ -1070,6 +1073,15 @@
       selectUser(username) {
         this.currentUser = username;
         localStorage.setItem('askback_user', username);
+        
+        // Invalidate caches when changing user
+        this.dashboardData = null;
+        this.lastFetchTime.dashboard = 0;
+        this.lastFetchTime.questions = 0;
+        this.lastFetchTime.history = 0;
+        this.cachedPending = [];
+        this.cachedHistory = [];
+        
         document.getElementById('view-select-user').classList.add('hidden');
         this.showApp();
       },
@@ -1100,25 +1112,33 @@
 
         try {
           if (viewId === 'today' || viewId === 'plan') {
-            if (!this.dashboardData) {
+            if (!this.dashboardData || (Date.now() - this.lastFetchTime.dashboard > this.CACHE_TTL)) {
               document.getElementById('global-loading').classList.remove('hidden');
               await this.fetchDashboardData();
             }
             if(viewId === 'today') this.renderToday();
             if(viewId === 'plan') this.renderPlan();
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
-            document.getElementById('global-loading').classList.add('hidden');
           } else if (viewId === 'questions') {
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
-            this.loadQuestions(); // Non-blocking load
+            if (this.cachedPending && this.cachedPending.length >= 0 && (Date.now() - this.lastFetchTime.questions <= this.CACHE_TTL)) {
+              this.renderPendingQuestions();
+            } else {
+              document.getElementById('global-loading').classList.remove('hidden');
+              await this.loadQuestions();
+            }
           } else if (viewId === 'history') {
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
-            this.loadHistory(); // Non-blocking load
+            if (this.cachedHistory && this.cachedHistory.length >= 0 && (Date.now() - this.lastFetchTime.history <= this.CACHE_TTL)) {
+              this.renderHistory();
+            } else {
+              document.getElementById('global-loading').classList.remove('hidden');
+              await this.loadHistory();
+            }
           }
+          document.getElementById(`view-${viewId}`).classList.remove('hidden');
         } catch(e) {
           console.error("View switch error:", e);
           this.showToast('Failed to load data. ' + e.message, true);
           document.getElementById(`view-${viewId}`).classList.remove('hidden');
+        } finally {
           document.getElementById('global-loading').classList.add('hidden');
         }
       },
@@ -1139,6 +1159,7 @@
         ]);
         this.dashboardData = dashRes.dashboard || dashRes;
         this.pendingCounts[this.currentUser] = myCountRes.count || 0;
+        this.lastFetchTime.dashboard = Date.now();
         this.updateNavBadge();
       },
 
@@ -1352,7 +1373,7 @@
              const total = newlySavedGoals.length;
              const completed = newlySavedGoals.filter(g => g.completed).length;
              this.dashboardData.today.users[this.currentUser].completion = { completed, total };
-             this.renderToday();
+             if (document.querySelector('.nav-tab.active').id === 'nav-today') this.renderToday();
           }
           
         } catch (e) {
@@ -1447,10 +1468,16 @@
           this.closeModals();
           this.showToast("Study log updated.");
           
+          // Inject into cache safely
           if (this.dashboardData && this.dashboardData.today && this.dashboardData.today.users) {
             this.dashboardData.today.users[this.currentUser].studyHours = res.log.studyHours;
             this.dashboardData.today.users[this.currentUser].note = res.log.note;
-            this.renderToday();
+            
+            if (this.dashboardData.studyHours && this.dashboardData.studyHours.today) {
+              this.dashboardData.studyHours.today[this.currentUser] = res.log.studyHours;
+            }
+            
+            if (document.querySelector('.nav-tab.active').id === 'nav-today') this.renderToday();
           }
         } catch (e) {
           this.showToast(e.message, true);
@@ -1465,24 +1492,13 @@
         document.getElementById('qex-ask-recipient').textContent = this.getOtherUser();
         document.getElementById('qex-ask-text').value = '';
         
-        const listEl = document.getElementById('qex-pending-list');
+        const res = await apiLayer.request('pending', { user: this.currentUser });
+        this.cachedPending = res.questions || [];
+        this.pendingCounts[this.currentUser] = this.cachedPending.length;
+        this.lastFetchTime.questions = Date.now();
         
-        if (this.cachedPending && this.cachedPending.length > 0) {
-          this.renderPendingQuestions();
-        } else {
-          listEl.innerHTML = '<div class="loading-state">Checking questions...</div>';
-        }
-        
-        try {
-          const res = await apiLayer.request('pending', { user: this.currentUser });
-          this.cachedPending = res.questions || [];
-          this.pendingCounts[this.currentUser] = this.cachedPending.length;
-          this.updateNavBadge();
-          this.renderPendingQuestions();
-        } catch(e) {
-          listEl.innerHTML = '<div class="empty-state" style="color: #dc2626;">Failed to load questions.</div>';
-          console.error(e);
-        }
+        this.updateNavBadge();
+        this.renderPendingQuestions();
       },
       renderPendingQuestions() {
         const listEl = document.getElementById('qex-pending-list');
@@ -1535,6 +1551,8 @@
           await apiLayer.request('answer', { id: id, user: this.currentUser, answer: text });
           this.cachedPending = this.cachedPending.filter(q => q.id !== id);
           this.pendingCounts[this.currentUser] = this.cachedPending.length;
+          this.lastFetchTime.history = 0; // Invalidate history cache
+          
           this.updateNavBadge();
           this.renderPendingQuestions();
           this.showToast('Answer submitted.');
@@ -1561,6 +1579,7 @@
             question: text
           });
           document.getElementById('qex-ask-text').value = '';
+          this.lastFetchTime.history = 0; // Invalidate history cache
           this.showToast('Question sent to ' + this.getOtherUser());
         } catch (e) {
           this.showToast(e.message, true);
@@ -1572,23 +1591,11 @@
 
       /* --- HISTORY --- */
       async loadHistory() {
-        const listEl = document.getElementById('history-list');
         document.getElementById('history-filter').selectedIndex = 0;
-        
-        if (this.cachedHistory && this.cachedHistory.length > 0) {
-          this.renderHistory();
-        } else {
-          listEl.innerHTML = '<div class="loading-state">Loading history...</div>';
-        }
-        
-        try {
-          const res = await apiLayer.request('history', { user: this.currentUser });
-          this.cachedHistory = res.questions || [];
-          this.renderHistory();
-        } catch(e) {
-          listEl.innerHTML = '<div class="empty-state" style="color: #dc2626;">Failed to load history.</div>';
-          console.error(e);
-        }
+        const res = await apiLayer.request('history', { user: this.currentUser });
+        this.cachedHistory = res.questions || [];
+        this.lastFetchTime.history = Date.now();
+        this.renderHistory();
       },
       renderHistory() {
         const filter = document.getElementById('history-filter').value;
