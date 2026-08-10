@@ -356,7 +356,7 @@
     .stat-line { font-size: 1rem; color: var(--text-muted); }
     .stat-line strong { color: var(--text-main); font-weight: 700; font-size: 1.125rem;}
 
-    /* Today's Focus Checklist */
+    /* Today's Focus Checklist (Bento Style) */
     .checklist-container {
       background: var(--bg-surface);
       border: 1px solid var(--border);
@@ -1000,6 +1000,27 @@
         });
       },
 
+      /* --- SAFE DATA HELPERS --- */
+      getSafeTodayData(user) {
+        return this.dashboardData?.today?.users?.[user] || {
+          goals: [],
+          completion: { completed: 0, total: 0 },
+          studyHours: null,
+          note: ''
+        };
+      },
+      getSafeTomorrowData(user) {
+        return this.dashboardData?.tomorrow?.users?.[user] || {
+          goals: []
+        };
+      },
+      getSafeStudyHours(user) {
+        const globalHours = this.dashboardData?.studyHours?.today?.[user];
+        if (globalHours !== undefined && globalHours !== null) return globalHours;
+        const userData = this.dashboardData?.today?.users?.[user];
+        return userData?.studyHours !== undefined ? userData.studyHours : null;
+      },
+
       /* --- UI UTILS --- */
       escapeHTML(str) {
         if (!str) return '';
@@ -1090,7 +1111,8 @@
           }
           document.getElementById(`view-${viewId}`).classList.remove('hidden');
         } catch(e) {
-          this.showToast('Failed to load data. Please refresh.', true);
+          console.error("View switch error:", e);
+          this.showToast('Failed to load data. ' + e.message, true);
           document.getElementById(`view-${viewId}`).classList.remove('hidden');
         } finally {
           document.getElementById('global-loading').classList.add('hidden');
@@ -1112,7 +1134,7 @@
           apiLayer.request('count', { user: this.currentUser }),
           apiLayer.request('count', { user: this.getOtherUser() })
         ]);
-        this.dashboardData = dashRes.dashboard;
+        this.dashboardData = dashRes.dashboard || dashRes;
         this.pendingCounts[this.currentUser] = myCountRes.count || 0;
         this.pendingCounts[this.getOtherUser()] = otherCountRes.count || 0;
         this.updateNavBadge();
@@ -1121,8 +1143,9 @@
       /* --- RENDER: TODAY --- */
       renderToday() {
         if (!this.dashboardData || !this.dashboardData.today) return;
-        const myData = this.dashboardData.today.users[this.currentUser];
-        const partnerData = this.dashboardData.today.users[this.getOtherUser()];
+        
+        const myData = this.getSafeTodayData(this.currentUser);
+        const partnerData = this.getSafeTodayData(this.getOtherUser());
         
         // Greeting
         document.getElementById('today-date-display').textContent = `Today — ${this.formatDateFriendly(this.dashboardData.today.date)}`;
@@ -1143,7 +1166,9 @@
         const pct = comp.total > 0 ? Math.round((comp.completed / comp.total) * 100) : 0;
         document.getElementById('today-percent').textContent = `${pct}%`;
         document.getElementById('today-fraction').textContent = `${comp.completed} of ${comp.total}`;
-        document.getElementById('today-hours').textContent = myData.studyHours !== null ? `${myData.studyHours}h` : '0h';
+        
+        const myHours = this.getSafeStudyHours(this.currentUser);
+        document.getElementById('today-hours').textContent = myHours !== null ? `${myHours}h` : '0h';
 
         // Goals List
         const listEl = document.getElementById('today-goals-list');
@@ -1173,7 +1198,9 @@
         document.getElementById('partner-name').textContent = partnerName;
         document.getElementById('partner-initial').textContent = partnerName.charAt(0);
         document.getElementById('partner-fraction').textContent = `${partnerData.completion.completed}/${partnerData.completion.total}`;
-        document.getElementById('partner-hours').textContent = partnerData.studyHours !== null ? `${partnerData.studyHours}h` : '0h';
+        
+        const partnerHours = this.getSafeStudyHours(partnerName);
+        document.getElementById('partner-hours').textContent = partnerHours !== null ? `${partnerHours}h` : '0h';
       },
 
       async toggleGoal(goalId, isCompleted) {
@@ -1188,17 +1215,19 @@
             completed: String(isCompleted)
           });
           
-          // Optimistic local update
-          const myData = this.dashboardData.today.users[this.currentUser];
-          const target = myData.goals.find(g => g.id === goalId);
-          if (target) target.completed = isCompleted;
-          
-          const completedCount = myData.goals.filter(g => g.completed).length;
-          myData.completion.completed = completedCount;
-          
-          const pct = myData.completion.total > 0 ? Math.round((completedCount / myData.completion.total) * 100) : 0;
-          document.getElementById('today-percent').textContent = `${pct}%`;
-          document.getElementById('today-fraction').textContent = `${completedCount} of ${myData.completion.total}`;
+          // Optimistic local update safely
+          if (this.dashboardData && this.dashboardData.today && this.dashboardData.today.users && this.dashboardData.today.users[this.currentUser]) {
+            const myData = this.dashboardData.today.users[this.currentUser];
+            const target = myData.goals.find(g => g.id === goalId);
+            if (target) target.completed = isCompleted;
+            
+            const completedCount = myData.goals.filter(g => g.completed).length;
+            myData.completion.completed = completedCount;
+            
+            const pct = myData.completion.total > 0 ? Math.round((completedCount / myData.completion.total) * 100) : 0;
+            document.getElementById('today-percent').textContent = `${pct}%`;
+            document.getElementById('today-fraction').textContent = `${completedCount} of ${myData.completion.total}`;
+          }
 
           if (isCompleted) label.classList.add('completed');
           else label.classList.remove('completed');
@@ -1214,7 +1243,7 @@
       /* --- RENDER: PLAN --- */
       renderPlan() {
         if (!this.dashboardData || !this.dashboardData.tomorrow) return;
-        const data = this.dashboardData.tomorrow.users[this.currentUser];
+        const data = this.getSafeTomorrowData(this.currentUser);
         document.getElementById('plan-date-display').textContent = this.formatDateFriendly(this.dashboardData.tomorrow.date);
         
         const listEl = document.getElementById('plan-goals-list');
@@ -1242,10 +1271,7 @@
         const container = document.getElementById('modal-today-inputs');
         container.innerHTML = '';
         
-        let existing = [];
-        if (this.dashboardData && this.dashboardData.today.users[this.currentUser]) {
-          existing = this.dashboardData.today.users[this.currentUser].goals || [];
-        }
+        const existing = this.getSafeTodayData(this.currentUser).goals || [];
         
         if (existing.length > 0) {
           existing.forEach(g => this.addTodayInput(g.goal));
@@ -1278,7 +1304,7 @@
           
           if(newGoals.length === 0) throw new Error("Please add at least one target.");
 
-          const currentData = this.dashboardData.today.users[this.currentUser];
+          const currentData = this.getSafeTodayData(this.currentUser);
           const completedGoalTexts = (currentData.goals || [])
             .filter(g => g.completed)
             .map(g => g.goal.trim());
@@ -1327,7 +1353,7 @@
       openPlanModal() {
         const container = document.getElementById('modal-plan-inputs');
         container.innerHTML = '';
-        const existing = this.dashboardData.tomorrow.users[this.currentUser].goals || [];
+        const existing = this.getSafeTomorrowData(this.currentUser).goals || [];
         if (existing.length > 0) {
           existing.forEach(g => this.addPlanInput(g.goal));
         } else {
@@ -1378,7 +1404,7 @@
       },
 
       openLogModal() {
-        const myData = this.dashboardData.today.users[this.currentUser];
+        const myData = this.getSafeTodayData(this.currentUser);
         document.getElementById('log-hours').value = myData.studyHours !== null ? myData.studyHours : '';
         document.getElementById('log-note').value = myData.note || '';
         this.openModal('modal-log');
