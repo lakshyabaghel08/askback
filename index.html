@@ -1097,24 +1097,28 @@
 
         // Hide views
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-        document.getElementById('global-loading').classList.remove('hidden');
 
         try {
           if (viewId === 'today' || viewId === 'plan') {
-            await this.fetchDashboardData();
+            if (!this.dashboardData) {
+              document.getElementById('global-loading').classList.remove('hidden');
+              await this.fetchDashboardData();
+            }
             if(viewId === 'today') this.renderToday();
             if(viewId === 'plan') this.renderPlan();
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            document.getElementById('global-loading').classList.add('hidden');
           } else if (viewId === 'questions') {
-            await this.loadQuestions();
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            this.loadQuestions(); // Non-blocking load
           } else if (viewId === 'history') {
-            await this.loadHistory();
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            this.loadHistory(); // Non-blocking load
           }
-          document.getElementById(`view-${viewId}`).classList.remove('hidden');
         } catch(e) {
           console.error("View switch error:", e);
           this.showToast('Failed to load data. ' + e.message, true);
           document.getElementById(`view-${viewId}`).classList.remove('hidden');
-        } finally {
           document.getElementById('global-loading').classList.add('hidden');
         }
       },
@@ -1129,14 +1133,12 @@
 
       /* --- DATA FETCHING --- */
       async fetchDashboardData() {
-        const [dashRes, myCountRes, otherCountRes] = await Promise.all([
+        const [dashRes, myCountRes] = await Promise.all([
           apiLayer.request('dashboard'),
-          apiLayer.request('count', { user: this.currentUser }),
-          apiLayer.request('count', { user: this.getOtherUser() })
+          apiLayer.request('count', { user: this.currentUser })
         ]);
         this.dashboardData = dashRes.dashboard || dashRes;
         this.pendingCounts[this.currentUser] = myCountRes.count || 0;
-        this.pendingCounts[this.getOtherUser()] = otherCountRes.count || 0;
         this.updateNavBadge();
       },
 
@@ -1333,14 +1335,25 @@
           }
           
           if (completionPromises.length > 0) {
-            await Promise.all(completionPromises);
+            const completedResults = await Promise.all(completionPromises);
+            completedResults.forEach(res => {
+               if(res.success && res.goal) {
+                 const g = newlySavedGoals.find(x => x.id === res.goal.id);
+                 if (g) g.completed = res.goal.completed;
+               }
+            });
           }
           
           this.closeModals();
           this.showToast("Today's goals updated.");
           
-          await this.fetchDashboardData();
-          this.renderToday();
+          if (this.dashboardData && this.dashboardData.today && this.dashboardData.today.users) {
+             this.dashboardData.today.users[this.currentUser].goals = newlySavedGoals;
+             const total = newlySavedGoals.length;
+             const completed = newlySavedGoals.filter(g => g.completed).length;
+             this.dashboardData.today.users[this.currentUser].completion = { completed, total };
+             this.renderToday();
+          }
           
         } catch (e) {
           this.showToast(e.message, true);
@@ -1385,7 +1398,7 @@
           
           if(goals.length === 0) throw new Error("Please add at least one target.");
 
-          await apiLayer.request('saveGoals', {
+          const res = await apiLayer.request('saveGoals', {
             user: this.currentUser,
             date: this.getLocalDateString(1), 
             goals: JSON.stringify(goals)
@@ -1393,7 +1406,11 @@
           
           this.closeModals();
           this.showToast("Tomorrow's plan saved.");
-          this.switchView('plan'); // Refresh
+          
+          if (this.dashboardData && this.dashboardData.tomorrow && this.dashboardData.tomorrow.users) {
+             this.dashboardData.tomorrow.users[this.currentUser].goals = res.goals || [];
+             if (document.querySelector('.nav-tab.active').id === 'nav-plan') this.renderPlan();
+          }
           
         } catch (e) {
           this.showToast(e.message, true);
@@ -1420,7 +1437,7 @@
         try {
           if(hours === '') throw new Error("Hours required.");
           
-          await apiLayer.request('saveLog', {
+          const res = await apiLayer.request('saveLog', {
             user: this.currentUser,
             date: this.getLocalDateString(0),
             studyHours: hours,
@@ -1429,8 +1446,12 @@
           
           this.closeModals();
           this.showToast("Study log updated.");
-          await this.fetchDashboardData();
-          this.renderToday();
+          
+          if (this.dashboardData && this.dashboardData.today && this.dashboardData.today.users) {
+            this.dashboardData.today.users[this.currentUser].studyHours = res.log.studyHours;
+            this.dashboardData.today.users[this.currentUser].note = res.log.note;
+            this.renderToday();
+          }
         } catch (e) {
           this.showToast(e.message, true);
         } finally {
@@ -1445,14 +1466,23 @@
         document.getElementById('qex-ask-text').value = '';
         
         const listEl = document.getElementById('qex-pending-list');
-        listEl.innerHTML = '<div class="loading-state">Checking questions...</div>';
         
-        const res = await apiLayer.request('pending', { user: this.currentUser });
-        this.cachedPending = res.questions || [];
-        this.pendingCounts[this.currentUser] = this.cachedPending.length;
-        this.updateNavBadge();
+        if (this.cachedPending && this.cachedPending.length > 0) {
+          this.renderPendingQuestions();
+        } else {
+          listEl.innerHTML = '<div class="loading-state">Checking questions...</div>';
+        }
         
-        this.renderPendingQuestions();
+        try {
+          const res = await apiLayer.request('pending', { user: this.currentUser });
+          this.cachedPending = res.questions || [];
+          this.pendingCounts[this.currentUser] = this.cachedPending.length;
+          this.updateNavBadge();
+          this.renderPendingQuestions();
+        } catch(e) {
+          listEl.innerHTML = '<div class="empty-state" style="color: #dc2626;">Failed to load questions.</div>';
+          console.error(e);
+        }
       },
       renderPendingQuestions() {
         const listEl = document.getElementById('qex-pending-list');
@@ -1543,12 +1573,22 @@
       /* --- HISTORY --- */
       async loadHistory() {
         const listEl = document.getElementById('history-list');
-        listEl.innerHTML = '<div class="loading-state">Loading history...</div>';
         document.getElementById('history-filter').selectedIndex = 0;
         
-        const res = await apiLayer.request('history', { user: this.currentUser });
-        this.cachedHistory = res.questions || [];
-        this.renderHistory();
+        if (this.cachedHistory && this.cachedHistory.length > 0) {
+          this.renderHistory();
+        } else {
+          listEl.innerHTML = '<div class="loading-state">Loading history...</div>';
+        }
+        
+        try {
+          const res = await apiLayer.request('history', { user: this.currentUser });
+          this.cachedHistory = res.questions || [];
+          this.renderHistory();
+        } catch(e) {
+          listEl.innerHTML = '<div class="empty-state" style="color: #dc2626;">Failed to load history.</div>';
+          console.error(e);
+        }
       },
       renderHistory() {
         const filter = document.getElementById('history-filter').value;
