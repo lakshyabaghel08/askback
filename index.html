@@ -91,7 +91,7 @@
       display: block;
     }
 
-    /* User Selection Screen (Heavily Enhanced) */
+    /* User Selection Screen */
     #view-select-user {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -356,7 +356,7 @@
     .stat-line { font-size: 1rem; color: var(--text-muted); }
     .stat-line strong { color: var(--text-main); font-weight: 700; font-size: 1.125rem;}
 
-    /* Today's Focus Checklist (Bento Style) */
+    /* Today's Focus Checklist */
     .checklist-container {
       background: var(--bg-surface);
       border: 1px solid var(--border);
@@ -657,7 +657,7 @@
 <body>
 
   <!-- SELECT USER SCREEN (Vibrant & Premium) -->
-  <div id="view-select-user">
+  <div id="view-select-user" class="hidden">
     <div class="login-brand">
       <h1>AskBack</h1>
       <p>Study Journal & Accountability</p>
@@ -748,7 +748,7 @@
           <div class="checklist-container">
             <div id="today-goals-list"></div>
             
-            <div class="context-action" style="justify-content: space-between;">
+            <div class="context-action">
               <button class="btn btn-outline" onclick="app.openTodayModal()">Edit Today's Goals</button>
               <button class="btn btn-outline" onclick="app.openModal('modal-log')">Log Study Time</button>
             </div>
@@ -986,6 +986,7 @@
         const savedUser = localStorage.getItem('askback_user');
         if (savedUser && this.users.includes(savedUser)) {
           this.currentUser = savedUser;
+          document.getElementById('view-select-user').classList.add('hidden');
           this.showApp();
         } else {
           document.getElementById('view-select-user').classList.remove('hidden');
@@ -1070,7 +1071,8 @@
       async switchView(viewId) {
         // Active Tab Styling
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(`nav-${viewId}`).classList.add('active');
+        const navTab = document.getElementById(`nav-${viewId}`);
+        if(navTab) navTab.classList.add('active');
 
         // Hide views
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
@@ -1088,7 +1090,8 @@
           }
           document.getElementById(`view-${viewId}`).classList.remove('hidden');
         } catch(e) {
-          this.showToast('Failed to load data.', true);
+          this.showToast('Failed to load data. Please refresh.', true);
+          document.getElementById(`view-${viewId}`).classList.remove('hidden');
         } finally {
           document.getElementById('global-loading').classList.add('hidden');
         }
@@ -1117,6 +1120,7 @@
 
       /* --- RENDER: TODAY --- */
       renderToday() {
+        if (!this.dashboardData || !this.dashboardData.today) return;
         const myData = this.dashboardData.today.users[this.currentUser];
         const partnerData = this.dashboardData.today.users[this.getOtherUser()];
         
@@ -1178,7 +1182,6 @@
         chk.disabled = true;
 
         try {
-          // EXPLICIT String format requested
           await apiLayer.request('completeGoal', {
             id: goalId,
             user: this.currentUser,
@@ -1210,6 +1213,7 @@
 
       /* --- RENDER: PLAN --- */
       renderPlan() {
+        if (!this.dashboardData || !this.dashboardData.tomorrow) return;
         const data = this.dashboardData.tomorrow.users[this.currentUser];
         document.getElementById('plan-date-display').textContent = this.formatDateFriendly(this.dashboardData.tomorrow.date);
         
@@ -1378,36 +1382,36 @@
         document.getElementById('log-hours').value = myData.studyHours !== null ? myData.studyHours : '';
         document.getElementById('log-note').value = myData.note || '';
         this.openModal('modal-log');
-      },async saveLog() {
-  const btn = document.getElementById('btn-save-log');
-  const hours = document.getElementById('log-hours').value;
-  const note = document.getElementById('log-note').value;
+      },
+      async saveLog() {
+        const btn = document.getElementById('btn-save-log');
+        const hours = document.getElementById('log-hours').value;
+        const note = document.getElementById('log-note').value;
+        
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
 
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-
-  try {
-    if (hours === '') throw new Error("Hours required.");
-
-    await apiLayer.request('saveLog', {
-      user: this.currentUser,
-      date: this.getLocalDateString(0),
-      studyHours: hours,
-      note: note
-    });
-
-    this.closeModals();
-    await this.fetchDashboardData();
-    this.renderToday();
-    this.showToast("Study log updated.");
-
-  } catch (e) {
-    this.showToast(e.message, true);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Save Log';
-  }
-}
+        try {
+          if(hours === '') throw new Error("Hours required.");
+          
+          await apiLayer.request('saveLog', {
+            user: this.currentUser,
+            date: this.getLocalDateString(0),
+            studyHours: hours,
+            note: note
+          });
+          
+          this.closeModals();
+          this.showToast("Study log updated.");
+          await this.fetchDashboardData();
+          this.renderToday();
+        } catch (e) {
+          this.showToast(e.message, true);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Save Log';
+        }
+      },
 
       /* --- QUESTIONS (EXCHANGE) --- */
       async loadQuestions() {
