@@ -1297,6 +1297,8 @@
       /* --- DATE UTILS (Strictly locked to India timezone) --- */
       getLocalDateString(offsetDays = 0) {
         const d = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+        // Shift rollover to 04:00 AM IST by subtracting 4 hours.
+        d.setHours(d.getHours() - 4);
         d.setDate(d.getDate() + offsetDays);
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
