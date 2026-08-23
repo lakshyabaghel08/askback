@@ -136,10 +136,13 @@
 
     .login-cards-container {
       display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 24px;
       animation: slideUp 0.6s ease-out forwards;
       opacity: 0;
       animation-delay: 0.2s;
+      max-width: 800px;
     }
 
     .user-profile-card {
@@ -183,7 +186,7 @@
       transform: scale(1.1) rotate(5deg);
     }
 
-    .user-profile-card.archita .user-avatar {
+    .user-profile-card.alt-user .user-avatar {
       background: linear-gradient(135deg, #f43f5e, #fb923c);
       box-shadow: 0 8px 24px rgba(244, 63, 94, 0.4);
     }
@@ -255,7 +258,7 @@
       box-shadow: var(--shadow-md);
       overflow: hidden;
       z-index: 50;
-      min-width: 140px;
+      min-width: 160px;
       opacity: 0; visibility: hidden; transform: translateY(-5px);
       transition: all 0.2s;
     }
@@ -263,8 +266,21 @@
     .user-switcher-menu button {
       display: block; width: 100%; text-align: left; padding: 12px 16px;
       background: none; border: none; font-family: 'Inter', sans-serif; font-size: 0.875rem; cursor: pointer;
+      color: var(--text-main);
     }
     .user-switcher-menu button:hover { background: var(--bg-canvas); color: var(--accent); }
+    .user-switcher-menu .menu-divider {
+      height: 1px;
+      background-color: var(--border);
+      margin: 4px 0;
+    }
+    .user-switcher-menu .btn-menu-action {
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
     /* Navigation */
     .app-nav {
@@ -466,28 +482,79 @@
     .attention-block h3 { margin-bottom: 4px; color: var(--accent-hover); font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.125rem;}
     .attention-block p { font-size: 0.9375rem; color: var(--accent); font-weight: 500;}
 
-    /* Partner Section */
-    .partner-block {
+    /* Partner Section & Cards */
+    .partner-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .partner-card {
       background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 32px;
+      padding: 24px 32px;
+      box-shadow: var(--shadow-sm);
+    }
+    .partner-card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 24px;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
     }
     .partner-info { display: flex; align-items: center; gap: 16px; }
     .partner-avatar {
       width: 48px; height: 48px; border-radius: var(--radius-full);
-      background: var(--border); display: flex; align-items: center; justify-content: center;
-      font-weight: 700; color: var(--text-muted); font-size: 1.25rem;
+      background: var(--accent-gradient); display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #ffffff; font-size: 1.25rem;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
     }
     .partner-stats { display: flex; gap: 32px; }
     .partner-stat { display: flex; flex-direction: column; }
-    .partner-stat-val { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.5rem; color: var(--text-main); }
+    .partner-stat-val { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.35rem; color: var(--text-main); }
     .partner-stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;}
+
+    .partner-goals-container {
+      margin-top: 20px;
+    }
+    .partner-goals-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .partner-goals-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .partner-goal-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      padding: 6px 0;
+    }
+    .partner-goal-item.done {
+      color: var(--text-muted);
+      text-decoration: line-through;
+      text-decoration-color: var(--text-faint);
+    }
+    .partner-goal-icon {
+      font-weight: 800;
+      font-size: 0.95rem;
+      width: 18px;
+      display: inline-flex;
+      justify-content: center;
+    }
+    .partner-goal-icon.done { color: var(--status-success); }
+    .partner-goal-icon.pending { color: var(--text-muted); font-size: 0.8rem; }
 
     /* Plan (Tomorrow) */
     .plan-list {
@@ -655,7 +722,7 @@
       .app-nav { gap: 20px; overflow-x: auto; padding-bottom: 12px; }
       .attention-block { flex-direction: column; align-items: flex-start; gap: 20px; }
       .progress-overview { flex-direction: column; align-items: flex-start; gap: 24px; padding: 24px;}
-      .partner-block { flex-direction: column; align-items: flex-start; }
+      .partner-card-header { flex-direction: column; align-items: flex-start; }
       .modal-content { padding: 24px; }
       .login-cards-container { flex-direction: column; }
       .user-profile-card { width: 100%; max-width: 300px; padding: 24px; }
@@ -665,6 +732,9 @@
 </head>
 <body>
 
+  <!-- GLOBAL LOADING INDICATOR -->
+  <div id="global-loading" class="loading-state hidden">Gathering your notes...</div>
+
   <!-- SELECT USER SCREEN -->
   <div id="view-select-user" class="hidden">
     <div class="login-brand">
@@ -672,9 +742,7 @@
       <p>Study Journal & Accountability</p>
     </div>
     
-    <div class="login-cards-container" id="login-cards">
-      <!-- Dynamic users rendered here -->
-    </div>
+    <div class="login-cards-container" id="login-cards"></div>
   </div>
 
   <!-- MAIN APP SHELL -->
@@ -692,9 +760,7 @@
               <span id="header-current-user">User</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
             </button>
-            <div class="user-switcher-menu" id="user-menu">
-              <!-- Dynamic users rendered here -->
-            </div>
+            <div class="user-switcher-menu" id="user-menu"></div>
           </div>
         </div>
         
@@ -710,11 +776,8 @@
     </header>
 
     <main class="container">
-      <div id="global-loading" class="loading-state hidden">Gathering your notes...</div>
 
-      <!-- ========================================== -->
       <!-- VIEW: TODAY (DASHBOARD) -->
-      <!-- ========================================== -->
       <div id="view-today" class="view hidden">
         
         <div class="greeting-area">
@@ -722,7 +785,6 @@
           <h2 class="serif" id="today-greeting">Good day.</h2>
         </div>
 
-        <!-- Pending Attention Alert -->
         <div id="today-attention-block" class="attention-block hidden">
           <div>
             <h3>Needs Your Attention</h3>
@@ -731,7 +793,6 @@
           <button class="btn btn-primary" onclick="app.switchView('questions')">View Questions</button>
         </div>
 
-        <!-- Today's Progress -->
         <div class="section-block">
           <span class="section-label">Today's Progress</span>
           <div class="progress-overview">
@@ -743,7 +804,6 @@
           </div>
         </div>
 
-        <!-- Today's Focus -->
         <div class="section-block">
           <span class="section-label">Today's Focus</span>
           <div class="checklist-container">
@@ -756,32 +816,14 @@
           </div>
         </div>
 
-        <!-- Partner Context -->
         <div class="section-block">
-          <span class="section-label">Your Study Partner</span>
-          <div class="partner-block">
-            <div class="partner-info">
-              <div class="partner-avatar" id="partner-initial">P</div>
-              <h3 id="partner-name" class="serif" style="margin: 0;">Partner</h3>
-            </div>
-            <div class="partner-stats">
-              <div class="partner-stat">
-                <span class="partner-stat-val" id="partner-fraction">0/0</span>
-                <span class="partner-stat-label">Goals</span>
-              </div>
-              <div class="partner-stat">
-                <span class="partner-stat-val" id="partner-hours">0h</span>
-                <span class="partner-stat-label">Studied</span>
-              </div>
-            </div>
-          </div>
+          <span class="section-label">Study Partners Today</span>
+          <div id="today-partners-container" class="partner-grid"></div>
         </div>
 
       </div>
 
-      <!-- ========================================== -->
       <!-- VIEW: PLAN (TOMORROW) -->
-      <!-- ========================================== -->
       <div id="view-plan" class="view hidden">
         <div class="greeting-area">
           <div class="greeting-date" id="plan-date-display">Tomorrow</div>
@@ -797,9 +839,7 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
       <!-- VIEW: QUESTIONS -->
-      <!-- ========================================== -->
       <div id="view-questions" class="view hidden">
         <h2 class="serif">Question Exchange</h2>
         
@@ -814,9 +854,7 @@
             
             <div class="form-group">
               <label class="form-label">Subjects (Select multiple)</label>
-              <div id="qex-ask-subjects-container" class="checklist-container" style="max-height: 200px; overflow-y: auto; padding: 16px;">
-                <!-- Rendered dynamically -->
-              </div>
+              <div id="qex-ask-subjects-container" class="checklist-container" style="max-height: 200px; overflow-y: auto; padding: 16px;"></div>
             </div>
 
             <div class="form-group">
@@ -835,15 +873,12 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
       <!-- VIEW: HISTORY -->
-      <!-- ========================================== -->
       <div id="view-history" class="view hidden">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; flex-wrap: wrap; gap: 16px;">
           <h2 class="serif" style="margin: 0;">Timeline</h2>
           <select id="history-filter" class="form-input" style="width: auto; min-width: 200px; padding: 10px 16px;" onchange="app.renderHistory()">
               <option value="All">All Subjects</option>
-              <!-- Rendered dynamically -->
           </select>
         </div>
         <div id="history-list"></div>
@@ -855,10 +890,7 @@
   <!-- TOAST CONTAINER -->
   <div id="toast-container"></div>
 
-  <!-- ========================================== -->
   <!-- MODALS -->
-  <!-- ========================================== -->
-
   <!-- Edit Today's Goals Modal -->
   <div id="modal-today" class="modal-overlay">
     <div class="modal-content">
@@ -907,47 +939,65 @@
     </div>
   </div>
 
+  <!-- Add Member Modal (Admin Only) -->
+  <div id="modal-add-member" class="modal-overlay">
+    <div class="modal-content">
+      <h3 class="serif" style="margin-bottom: 32px; font-size: 1.75rem;">Add Study Member</h3>
+      
+      <div class="form-group">
+        <label class="form-label">Member Name</label>
+        <input type="text" id="add-member-name" class="form-input" placeholder="e.g. Priya" autocomplete="off">
+      </div>
+      
+      <div class="form-group" style="margin-bottom: 40px;">
+        <label class="form-label">Admin Password</label>
+        <input type="password" id="add-member-password" class="form-input" placeholder="Enter admin password">
+      </div>
+      
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="btn btn-text" onclick="app.closeModals()">Cancel</button>
+        <button id="btn-save-member" class="btn btn-primary" onclick="app.submitNewMember()">Add Member</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ---------------------------------------------------------
-    // SUPABASE CONFIG & INITIALIZATION
-    // ---------------------------------------------------------
     const supabaseUrl = 'https://acvgfukzusjpatjdqsdj.supabase.co';
     const supabaseKey = 'sb_publishable_CDLFJBRH1lDEzVFq96Ntcw_EDVgOiEz';
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // ---------------------------------------------------------
-    // DATABASE STATE MAP (Avoids Hardcoding UUIDs)
-    // ---------------------------------------------------------
     const dbState = {
       group: null,
-      members: {},      // name -> id
-      membersById: {},  // id -> name
-      subjects: {},     // name -> id
-      subjectsById: {}, // id -> name
+      members: {},
+      membersById: {},
+      subjects: {},
+      subjectsById: {},
       
       async ensureInit() {
-        if (this.group) return; // Already initialized
+        if (this.group) return;
         
-        // 1. Resolve Group
         const { data: g, error: gErr } = await supabaseClient.from('groups').select('*').eq('name', 'AskBack Study Group').single();
         if (gErr) throw new Error("Group fetch error: " + gErr.message);
         this.group = g;
         
-        // 2. Resolve Members
-        const { data: m, error: mErr } = await supabaseClient.from('members').select('*').eq('group_id', g.id);
-        if (mErr) throw new Error("Members fetch error: " + mErr.message);
-        m.forEach(x => { this.members[x.name] = x.id; this.membersById[x.id] = x.name; });
+        await this.refreshMembers();
         
-        // 3. Resolve Subjects
         const { data: s, error: sErr } = await supabaseClient.from('subjects').select('*').eq('group_id', g.id);
         if (sErr) throw new Error("Subjects fetch error: " + sErr.message);
+        this.subjects = {};
+        this.subjectsById = {};
         s.forEach(x => { this.subjects[x.name] = x.id; this.subjectsById[x.id] = x.name; });
+      },
+
+      async refreshMembers() {
+        const { data: m, error: mErr } = await supabaseClient.from('members').select('*').eq('group_id', this.group.id).eq('active', true);
+        if (mErr) throw new Error("Members fetch error: " + mErr.message);
+        this.members = {};
+        this.membersById = {};
+        m.forEach(x => { this.members[x.name] = x.id; this.membersById[x.id] = x.name; });
       }
     };
 
-    // ---------------------------------------------------------
-    // REWRITTEN API LAYER (Uses Supabase Client directly)
-    // ---------------------------------------------------------
     const apiLayer = {
       async request(action, params = {}) {
         await dbState.ensureInit();
@@ -956,7 +1006,6 @@
           const today = app.getLocalDateString(0);
           const tomorrow = app.getLocalDateString(1);
           
-          // Calculate week start for study hour grouping
           const p = today.split('-');
           const d = new Date(p[0], p[1]-1, p[2]);
           const diff = d.getDay() === 0 ? 6 : d.getDay() - 1;
@@ -967,7 +1016,7 @@
             { data: goals, error: gErr },
             { data: todayLogs, error: lErr1 },
             { data: weekLogs, error: lErr2 },
-            { data: totalLogs, error: lErr3 }
+            totalLogsRes
           ] = await Promise.all([
             supabaseClient.from('goals').select('*').eq('group_id', dbState.group.id).in('goal_date', [today, tomorrow]),
             supabaseClient.from('study_logs').select('*').eq('group_id', dbState.group.id).eq('log_date', today),
@@ -978,7 +1027,6 @@
           if (gErr) throw new Error(gErr.message);
           if (lErr1) throw new Error(lErr1.message);
           if (lErr2) throw new Error(lErr2.message);
-          if (lErr3) throw new Error(lErr3.message);
 
           const studyHours = { today: {}, thisWeek: {}, total: {} };
           const todayLogsMap = {};
@@ -989,26 +1037,29 @@
             studyHours.total[name] = 0;
           });
 
-          // Totals from optimized View
-          totalLogs.forEach(log => {
-            const name = dbState.membersById[log.member_id];
-            if (name) studyHours.total[name] = Number(log.total_hours);
-          });
+          if (totalLogsRes && totalLogsRes.data) {
+            totalLogsRes.data.forEach(log => {
+              const name = dbState.membersById[log.member_id];
+              if (name && studyHours.total[name] !== undefined) studyHours.total[name] = Number(log.total_hours);
+            });
+          }
 
-          // This Week
-          weekLogs.forEach(log => {
-            const name = dbState.membersById[log.member_id];
-            if (name) studyHours.thisWeek[name] += Number(log.study_hours);
-          });
+          if (weekLogs) {
+            weekLogs.forEach(log => {
+              const name = dbState.membersById[log.member_id];
+              if (name && studyHours.thisWeek[name] !== undefined) studyHours.thisWeek[name] += Number(log.study_hours);
+            });
+          }
 
-          // Today
-          todayLogs.forEach(log => {
-            const name = dbState.membersById[log.member_id];
-            if (name) {
-              studyHours.today[name] += Number(log.study_hours);
-              todayLogsMap[name] = log;
-            }
-          });
+          if (todayLogs) {
+            todayLogs.forEach(log => {
+              const name = dbState.membersById[log.member_id];
+              if (name && studyHours.today[name] !== undefined) {
+                studyHours.today[name] += Number(log.study_hours);
+                todayLogsMap[name] = log;
+              }
+            });
+          }
 
           const todayGoals = {};
           const tomorrowGoals = {};
@@ -1017,13 +1068,15 @@
              tomorrowGoals[name] = [];
           });
 
-          goals.forEach(g => {
-            const name = dbState.membersById[g.member_id];
-            if(!name) return;
-            const fg = { id: g.id, date: g.goal_date, user: name, goal: g.goal, completed: g.completed };
-            if (g.goal_date === today) todayGoals[name].push(fg);
-            else if (g.goal_date === tomorrow) tomorrowGoals[name].push(fg);
-          });
+          if (goals) {
+            goals.forEach(g => {
+              const name = dbState.membersById[g.member_id];
+              if(!name || todayGoals[name] === undefined) return;
+              const fg = { id: g.id, date: g.goal_date, user: name, goal: g.goal, completed: g.completed };
+              if (g.goal_date === today) todayGoals[name].push(fg);
+              else if (g.goal_date === tomorrow) tomorrowGoals[name].push(fg);
+            });
+          }
 
           const dashboard = { today: { date: today, users: {} }, tomorrow: { date: tomorrow, users: {} }, studyHours };
 
@@ -1045,6 +1098,7 @@
 
         if (action === 'count') {
           const memberId = dbState.members[params.user];
+          if (!memberId) return { count: 0 };
           const { count, error } = await supabaseClient.from('questions')
             .select('*', { count: 'exact', head: true })
             .eq('recipient_id', memberId)
@@ -1055,6 +1109,7 @@
 
         if (action === 'pending') {
           const memberId = dbState.members[params.user];
+          if (!memberId) return { questions: [] };
           const { data, error } = await supabaseClient.from('questions')
             .select('*, question_subjects(subject_id)')
             .eq('recipient_id', memberId)
@@ -1064,9 +1119,9 @@
           
           const questions = data.map(q => ({
             id: q.id,
-            creator: dbState.membersById[q.creator_id],
-            recipient: dbState.membersById[q.recipient_id],
-            subject: q.question_subjects.map(qs => dbState.subjectsById[qs.subject_id]).join(', '),
+            creator: dbState.membersById[q.creator_id] || 'Unknown',
+            recipient: dbState.membersById[q.recipient_id] || 'Unknown',
+            subject: q.question_subjects.map(qs => dbState.subjectsById[qs.subject_id]).filter(Boolean).join(', '),
             question: q.question,
             createdAt: q.created_at,
             status: q.status
@@ -1076,6 +1131,7 @@
 
         if (action === 'history') {
           const memberId = dbState.members[params.user];
+          if (!memberId) return { questions: [] };
           const { data, error } = await supabaseClient.from('questions')
             .select('*, question_subjects(subject_id)')
             .or(`creator_id.eq.${memberId},recipient_id.eq.${memberId}`)
@@ -1084,9 +1140,9 @@
           
           const questions = data.map(q => ({
             id: q.id,
-            creator: dbState.membersById[q.creator_id],
-            recipient: dbState.membersById[q.recipient_id],
-            subject: q.question_subjects.map(qs => dbState.subjectsById[qs.subject_id]).join(', '),
+            creator: dbState.membersById[q.creator_id] || 'Unknown',
+            recipient: dbState.membersById[q.recipient_id] || 'Unknown',
+            subject: q.question_subjects.map(qs => dbState.subjectsById[qs.subject_id]).filter(Boolean).join(', '),
             question: q.question,
             answer: q.answer,
             createdAt: q.created_at,
@@ -1097,8 +1153,6 @@
 
         if (action === 'saveGoals') {
           const memberId = dbState.members[params.user];
-          
-          // Group safe deletion
           const { error: delErr } = await supabaseClient.from('goals')
             .delete()
             .eq('group_id', dbState.group.id)
@@ -1132,7 +1186,6 @@
 
         if (action === 'saveLog') {
           const memberId = dbState.members[params.user];
-          // Atomic Upsert reliant on the unique constraint
           const { data, error } = await supabaseClient.from('study_logs')
             .upsert({
               group_id: dbState.group.id,
@@ -1149,25 +1202,52 @@
 
         if (action === 'create') {
           const creatorId = dbState.members[params.creator];
-          const recipientId = dbState.members[params.recipient];
           const subjectNames = JSON.parse(params.subject);
 
-          const { data: q, error: qErr } = await supabaseClient.from('questions').insert({
+          let targetMemberIds = [];
+          if (params.recipient === 'ALL') {
+            targetMemberIds = Object.keys(dbState.members)
+              .filter(name => name !== params.creator)
+              .map(name => dbState.members[name]);
+          } else {
+            const recipId = dbState.members[params.recipient];
+            if (recipId) targetMemberIds.push(recipId);
+          }
+
+          if (targetMemberIds.length === 0) {
+            throw new Error("No valid recipient found.");
+          }
+
+          const questionsToInsert = targetMemberIds.map(rId => ({
             group_id: dbState.group.id,
             creator_id: creatorId,
-            recipient_id: recipientId,
+            recipient_id: rId,
             question: params.question,
             status: 'Pending'
-          }).select().single();
+          }));
+
+          const { data: insertedQuestions, error: qErr } = await supabaseClient.from('questions')
+            .insert(questionsToInsert)
+            .select();
           if (qErr) throw new Error(qErr.message);
 
-          if (subjectNames.length > 0) {
-            const qsInserts = subjectNames.map(name => ({
-              question_id: q.id,
-              subject_id: dbState.subjects[name]
-            }));
-            const { error: qsErr } = await supabaseClient.from('question_subjects').insert(qsInserts);
-            if (qsErr) throw new Error(qsErr.message);
+          if (subjectNames.length > 0 && insertedQuestions) {
+            const qsInserts = [];
+            insertedQuestions.forEach(q => {
+              subjectNames.forEach(name => {
+                if (dbState.subjects[name]) {
+                  qsInserts.push({
+                    question_id: q.id,
+                    subject_id: dbState.subjects[name]
+                  });
+                }
+              });
+            });
+
+            if (qsInserts.length > 0) {
+              const { error: qsErr } = await supabaseClient.from('question_subjects').insert(qsInserts);
+              if (qsErr) throw new Error(qsErr.message);
+            }
           }
           return { success: true };
         }
@@ -1184,20 +1264,27 @@
           return { success: true };
         }
 
+        if (action === 'addMember') {
+          const { data, error } = await supabaseClient.from('members')
+            .insert({
+              group_id: dbState.group.id,
+              name: params.name,
+              active: true
+            })
+            .select()
+            .single();
+          if (error) throw new Error(error.message);
+          return { member: data };
+        }
+
         throw new Error("Unknown API action");
       }
     };
 
-    // ---------------------------------------------------------
-    // APPLICATION LOGIC
-    // ---------------------------------------------------------
     const app = {
       currentUser: null,
-      
-      // Data Caches & TTL setup
       CACHE_TTL: 3 * 60 * 1000,
       lastFetchTime: { dashboard: 0, questions: 0, history: 0 },
-      
       dashboardData: null,
       pendingCounts: {},
       cachedHistory: [],
@@ -1209,7 +1296,9 @@
           await dbState.ensureInit();
         } catch(e) {
           console.error("Init error", e);
-          this.showToast("Failed to connect to database.", true);
+          document.getElementById('global-loading').classList.add('hidden');
+          document.getElementById('view-select-user').classList.remove('hidden');
+          this.showToast("Database connection issue: " + e.message, true);
           return;
         }
         
@@ -1240,28 +1329,101 @@
         menu.innerHTML = '';
 
         Object.keys(dbState.members).forEach((name, index) => {
-            // Main select screen cards
             const isAlt = index % 2 !== 0; 
-            const styleStr = isAlt ? 'style="background: linear-gradient(135deg, #f43f5e, #fb923c);"' : '';
-            
             const card = document.createElement('div');
-            card.className = `user-profile-card ${isAlt ? 'archita' : ''}`;
+            card.className = `user-profile-card ${isAlt ? 'alt-user' : ''}`;
             card.onclick = () => this.selectUser(name);
             card.innerHTML = `
-              <div class="user-avatar" ${styleStr}>${name.charAt(0).toUpperCase()}</div>
+              <div class="user-avatar">${name.charAt(0).toUpperCase()}</div>
               <h3>${name}</h3>
             `;
             container.appendChild(card);
             
-            // Dropdown Menu items
             const btn = document.createElement('button');
             btn.onclick = () => this.switchUser(name);
             btn.textContent = name;
             menu.appendChild(btn);
         });
+
+        // Add Member option inside User Switcher Toggle for Admin (Lakshya)
+        if (this.currentUser === 'Lakshya') {
+          const divider = document.createElement('div');
+          divider.className = 'menu-divider';
+          menu.appendChild(divider);
+
+          const addBtn = document.createElement('button');
+          addBtn.className = 'btn-menu-action';
+          addBtn.onclick = () => {
+            this.toggleUserMenu();
+            this.openAddMemberModal();
+          };
+          addBtn.innerHTML = `+ Add Member`;
+          menu.appendChild(addBtn);
+        }
       },
 
-      /* --- SAFE DATA HELPERS --- */
+      openAddMemberModal() {
+        document.getElementById('add-member-name').value = '';
+        document.getElementById('add-member-password').value = '';
+        this.openModal('modal-add-member');
+        setTimeout(() => document.getElementById('add-member-name').focus(), 100);
+      },
+
+      async submitNewMember() {
+        const nameInput = document.getElementById('add-member-name');
+        const passInput = document.getElementById('add-member-password');
+        const btn = document.getElementById('btn-save-member');
+
+        const name = nameInput.value.trim();
+        const password = passInput.value.trim();
+
+        if (!name) {
+          this.showToast('Please enter a valid member name.', true);
+          return;
+        }
+
+        if (password !== 'Lordraj@08') {
+          this.showToast('Incorrect admin password.', true);
+          return;
+        }
+
+        // Case-insensitive duplicate check
+        const isDuplicate = Object.keys(dbState.members).some(
+          existingName => existingName.toLowerCase() === name.toLowerCase()
+        );
+
+        if (isDuplicate) {
+          this.showToast(`Member "${name}" already exists.`, true);
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+
+        try {
+          await apiLayer.request('addMember', { name });
+          await dbState.refreshMembers();
+
+          this.buildUserSelector();
+          this.populateSubjectsUI();
+          this.closeModals();
+          this.showToast(`Member "${name}" added successfully!`);
+
+          // Refresh current dashboard view to display the new partner
+          this.lastFetchTime.dashboard = 0;
+          await this.fetchDashboardData();
+          if (document.querySelector('.nav-tab.active')?.id === 'nav-today') {
+            this.renderToday();
+          }
+        } catch (e) {
+          console.error("Add Member Error:", e);
+          this.showToast(e.message || 'Failed to add member.', true);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Add Member';
+        }
+      },
+
       getSafeTodayData(user) {
         return this.dashboardData?.today?.users?.[user] || { goals: [], completion: { completed: 0, total: 0 }, studyHours: null, note: '' };
       },
@@ -1275,7 +1437,6 @@
         return userData?.studyHours !== undefined ? userData.studyHours : null;
       },
 
-      /* --- UI UTILS --- */
       escapeHTML(str) {
         if (!str) return '';
         return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
@@ -1294,10 +1455,8 @@
         }, 4000);
       },
       
-      /* --- DATE UTILS (Strictly locked to India timezone) --- */
       getLocalDateString(offsetDays = 0) {
         const d = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
-        // Shift rollover to 04:00 AM IST by subtracting 4 hours.
         d.setHours(d.getHours() - 4);
         d.setDate(d.getDate() + offsetDays);
         const y = d.getFullYear();
@@ -1321,12 +1480,6 @@
         return 'Good evening';
       },
 
-      /* --- AUTH & NAVIGATION --- */
-      getOtherUser() { 
-        const other = Object.keys(dbState.members).find(n => n !== this.currentUser);
-        return other || this.currentUser; 
-      },
-      
       selectUser(username) {
         this.currentUser = username;
         localStorage.setItem('askback_user', username);
@@ -1351,12 +1504,12 @@
         document.getElementById('app-shell').classList.remove('hidden');
         document.getElementById('header-current-user').textContent = this.currentUser;
         
+        this.buildUserSelector();
         this.populateSubjectsUI();
         this.switchView('today');
       },
 
       populateSubjectsUI() {
-        // QEX Ask Checklist
         const cont = document.getElementById('qex-ask-subjects-container');
         if (cont && cont.children.length === 0) {
           let html = '';
@@ -1372,7 +1525,6 @@
           cont.innerHTML = html;
         }
         
-        // History Filter
         const filter = document.getElementById('history-filter');
         if (filter && filter.options.length <= 1) {
           Object.keys(dbState.subjects).forEach(subj => {
@@ -1432,7 +1584,6 @@
         else badge.classList.add('empty');
       },
 
-      /* --- DATA FETCHING --- */
       async fetchDashboardData() {
         const [dashRes, myCountRes] = await Promise.all([
           apiLayer.request('dashboard'),
@@ -1444,13 +1595,10 @@
         this.updateNavBadge();
       },
 
-      /* --- RENDER: TODAY --- */
       renderToday() {
         if (!this.dashboardData || !this.dashboardData.today) return;
         
         const myData = this.getSafeTodayData(this.currentUser);
-        const partnerName = this.getOtherUser();
-        const partnerData = this.getSafeTodayData(partnerName);
         
         document.getElementById('today-date-display').textContent = `Today — ${this.formatDateFriendly(this.dashboardData.today.date)}`;
         document.getElementById('today-greeting').textContent = `${this.getGreeting()}, ${this.currentUser}.`;
@@ -1494,12 +1642,63 @@
           listEl.innerHTML = html;
         }
 
-        document.getElementById('partner-name').textContent = partnerName;
-        document.getElementById('partner-initial').textContent = partnerName.charAt(0);
-        document.getElementById('partner-fraction').textContent = `${partnerData.completion.completed}/${partnerData.completion.total}`;
-        
-        const partnerHours = this.getSafeStudyHours(partnerName);
-        document.getElementById('partner-hours').textContent = partnerHours !== null ? `${partnerHours}h` : '0h';
+        const partnersContainer = document.getElementById('today-partners-container');
+        const otherMembers = Object.keys(dbState.members).filter(name => name !== this.currentUser);
+
+        if (otherMembers.length === 0) {
+          partnersContainer.innerHTML = '<div class="empty-state">No other study partners in this group yet.</div>';
+        } else {
+          let partnersHtml = '';
+          otherMembers.forEach(partnerName => {
+            const pData = this.getSafeTodayData(partnerName);
+            const pHours = this.getSafeStudyHours(partnerName);
+            const pComp = pData.completion || { completed: 0, total: 0 };
+            const pPct = pComp.total > 0 ? Math.round((pComp.completed / pComp.total) * 100) : 0;
+
+            let goalsListHtml = '';
+            if (!pData.goals || pData.goals.length === 0) {
+              goalsListHtml = '<div style="font-size: 0.875rem; color: var(--text-muted); font-style: italic; padding: 4px 0;">No goals set for today yet.</div>';
+            } else {
+              goalsListHtml = '<div class="partner-goals-list">';
+              pData.goals.forEach(g => {
+                const isDone = g.completed;
+                goalsListHtml += `
+                  <div class="partner-goal-item ${isDone ? 'done' : ''}">
+                    <span class="partner-goal-icon ${isDone ? 'done' : 'pending'}">${isDone ? '✓' : '○'}</span>
+                    <span>${this.escapeHTML(g.goal)}</span>
+                  </div>
+                `;
+              });
+              goalsListHtml += '</div>';
+            }
+
+            partnersHtml += `
+              <div class="partner-card">
+                <div class="partner-card-header">
+                  <div class="partner-info">
+                    <div class="partner-avatar">${partnerName.charAt(0).toUpperCase()}</div>
+                    <h3 class="serif" style="margin: 0; font-size: 1.35rem;">${this.escapeHTML(partnerName)}</h3>
+                  </div>
+                  <div class="partner-stats">
+                    <div class="partner-stat">
+                      <span class="partner-stat-val">${pComp.completed} / ${pComp.total} (${pPct}%)</span>
+                      <span class="partner-stat-label">Goals Done</span>
+                    </div>
+                    <div class="partner-stat">
+                      <span class="partner-stat-val">${pHours !== null ? pHours + 'h' : '0h'}</span>
+                      <span class="partner-stat-label">Studied</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="partner-goals-container">
+                  <span class="partner-goals-label">Today's Focus & Progress</span>
+                  ${goalsListHtml}
+                </div>
+              </div>
+            `;
+          });
+          partnersContainer.innerHTML = partnersHtml;
+        }
       },
 
       async toggleGoal(goalId, isCompleted) {
@@ -1534,7 +1733,6 @@
         }
       },
 
-      /* --- RENDER: PLAN --- */
       renderPlan() {
         if (!this.dashboardData || !this.dashboardData.tomorrow) return;
         const data = this.getSafeTomorrowData(this.currentUser);
@@ -1551,7 +1749,6 @@
         }
       },
 
-      /* --- MODALS: EDIT TODAY, PLAN & LOG --- */
       closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open')); },
       openModal(id) { document.getElementById(id).classList.add('open'); },
 
@@ -1625,7 +1822,7 @@
              const total = newlySavedGoals.length;
              const completed = newlySavedGoals.filter(g => g.completed).length;
              this.dashboardData.today.users[this.currentUser].completion = { completed, total };
-             if (document.querySelector('.nav-tab.active').id === 'nav-today') this.renderToday();
+             if (document.querySelector('.nav-tab.active')?.id === 'nav-today') this.renderToday();
           }
         } catch (e) {
           this.showToast(e.message, true);
@@ -1678,7 +1875,7 @@
           
           if (this.dashboardData && this.dashboardData.tomorrow && this.dashboardData.tomorrow.users) {
              this.dashboardData.tomorrow.users[this.currentUser].goals = res.goals || [];
-             if (document.querySelector('.nav-tab.active').id === 'nav-plan') this.renderPlan();
+             if (document.querySelector('.nav-tab.active')?.id === 'nav-plan') this.renderPlan();
           }
         } catch (e) {
           this.showToast(e.message, true);
@@ -1723,7 +1920,7 @@
             if (this.dashboardData.studyHours && this.dashboardData.studyHours.today) {
               this.dashboardData.studyHours.today[this.currentUser] = res.log.studyHours;
             }
-            if (document.querySelector('.nav-tab.active').id === 'nav-today') this.renderToday();
+            if (document.querySelector('.nav-tab.active')?.id === 'nav-today') this.renderToday();
           }
         } catch (e) {
           this.showToast(e.message, true);
@@ -1733,19 +1930,25 @@
         }
       },
 
-      /* --- QUESTIONS (EXCHANGE) --- */
       async loadQuestions() {
         const recipSelect = document.getElementById('qex-ask-recipient');
         if (recipSelect) {
             recipSelect.innerHTML = '';
-            Object.keys(dbState.members).forEach(name => {
-                if (name !== this.currentUser) {
-                    const opt = document.createElement('option');
-                    opt.value = name;
-                    opt.textContent = name;
-                    recipSelect.appendChild(opt);
-                }
+            
+            const otherMembers = Object.keys(dbState.members).filter(name => name !== this.currentUser);
+            otherMembers.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                recipSelect.appendChild(opt);
             });
+
+            if (otherMembers.length > 0) {
+                const allOpt = document.createElement('option');
+                allOpt.value = 'ALL';
+                allOpt.textContent = 'Everyone';
+                recipSelect.appendChild(allOpt);
+            }
         }
         document.getElementById('qex-ask-text').value = '';
         Array.from(document.querySelectorAll('.qex-subject-chk')).forEach(c => c.checked = false);
@@ -1816,7 +2019,7 @@
           await apiLayer.request('answer', { id: id, user: this.currentUser, answer: text });
           this.cachedPending = this.cachedPending.filter(q => q.id !== id);
           this.pendingCounts[this.currentUser] = this.cachedPending.length;
-          this.lastFetchTime.history = 0; // Invalidate history cache
+          this.lastFetchTime.history = 0;
           
           this.updateNavBadge();
           this.renderPendingQuestions();
@@ -1843,6 +2046,10 @@
           this.showToast('Question text is required.', true);
           return;
         }
+        if(!recipientName) {
+          this.showToast('Please select a recipient.', true);
+          return;
+        }
         
         btn.disabled = true;
         btn.textContent = 'Sending...';
@@ -1857,8 +2064,9 @@
           
           document.getElementById('qex-ask-text').value = '';
           chks.forEach(c => c.checked = false);
-          this.lastFetchTime.history = 0; // Invalidate history cache
-          this.showToast('Question sent to ' + recipientName);
+          this.lastFetchTime.history = 0;
+          const targetMsg = recipientName === 'ALL' ? 'Everyone' : recipientName;
+          this.showToast('Question sent to ' + targetMsg);
         } catch (e) {
           this.showToast(e.message, true);
         } finally {
@@ -1867,7 +2075,6 @@
         }
       },
 
-      /* --- HISTORY --- */
       async loadHistory() {
         document.getElementById('history-filter').selectedIndex = 0;
         try {
@@ -1920,7 +2127,6 @@
       }
     };
 
-    // Boot App
     app.init();
   </script>
 </body>
