@@ -672,9 +672,23 @@
     }
     .modal-overlay.open .modal-content { transform: scale(1); }
     
-    .dynamic-list-item { display: flex; gap: 12px; margin-bottom: 16px; }
-    .dynamic-list-item input { flex-grow: 1; }
-    .btn-icon { background: var(--bg-canvas); border: 1px solid var(--border); width: 48px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-muted); font-weight: bold; transition: all 0.2s;}
+    .dynamic-list-item { display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start; }
+    .dynamic-list-item input, .dynamic-list-item textarea { flex-grow: 1; }
+    .btn-icon {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: bold;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     .btn-icon:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
 
     /* Toast System */
@@ -858,8 +872,8 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">Question</label>
-              <textarea id="qex-ask-text" class="form-input" placeholder="Write your question..."></textarea>
+              <label class="form-label">Question(s) — (Paste or type multiple lines for separate questions)</label>
+              <textarea id="qex-ask-text" class="form-input" placeholder="Write your question (or multiple questions, one per line)..."></textarea>
             </div>
 
             <div class="form-group">
@@ -1766,10 +1780,41 @@
         const div = document.createElement('div');
         div.className = 'dynamic-list-item';
         div.innerHTML = `
-          <input type="text" class="form-input today-input-field" placeholder="Target..." value="${this.escapeHTML(val)}">
+          <textarea class="form-input today-input-field" placeholder="Target..." rows="1" style="resize: vertical; min-height: 48px; max-height: 160px;" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'">${this.escapeHTML(val)}</textarea>
           <button class="btn-icon" onclick="this.parentElement.remove()">✕</button>
         `;
+        const textarea = div.querySelector('textarea');
+        textarea.addEventListener('paste', (e) => this.handleGoalPaste(e, 'today'));
         container.appendChild(div);
+      },
+
+      handleGoalPaste(e, type) {
+        const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+        if (!pasteData || !pasteData.includes('\n')) return;
+        
+        e.preventDefault();
+        const lines = pasteData.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length === 0) return;
+
+        const target = e.target;
+        target.value = lines[0];
+        target.style.height = '';
+        target.style.height = target.scrollHeight + 'px';
+
+        let currentElement = target.parentElement;
+        for (let i = 1; i < lines.length; i++) {
+          const newDiv = document.createElement('div');
+          newDiv.className = 'dynamic-list-item';
+          const className = type === 'today' ? 'today-input-field' : 'plan-input-field';
+          newDiv.innerHTML = `
+            <textarea class="form-input ${className}" placeholder="Target..." rows="1" style="resize: vertical; min-height: 48px; max-height: 160px;" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'">${this.escapeHTML(lines[i])}</textarea>
+            <button class="btn-icon" onclick="this.parentElement.remove()">✕</button>
+          `;
+          const newTextarea = newDiv.querySelector('textarea');
+          newTextarea.addEventListener('paste', (ev) => this.handleGoalPaste(ev, type));
+          currentElement.insertAdjacentElement('afterend', newDiv);
+          currentElement = newDiv;
+        }
       },
 
       async saveToday() {
@@ -1780,7 +1825,10 @@
         try {
           const inputs = document.querySelectorAll('.today-input-field');
           let newGoals = [];
-          inputs.forEach(inp => { const v = inp.value.trim(); if(v) newGoals.push(v); });
+          inputs.forEach(inp => {
+            const lines = inp.value.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+            newGoals.push(...lines);
+          });
           
           if(newGoals.length === 0) throw new Error("Please add at least one target.");
 
@@ -1846,9 +1894,11 @@
         const div = document.createElement('div');
         div.className = 'dynamic-list-item';
         div.innerHTML = `
-          <input type="text" class="form-input plan-input-field" placeholder="Target..." value="${this.escapeHTML(val)}">
+          <textarea class="form-input plan-input-field" placeholder="Target..." rows="1" style="resize: vertical; min-height: 48px; max-height: 160px;" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'">${this.escapeHTML(val)}</textarea>
           <button class="btn-icon" onclick="this.parentElement.remove()">✕</button>
         `;
+        const textarea = div.querySelector('textarea');
+        textarea.addEventListener('paste', (e) => this.handleGoalPaste(e, 'plan'));
         container.appendChild(div);
       },
       
@@ -1860,7 +1910,10 @@
         try {
           const inputs = document.querySelectorAll('.plan-input-field');
           let goals = [];
-          inputs.forEach(inp => { const v = inp.value.trim(); if(v) goals.push(v); });
+          inputs.forEach(inp => {
+            const lines = inp.value.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+            goals.push(...lines);
+          });
           
           if(goals.length === 0) throw new Error("Please add at least one target.");
 
@@ -2050,23 +2103,32 @@
           this.showToast('Please select a recipient.', true);
           return;
         }
+
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length === 0) {
+          this.showToast('Question text is required.', true);
+          return;
+        }
         
         btn.disabled = true;
         btn.textContent = 'Sending...';
         
         try {
-          await apiLayer.request('create', {
-            creator: this.currentUser,
-            recipient: recipientName,
-            subject: JSON.stringify(subjects),
-            question: text
-          });
+          for (const line of lines) {
+            await apiLayer.request('create', {
+              creator: this.currentUser,
+              recipient: recipientName,
+              subject: JSON.stringify(subjects),
+              question: line
+            });
+          }
           
           document.getElementById('qex-ask-text').value = '';
           chks.forEach(c => c.checked = false);
           this.lastFetchTime.history = 0;
           const targetMsg = recipientName === 'ALL' ? 'Everyone' : recipientName;
-          this.showToast('Question sent to ' + targetMsg);
+          const sentMsg = lines.length > 1 ? `${lines.length} questions sent to ${targetMsg}` : `Question sent to ${targetMsg}`;
+          this.showToast(sentMsg);
         } catch (e) {
           this.showToast(e.message, true);
         } finally {
