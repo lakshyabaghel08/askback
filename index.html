@@ -10,6 +10,12 @@
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ffffff">
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('askback_theme');
+      if (savedTheme === 'dark') document.documentElement.dataset.theme = 'dark';
+    } catch (e) { /* Theme preference is optional when storage is unavailable. */ }
+  </script>
   
   <!-- Premium Typography: Lora (Serif) & Inter (Sans) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,6 +49,7 @@
       
       --status-success: #10b981;
       --status-success-bg: #ecfdf5;
+      --accent-border: #c7d2fe;
       
       --radius-sm: 8px;
       --radius-md: 16px;
@@ -54,6 +61,28 @@
       --shadow-float: 0 20px 40px rgba(79, 70, 229, 0.15);
       
       --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg-canvas: #0b1020;
+      --bg-surface: #131b2e;
+      --bg-subtle: #1c2740;
+      --text-main: #e7ecf5;
+      --text-muted: #a1aec4;
+      --text-faint: #65738c;
+      --accent: #a5b4fc;
+      --accent-hover: #c4b5fd;
+      --accent-light: rgba(129, 140, 248, 0.17);
+      --accent-gradient: linear-gradient(135deg, #818cf8, #f472b6);
+      --accent-border: #46527b;
+      --border: #2a3650;
+      --border-focus: #66748f;
+      --status-success: #34d399;
+      --status-success-bg: #12342f;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.22);
+      --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.32);
+      --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -165,7 +194,7 @@
       margin: 0 auto 20px;
       box-shadow: 0 16px 40px rgba(79, 70, 229, 0.45);
     }
-    .login-brand-mark svg { display: block; }
+    .login-brand-mark img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
     
     .login-brand h1 {
       color: #ffffff;
@@ -291,7 +320,26 @@
       color: #ffffff;
       flex-shrink: 0;
     }
-    .brand-mark svg { display: block; }
+    .brand-mark img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      background: var(--bg-canvas);
+      color: var(--text-main);
+      font: 600 0.8rem 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .theme-toggle svg { width: 17px; height: 17px; flex-shrink: 0; }
     .brand h1 {
       font-size: 1.55rem;
       background: var(--accent-gradient);
@@ -784,12 +832,6 @@
     .partner-goal-icon.done { color: var(--status-success); }
     .partner-goal-icon.pending { color: var(--text-muted); font-size: 0.8rem; }
 
-    .partners-subtitle {
-      margin: -8px 0 16px;
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
     .partner-group { display: flex; flex-direction: column; gap: 14px; }
     .partner-group + .partner-group { margin-top: 8px; }
     .partner-group-head {
@@ -814,7 +856,7 @@
       padding: 2px 8px;
     }
     .partner-card.is-active {
-      border-color: #c7d2fe;
+      border-color: var(--accent-border);
       box-shadow: 0 14px 32px rgba(79, 70, 229, 0.08);
       position: relative;
       overflow: hidden;
@@ -1034,10 +1076,10 @@
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    .choice-chip:hover { border-color: #c7d2fe; color: var(--accent); }
+    .choice-chip:hover { border-color: var(--accent-border); color: var(--accent); }
     .choice-chip.selected {
       background: var(--accent-light);
-      border-color: #c7d2fe;
+      border-color: var(--accent-border);
       color: var(--accent-hover);
     }
     .field-hint {
@@ -1112,7 +1154,7 @@
     .mcq-static-choice > span:last-child,
     .mcq-choice > span:last-child { min-width: 0; flex: 1; }
     .mcq-choice.selected, .mcq-static-choice.picked {
-      border-color: #c7d2fe;
+      border-color: var(--accent-border);
       background: var(--accent-light);
     }
     .mcq-static-choice.picked .mcq-letter { color: #047857; }
@@ -1246,6 +1288,51 @@
       .user-profile-card { width: 100%; max-width: 300px; padding: 24px; }
       .login-brand h1 { font-size: 2.5rem; }
     }
+    @media (max-width: 420px) {
+      .header-actions { gap: 6px; }
+      .theme-toggle { width: 40px; min-width: 40px; padding: 8px; }
+      .theme-toggle span { display: none; }
+      .user-switcher-btn { padding: 8px 12px; }
+    }
+
+    /* Dark theme refinements for the few intentionally-tinted surfaces. */
+    html[data-theme="dark"] body {
+      background:
+        radial-gradient(1100px 480px at 50% -120px, rgba(99, 102, 241, 0.13), transparent 65%),
+        radial-gradient(800px 420px at 108% 8%, rgba(219, 39, 119, 0.09), transparent 60%),
+        var(--bg-canvas);
+    }
+    html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #37445f; border-color: var(--bg-canvas); }
+    html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #53627f; }
+    html[data-theme="dark"] .app-header { background: rgba(11, 16, 32, 0.88); }
+    html[data-theme="dark"] .progress-card { border-color: var(--border); }
+    html[data-theme="dark"] .progress-card.is-complete { border-color: #236b56; }
+    html[data-theme="dark"] .progress-ring-track { stroke: #303b58; }
+    html[data-theme="dark"] .progress-card.is-complete .progress-ring-track { stroke: #174b3d; }
+    html[data-theme="dark"] .progress-card.is-complete .progress-ring-pct,
+    html[data-theme="dark"] .progress-card.is-complete .progress-kicker { color: #6ee7b7; -webkit-text-fill-color: #6ee7b7; }
+    html[data-theme="dark"] .progress-segment,
+    html[data-theme="dark"] .progress-segment.empty { background-color: #2a3650; }
+    html[data-theme="dark"] .progress-segment.empty { background: repeating-linear-gradient(90deg, #2a3650, #2a3650 8px, transparent 8px, transparent 14px); }
+    html[data-theme="dark"] .progress-pill { background: rgba(19, 27, 46, 0.88); }
+    html[data-theme="dark"] .goal-item.overdue { background: #2a1b28; border-color: #603642; }
+    html[data-theme="dark"] .goal-item.overdue:hover { background: #35202d; border-color: #78404d; }
+    html[data-theme="dark"] .due-badge { background: #3b202b; border-color: #71404b; color: #fda4af; }
+    html[data-theme="dark"] .attention-block { background: linear-gradient(120deg, #1b2140 0%, #211d3b 55%, #321e35 100%); border-color: #3d4771; }
+    html[data-theme="dark"] .partner-card.is-active,
+    html[data-theme="dark"] .choice-chip.selected,
+    html[data-theme="dark"] .mcq-choice.selected,
+    html[data-theme="dark"] .mcq-static-choice.picked { border-color: var(--accent-border); }
+    html[data-theme="dark"] .partner-card.is-idle { background: #111a2b; }
+    html[data-theme="dark"] .partner-live-dot { border-color: var(--bg-surface); }
+    html[data-theme="dark"] .partner-status.active { background: #12342f; color: #6ee7b7; }
+    html[data-theme="dark"] .mcq-static-choice.picked .mcq-letter { color: #6ee7b7; }
+    html[data-theme="dark"] .choice-chip:hover { border-color: var(--accent-border); }
+    html[data-theme="dark"] .choice-chip.selected,
+    html[data-theme="dark"] .mcq-choice.selected,
+    html[data-theme="dark"] .mcq-static-choice.picked { background: var(--accent-light); }
+    html[data-theme="dark"] .modal-overlay { background: rgba(0, 0, 0, 0.66); }
+    html[data-theme="dark"] .btn-icon:hover { background: #3b202b; border-color: #71404b; color: #fda4af; }
   </style>
 </head>
 <body>
@@ -1257,7 +1344,7 @@
   <div id="view-select-user" class="hidden">
     <div class="login-brand">
       <div class="login-brand-mark" aria-hidden="true">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        <img src="icons/icon-192.png" alt="">
       </div>
       <h1>AskBack</h1>
       <p>Study Journal & Accountability</p>
@@ -1274,17 +1361,23 @@
         <div class="header-top">
           <div class="brand">
             <div class="brand-mark" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+              <img src="icons/icon-192.png" alt="">
             </div>
             <h1 class="serif">AskBack</h1>
           </div>
           
-          <div class="user-switcher" id="user-switcher-wrap">
-            <button class="user-switcher-btn" onclick="app.toggleUserMenu()">
-              <span id="header-current-user">User</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          <div class="header-actions">
+            <button type="button" class="theme-toggle" id="theme-toggle" onclick="app.toggleTheme()" aria-label="Switch to dark mode" title="Switch to dark mode" aria-pressed="false">
+              <svg id="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"/></svg>
+              <span id="theme-toggle-label">Dark mode</span>
             </button>
-            <div class="user-switcher-menu" id="user-menu"></div>
+            <div class="user-switcher" id="user-switcher-wrap">
+              <button class="user-switcher-btn" onclick="app.toggleUserMenu()">
+                <span id="header-current-user">User</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="user-switcher-menu" id="user-menu"></div>
+            </div>
           </div>
         </div>
         
@@ -1360,7 +1453,6 @@
 
         <div class="section-block">
           <span class="section-label" id="today-partners-label">Study Partners Today</span>
-          <p id="partners-subtitle" class="partners-subtitle">People with an active task are listed first.</p>
           <div id="today-partners-container" class="partner-grid"></div>
         </div>
 
@@ -1407,7 +1499,7 @@
             <div class="form-group">
               <label class="form-label" id="qex-ask-label">Question</label>
               <textarea id="qex-ask-text" class="form-input" placeholder="Write your question…"></textarea>
-              <p class="field-hint" id="qex-ask-hint">Line breaks stay in this question. <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> sends. Subjects and recipient stay selected so the next one is faster.</p>
+              <p class="field-hint" id="qex-ask-hint"><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> sends.</p>
             </div>
 
             <div id="qex-mcq-block" class="form-group hidden">
@@ -1455,7 +1547,6 @@
   <div id="modal-today" class="modal-overlay">
     <div class="modal-content">
       <h3 class="serif" style="margin-bottom: 32px; font-size: 1.75rem;">Edit Today's Goals</h3>
-      <p class="modal-hint">Tip: press <kbd>Enter</kbd> for a new goal — every line is saved as a separate goal. Pasting multiple lines creates separate goals.</p>
       <div id="modal-today-inputs"></div>
       <button class="btn btn-outline" style="width: 100%; margin: 16px 0 40px 0; border-style: dashed;" onclick="app.addTodayInput()">+ Add Goal</button>
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
@@ -1821,6 +1912,32 @@
       LEGACY_GOAL_CUTOFF: '2026-09-23',
       _legacyCleanupDone: false,
 
+      setTheme(theme, persist = false) {
+        const dark = theme === 'dark';
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        const toggle = document.getElementById('theme-toggle');
+        const label = document.getElementById('theme-toggle-label');
+        const icon = document.getElementById('theme-toggle-icon');
+        const nextLabel = dark ? 'Light mode' : 'Dark mode';
+        if (toggle) {
+          toggle.setAttribute('aria-label', `Switch to ${dark ? 'light' : 'dark'} mode`);
+          toggle.setAttribute('title', `Switch to ${dark ? 'light' : 'dark'} mode`);
+          toggle.setAttribute('aria-pressed', String(dark));
+        }
+        if (label) label.textContent = nextLabel;
+        if (icon) icon.innerHTML = dark
+          ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>'
+          : '<path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"/>';
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+        if (themeColor) themeColor.setAttribute('content', dark ? '#0b1020' : '#ffffff');
+        if (persist) {
+          try { localStorage.setItem('askback_theme', dark ? 'dark' : 'light'); } catch (e) { /* non-fatal */ }
+        }
+      },
+      toggleTheme() {
+        this.setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark', true);
+      },
+
       // ---- One-time legacy cleanup (shipped with the 23 Sep 2026 update) ----
       // Clears every task that was due before 23 September 2026: all goal rows
       // stored on earlier dates, plus rolled-over backlog rows sitting on the
@@ -1864,6 +1981,7 @@
       },
 
       async init() {
+        this.setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
         document.getElementById('global-loading').classList.remove('hidden');
         this.attachGoalEnterBehavior();
         this.attachComposerKeys();
@@ -2309,12 +2427,6 @@
             ? 'Ask the question, then add the choices below…'
             : 'Write your question…';
         }
-        const hint = document.getElementById('qex-ask-hint');
-        if (hint) {
-          hint.innerHTML = this.questionType === 'mcq'
-            ? 'Choices go below. <kbd>Enter</kbd> adds another. <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> sends.'
-            : 'Line breaks stay in this question. <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> sends. Subjects and recipient stay selected so the next one is faster.';
-        }
         const btn = document.getElementById('btn-submit-qex');
         if (btn && !btn.disabled) btn.textContent = this.questionType === 'mcq' ? 'Send multiple choice' : 'Send Question';
         if (this.questionType === 'mcq' && document.querySelectorAll('.mcq-option-input').length === 0) {
@@ -2516,11 +2628,9 @@
       },
       renderPartners() {
         const container = document.getElementById('today-partners-container');
-        const subtitle = document.getElementById('partners-subtitle');
         if (!container) return;
         const others = Object.keys(dbState.members).filter(name => name !== this.currentUser);
         if (others.length === 0) {
-          if (subtitle) subtitle.textContent = '';
           container.innerHTML = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">👥</span>No other study partners in this group yet.</div>';
           return;
         }
@@ -2535,11 +2645,6 @@
         });
         const active = ranked.filter(p => p.rank === 0);
         const idle = ranked.filter(p => p.rank !== 0);
-        if (subtitle) {
-          subtitle.textContent = active.length
-            ? `${active.length} with an active task${idle.length ? ` · ${idle.length} with none` : ''} — active partners are listed first.`
-            : 'No one has an active task right now.';
-        }
         const group = (label, people) => {
           if (!people.length) return '';
           return `
@@ -3301,7 +3406,7 @@
           return;
         }
 
-        // One question per send. Line breaks stay in the question.
+        // Each send creates one question from the textarea content.
         // Today/Plan is the only place that splits lines into separate items.
         let question = text;
         if (isMcq) {
