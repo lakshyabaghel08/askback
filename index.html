@@ -170,31 +170,33 @@
       background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
       z-index: 1000;
       padding: 24px;
+      /* Scroll instead of clipping when there are many members on a small screen. */
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .login-brand {
       text-align: center;
+      margin-top: auto; /* auto margins keep the block centred but scrollable on overflow */
       margin-bottom: 64px;
+      flex-shrink: 0;
       animation: slideDown 0.6s ease-out;
     }
 
+    /* Brand mark: the icon artwork is shown on its own (no tile behind it). */
     .login-brand-mark {
-      width: 64px;
-      height: 64px;
-      border-radius: 18px;
-      background: var(--accent-gradient);
+      width: 72px;
+      height: 72px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #ffffff;
       margin: 0 auto 20px;
-      box-shadow: 0 16px 40px rgba(79, 70, 229, 0.45);
+      filter: drop-shadow(0 12px 24px rgba(79, 70, 229, 0.45));
     }
-    .login-brand-mark img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+    .login-brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
     
     .login-brand h1 {
       color: #ffffff;
@@ -220,6 +222,8 @@
       opacity: 0;
       animation-delay: 0.2s;
       max-width: 800px;
+      margin-bottom: auto;
+      flex-shrink: 0;
     }
 
     .user-profile-card {
@@ -307,41 +311,37 @@
       margin-bottom: 24px;
     }
 
-    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
     .brand-mark {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: var(--accent-gradient);
-      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+      width: 42px;
+      height: 42px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #ffffff;
       flex-shrink: 0;
     }
-    .brand-mark img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+    .brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .header-actions { display: flex; align-items: center; gap: 10px; }
+    /* Icon-only theme switch (the accessible name lives in aria-label/title). */
     .theme-toggle {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      min-height: 40px;
-      padding: 8px 12px;
+      width: 40px;
+      height: 40px;
+      padding: 0;
       border: 1px solid var(--border);
       border-radius: var(--radius-full);
       background: var(--bg-canvas);
       color: var(--text-main);
-      font: 600 0.8rem 'Inter', sans-serif;
       cursor: pointer;
       transition: all var(--transition);
-      white-space: nowrap;
+      flex-shrink: 0;
     }
     .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
-    .theme-toggle svg { width: 17px; height: 17px; flex-shrink: 0; }
+    .theme-toggle svg { width: 18px; height: 18px; flex-shrink: 0; }
     .brand h1 {
-      font-size: 1.55rem;
+      font-size: 1.8rem;
       background: var(--accent-gradient);
       -webkit-background-clip: text;
       background-clip: text;
@@ -1212,7 +1212,8 @@
     /* Toast System */
     #toast-container {
       position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
-      z-index: 200; display: flex; flex-direction: column; gap: 8px;
+      /* Above the login overlay (z-index 1000) so startup/connection errors are visible. */
+      z-index: 1100; display: flex; flex-direction: column; gap: 8px;
     }
     .toast {
       background: var(--text-main); color: #fff;
@@ -1290,8 +1291,6 @@
     }
     @media (max-width: 420px) {
       .header-actions { gap: 6px; }
-      .theme-toggle { width: 40px; min-width: 40px; padding: 8px; }
-      .theme-toggle span { display: none; }
       .user-switcher-btn { padding: 8px 12px; }
     }
 
@@ -1369,7 +1368,6 @@
           <div class="header-actions">
             <button type="button" class="theme-toggle" id="theme-toggle" onclick="app.toggleTheme()" aria-label="Switch to dark mode" title="Switch to dark mode" aria-pressed="false">
               <svg id="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"/></svg>
-              <span id="theme-toggle-label">Dark mode</span>
             </button>
             <div class="user-switcher" id="user-switcher-wrap">
               <button class="user-switcher-btn" onclick="app.toggleUserMenu()">
@@ -1916,15 +1914,12 @@
         const dark = theme === 'dark';
         document.documentElement.dataset.theme = dark ? 'dark' : 'light';
         const toggle = document.getElementById('theme-toggle');
-        const label = document.getElementById('theme-toggle-label');
         const icon = document.getElementById('theme-toggle-icon');
-        const nextLabel = dark ? 'Light mode' : 'Dark mode';
         if (toggle) {
           toggle.setAttribute('aria-label', `Switch to ${dark ? 'light' : 'dark'} mode`);
           toggle.setAttribute('title', `Switch to ${dark ? 'light' : 'dark'} mode`);
           toggle.setAttribute('aria-pressed', String(dark));
         }
-        if (label) label.textContent = nextLabel;
         if (icon) icon.innerHTML = dark
           ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>'
           : '<path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"/>';
@@ -2015,6 +2010,22 @@
           });
         });
 
+        // Close the user menu when clicking anywhere outside it, and let Esc
+        // dismiss the menu / any open modal.
+        document.addEventListener('click', (e) => {
+          const wrap = document.getElementById('user-switcher-wrap');
+          const menu = document.getElementById('user-menu');
+          if (menu && menu.classList.contains('open') && wrap && !wrap.contains(e.target)) {
+            menu.classList.remove('open');
+          }
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key !== 'Escape') return;
+          const menu = document.getElementById('user-menu');
+          if (menu) menu.classList.remove('open');
+          this.closeModals();
+        });
+
       },
 
       buildUserSelector() {
@@ -2030,8 +2041,8 @@
             card.className = `user-profile-card ${isAlt ? 'alt-user' : ''}`;
             card.onclick = () => this.selectUser(name);
             card.innerHTML = `
-              <div class="user-avatar">${name.charAt(0).toUpperCase()}</div>
-              <h3>${name}</h3>
+              <div class="user-avatar">${this.escapeHTML(name.charAt(0).toUpperCase())}</div>
+              <h3>${this.escapeHTML(name)}</h3>
             `;
             container.appendChild(card);
             
@@ -2712,7 +2723,16 @@
         }
       },
 
+      // Every call gets a sequence token. If another switchView (or a user
+      // switch) starts while this one is still awaiting data, the stale call
+      // must not un-hide its view or hide the loader — otherwise two tabs end
+      // up visible at once after quick tab clicks on a slow connection.
+      _viewSeq: 0,
       async switchView(viewId) {
+        const token = ++this._viewSeq;
+        const isCurrent = () => token === this._viewSeq;
+        const loading = document.getElementById('global-loading');
+
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         const navTab = document.getElementById(`nav-${viewId}`);
         if(navTab) navTab.classList.add('active');
@@ -2722,34 +2742,38 @@
         try {
           if (viewId === 'today' || viewId === 'plan') {
             if (!this.dashboardData || (Date.now() - this.lastFetchTime.dashboard > this.CACHE_TTL)) {
-              document.getElementById('global-loading').classList.remove('hidden');
+              loading.classList.remove('hidden');
               await this.fetchDashboardData();
+              if (!isCurrent()) return;
             }
             if(viewId === 'today') this.renderToday();
             if(viewId === 'plan') this.renderPlan();
           } else if (viewId === 'questions') {
             this.renderRecipientChips();
-            if (this.cachedPending && this.cachedPending.length >= 0 && (Date.now() - this.lastFetchTime.questions <= this.CACHE_TTL)) {
+            if (this.cachedPending && (Date.now() - this.lastFetchTime.questions <= this.CACHE_TTL)) {
               this.renderPendingQuestions();
             } else {
-              document.getElementById('global-loading').classList.remove('hidden');
+              loading.classList.remove('hidden');
               await this.loadQuestions();
+              if (!isCurrent()) return;
             }
           } else if (viewId === 'history') {
-            if (this.cachedHistory && this.cachedHistory.length >= 0 && (Date.now() - this.lastFetchTime.history <= this.CACHE_TTL)) {
+            if (this.cachedHistory && (Date.now() - this.lastFetchTime.history <= this.CACHE_TTL)) {
               this.renderHistory();
             } else {
-              document.getElementById('global-loading').classList.remove('hidden');
+              loading.classList.remove('hidden');
               await this.loadHistory();
+              if (!isCurrent()) return;
             }
           }
           document.getElementById(`view-${viewId}`).classList.remove('hidden');
         } catch(e) {
+          if (!isCurrent()) return;
           console.error("View switch error:", e);
           this.showToast('Failed to load data. ' + e.message, true);
           document.getElementById(`view-${viewId}`).classList.remove('hidden');
         } finally {
-          document.getElementById('global-loading').classList.add('hidden');
+          if (isCurrent()) loading.classList.add('hidden');
         }
       },
 
@@ -2762,15 +2786,21 @@
       },
 
       async fetchDashboardData() {
+        // Pin the user for the whole request: on a shared device the account
+        // can be switched while this is in flight, and the response must not
+        // be attributed to the new user.
+        const user = this.currentUser;
         const [dashRes, myCountRes] = await Promise.all([
           apiLayer.request('dashboard'),
-          apiLayer.request('count', { user: this.currentUser })
+          apiLayer.request('count', { user })
         ]);
+        if (user !== this.currentUser) return; // superseded by a user switch
         this.dashboardData = dashRes.dashboard || dashRes;
-        this.pendingCounts[this.currentUser] = myCountRes.count || 0;
+        this.pendingCounts[user] = myCountRes.count || 0;
         // Lazy rollover: carry this user's unfinished goals forward into today.
         // Runs before render so rolled-over goals show up immediately.
         await this.maybeRolloverOverdue();
+        if (user !== this.currentUser) return;
         this.lastFetchTime.dashboard = Date.now();
         this.updateNavBadge();
       },
@@ -2784,23 +2814,31 @@
       // Idempotent: goals already present in today (by text) are never
       // duplicated — an unmarked match just gets the DUE mark stamped on it.
       async maybeRolloverOverdue() {
+        const user = this.currentUser;
         const today = this.getLocalDateString(0);
-        const key = `${this.currentUser}|${today}`;
+        const key = `${user}|${today}`;
         if (this._rolloverDoneKey === key) return;
         if (this._rolloverRunning) {
+          const sameKey = this._rolloverRunningKey === key;
           try { await this._rolloverRunning; } catch (e) { /* first run failed; next fetch retries */ }
-          return;
+          // The in-flight run may have been for another account (user switch
+          // on a shared device) — only skip if it covered this user/day.
+          if (sameKey || this._rolloverDoneKey === key || user !== this.currentUser) return;
         }
-        this._rolloverRunning = this.runRolloverOverdue(today)
-          .then(() => { this._rolloverDoneKey = key; })
+        this._rolloverRunningKey = key;
+        this._rolloverRunning = this.runRolloverOverdue(user, today)
+          .then((completed) => { if (completed !== false) this._rolloverDoneKey = key; })
           .catch((e) => { console.error('Rollover failed (will retry on next refresh):', e); })
           .finally(() => { this._rolloverRunning = null; });
         await this._rolloverRunning;
       },
 
-      async runRolloverOverdue(today) {
+      // Returns false when abandoned because the account was switched
+      // mid-flight (so it is retried the next time that user opens the app).
+      async runRolloverOverdue(user, today) {
         const from = this.getLocalDateString(-14);
-        const res = await apiLayer.request('rangeGoals', { user: this.currentUser, from, to: today });
+        const res = await apiLayer.request('rangeGoals', { user, from, to: today });
+        if (user !== this.currentUser) return false;
         const pastRows = res.goals || [];
         if (pastRows.length === 0) return;
 
@@ -2815,7 +2853,7 @@
         // unfinished goals spread across several past dates (the feature never
         // rolled them before). Roll all of them once; afterwards the
         // nearest-date rule below keeps things zombie-free.
-        const backfillKey = `askback_backfill_${this.currentUser}`;
+        const backfillKey = `askback_backfill_${user}`;
         let sourceDates = [];
         let isBackfill = false;
         try {
@@ -2831,7 +2869,7 @@
         }
         if (sourceDates.length === 0) return;
 
-        const myTodayGoals = (this.dashboardData?.today?.users?.[this.currentUser]?.goals) || [];
+        const myTodayGoals = (this.dashboardData?.today?.users?.[user]?.goals) || [];
         const todayNorms = new Set(myTodayGoals.map(g => this.normGoalText(g.goal)));
         const todayUnmarkedByNorm = {};
         myTodayGoals.forEach(g => {
@@ -2875,16 +2913,20 @@
           return;
         }
 
+        // Last check before writing: never append one member's leftovers
+        // under whoever is signed in now.
+        if (user !== this.currentUser) return false;
+
         const [insertRes] = await Promise.all([
           toInsert.length > 0
-            ? apiLayer.request('appendGoals', { user: this.currentUser, date: today, goals: JSON.stringify(toInsert) })
+            ? apiLayer.request('appendGoals', { user, date: today, goals: JSON.stringify(toInsert) })
             : Promise.resolve({ goals: [] }),
           ...toStamp.map(s => apiLayer.request('renameGoal', { id: s.id, goal: s.goal }))
         ]);
 
         // Merge into local dashboard state so the very next render includes them.
-        if (this.dashboardData?.today?.users?.[this.currentUser]) {
-          const mine = this.dashboardData.today.users[this.currentUser];
+        if (this.dashboardData?.today?.users?.[user]) {
+          const mine = this.dashboardData.today.users[user];
           toStamp.forEach(s => {
             const g = (mine.goals || []).find(x => x.id === s.id);
             if (g) g.goal = s.goal;
@@ -2898,6 +2940,7 @@
 
         if (isBackfill) { try { localStorage.setItem(backfillKey, '1'); } catch (e) {} }
 
+        if (user !== this.currentUser) return; // written correctly, but don't toast the other account
         const n = toInsert.length + toStamp.length;
         const fromLabel = isBackfill
           ? 'previous days'
@@ -2957,13 +3000,15 @@
       async toggleGoal(goalId, isCompleted) {
         const chk = document.getElementById(`goal-chk-${goalId}`);
         const label = document.getElementById(`goal-item-${goalId}`);
+        const user = this.currentUser; // pinned: see fetchDashboardData
+        if (!chk) return;
         chk.disabled = true;
 
         try {
-          await apiLayer.request('completeGoal', { id: goalId, user: this.currentUser, completed: String(isCompleted) });
+          await apiLayer.request('completeGoal', { id: goalId, user, completed: String(isCompleted) });
           
-          if (this.dashboardData && this.dashboardData.today && this.dashboardData.today.users && this.dashboardData.today.users[this.currentUser]) {
-            const myData = this.dashboardData.today.users[this.currentUser];
+          if (user === this.currentUser && this.dashboardData?.today?.users?.[user]) {
+            const myData = this.dashboardData.today.users[user];
             const target = myData.goals.find(g => g.id === goalId);
             if (target) target.completed = isCompleted;
             
@@ -2973,8 +3018,7 @@
             this.updateTodayProgress();
           }
 
-          if (isCompleted) label.classList.add('completed');
-          else label.classList.remove('completed');
+          if (label) label.classList.toggle('completed', !!isCompleted);
           
         } catch(e) {
           chk.checked = !isCompleted;
@@ -3108,6 +3152,7 @@
 
       async saveToday() {
         const btn = document.getElementById('btn-save-today');
+        const user = this.currentUser; // pinned: see fetchDashboardData
         btn.disabled = true;
         btn.textContent = 'Saving...';
         
@@ -3122,7 +3167,7 @@
 
           if(newGoals.length === 0) throw new Error("Please add at least one target.");
 
-          const currentData = this.getSafeTodayData(this.currentUser);
+          const currentData = this.getSafeTodayData(user);
           const prevGoals = currentData.goals || [];
 
           // Compare on marker-stripped text: the modal shows clean text while
@@ -3153,7 +3198,7 @@
           const completedGoalTexts = completedCleanTexts;
 
           const saveRes = await apiLayer.request('saveGoals', {
-            user: this.currentUser,
+            user,
             date: this.getLocalDateString(0),
             goals: JSON.stringify(newGoals)
           });
@@ -3166,7 +3211,7 @@
             const matchIndex = completedGoalTexts.indexOf(this.stripDueMarker(goal.goal).trim());
             if (matchIndex > -1) {
               completionTargets.push(goal.id);
-              completionPromises.push(apiLayer.request('completeGoal', { id: goal.id, user: this.currentUser, completed: "true" }));
+              completionPromises.push(apiLayer.request('completeGoal', { id: goal.id, user, completed: "true" }));
               completedGoalTexts.splice(matchIndex, 1);
             }
           }
@@ -3182,11 +3227,11 @@
           this.closeModals();
           this.showToast("Today's goals updated.");
           
-          if (this.dashboardData && this.dashboardData.today && this.dashboardData.today.users) {
-             this.dashboardData.today.users[this.currentUser].goals = newlySavedGoals;
+          if (user === this.currentUser && this.dashboardData?.today?.users?.[user]) {
+             this.dashboardData.today.users[user].goals = newlySavedGoals;
              const total = newlySavedGoals.length;
              const completed = newlySavedGoals.filter(g => g.completed).length;
-             this.dashboardData.today.users[this.currentUser].completion = { completed, total };
+             this.dashboardData.today.users[user].completion = { completed, total };
              if (document.querySelector('.nav-tab.active')?.id === 'nav-today') this.renderToday();
           }
         } catch (e) {
@@ -3221,6 +3266,7 @@
       
       async savePlan() {
         const btn = document.getElementById('btn-save-plan');
+        const user = this.currentUser; // pinned: see fetchDashboardData
         btn.disabled = true;
         btn.textContent = 'Saving...';
         
@@ -3236,7 +3282,7 @@
           if(goals.length === 0) throw new Error("Please add at least one target.");
 
           const res = await apiLayer.request('saveGoals', {
-            user: this.currentUser,
+            user,
             date: this.getLocalDateString(1), 
             goals: JSON.stringify(goals)
           });
@@ -3244,8 +3290,8 @@
           this.closeModals();
           this.showToast("Tomorrow's plan saved.");
           
-          if (this.dashboardData && this.dashboardData.tomorrow && this.dashboardData.tomorrow.users) {
-             this.dashboardData.tomorrow.users[this.currentUser].goals = res.goals || [];
+          if (user === this.currentUser && this.dashboardData?.tomorrow?.users?.[user]) {
+             this.dashboardData.tomorrow.users[user].goals = res.goals || [];
              if (document.querySelector('.nav-tab.active')?.id === 'nav-plan') this.renderPlan();
           }
         } catch (e) {
@@ -3257,15 +3303,18 @@
       },
 
       async loadQuestions() {
+        const user = this.currentUser;
         this.renderRecipientChips();
         try {
-          const res = await apiLayer.request('pending', { user: this.currentUser });
+          const res = await apiLayer.request('pending', { user });
+          if (user !== this.currentUser) return; // account switched mid-flight
           this.cachedPending = res.questions || [];
-          this.pendingCounts[this.currentUser] = this.cachedPending.length;
+          this.pendingCounts[user] = this.cachedPending.length;
           this.lastFetchTime.questions = Date.now();
           this.updateNavBadge();
           this.renderPendingQuestions();
         } catch(e) {
+          if (user !== this.currentUser) return;
           document.getElementById('qex-pending-list').innerHTML = '<div class="empty-state" style="color: #dc2626;">Failed to load questions.</div>';
           console.error(e);
         }
@@ -3448,13 +3497,16 @@
       },
 
       async loadHistory() {
+        const user = this.currentUser;
         document.getElementById('history-filter').selectedIndex = 0;
         try {
-          const res = await apiLayer.request('history', { user: this.currentUser });
+          const res = await apiLayer.request('history', { user });
+          if (user !== this.currentUser) return; // account switched mid-flight
           this.cachedHistory = res.questions || [];
           this.lastFetchTime.history = Date.now();
           this.renderHistory();
         } catch(e) {
+          if (user !== this.currentUser) return;
           document.getElementById('history-list').innerHTML = '<div class="empty-state" style="color: #dc2626;">Failed to load history.</div>';
           console.error(e);
         }
