@@ -60,11 +60,35 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background-color: var(--bg-canvas);
+      background:
+        radial-gradient(1100px 480px at 50% -120px, rgba(79, 70, 229, 0.07), transparent 65%),
+        radial-gradient(800px 420px at 108% 8%, rgba(219, 39, 119, 0.05), transparent 60%),
+        var(--bg-canvas);
       color: var(--text-main);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection { background: var(--accent-light); color: var(--text-main); }
+
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: var(--radius-full);
+      border: 2px solid var(--bg-canvas);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    button:focus-visible,
+    a:focus-visible,
+    select:focus-visible,
+    .choice-chip:focus-visible,
+    .nav-tab:focus-visible,
+    .user-profile-card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
     .hidden { display: none !important; }
@@ -97,7 +121,17 @@
       letter-spacing: 0.1em;
       color: var(--text-muted);
       margin-bottom: 16px;
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::before {
+      content: '';
+      width: 20px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--accent-gradient);
+      flex-shrink: 0;
     }
 
     /* User Selection Screen */
@@ -118,6 +152,20 @@
       margin-bottom: 64px;
       animation: slideDown 0.6s ease-out;
     }
+
+    .login-brand-mark {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      margin: 0 auto 20px;
+      box-shadow: 0 16px 40px rgba(79, 70, 229, 0.45);
+    }
+    .login-brand-mark svg { display: block; }
     
     .login-brand h1 {
       color: #ffffff;
@@ -212,12 +260,16 @@
     .app-header {
       padding: 32px 0 0 0;
       margin-bottom: 40px;
-      background: var(--bg-surface);
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 40;
+      transition: box-shadow 0.3s ease;
     }
+    .app-header.is-stuck { box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08); }
 
     .header-top {
       display: flex;
@@ -226,9 +278,27 @@
       margin-bottom: 24px;
     }
 
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--accent-gradient);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+    .brand-mark svg { display: block; }
     .brand h1 {
-      font-size: 1.5rem;
-      color: var(--accent);
+      font-size: 1.55rem;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
     }
 
     /* User Switcher */
@@ -289,6 +359,7 @@
     }
     
     .nav-tab {
+      position: relative;
       background: none;
       border: none;
       font-family: 'Inter', sans-serif;
@@ -297,18 +368,28 @@
       color: var(--text-muted);
       padding: 0 0 16px 0;
       cursor: pointer;
-      border-bottom: 3px solid transparent;
       margin-bottom: -1px;
-      transition: all var(--transition);
+      transition: color var(--transition);
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .nav-tab:hover { color: var(--text-main); }
-    .nav-tab.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
+    .nav-tab::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 3px;
+      border-radius: 3px;
+      background: var(--accent-gradient);
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    .nav-tab:hover { color: var(--text-main); }
+    .nav-tab.active { color: var(--accent); }
+    .nav-tab.active::after { transform: scaleX(1); }
     .nav-badge {
       background: var(--accent-gradient);
       color: #fff;
@@ -340,6 +421,7 @@
       transition: all var(--transition); border: 1px solid transparent;
     }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn:active:not(:disabled) { transform: translateY(0) scale(0.98); }
     .btn-primary { 
       background: var(--accent); color: #fff; 
       box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
@@ -357,20 +439,6 @@
     .greeting-area { margin-bottom: 48px; }
     .greeting-date { color: var(--text-muted); font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
 
-    .task-day-note {
-      margin-top: 16px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      background: #eef2ff;
-      border: 1px solid #c7d2fe;
-      color: #3730a3;
-      font-size: 0.9rem;
-      font-weight: 500;
-      line-height: 1.45;
-      max-width: 640px;
-    }
-    .task-day-note strong { font-weight: 700; }
-
     .progress-card {
       display: flex;
       align-items: center;
@@ -383,7 +451,9 @@
       border-radius: var(--radius-lg);
       padding: 28px 32px;
       box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.35s ease, border-color 0.35s ease;
     }
+    .progress-card:hover { box-shadow: var(--shadow-md); }
     .progress-card.is-complete {
       background:
         radial-gradient(120% 140% at 0% 0%, rgba(16, 185, 129, 0.14), transparent 52%),
@@ -467,6 +537,7 @@
       border-radius: 999px;
       background: #e2e8f0;
       min-width: 0;
+      transition: background 0.3s ease;
     }
     .progress-segment.done { background: linear-gradient(90deg, #4f46e5, #7c3aed); }
     .progress-segment.due { background: #fda4af; }
@@ -488,8 +559,6 @@
       font-weight: 600;
     }
     .progress-pill strong { color: var(--text-main); font-weight: 700; }
-    .progress-pill.hours { color: var(--accent-hover); }
-    .progress-pill.hours strong { color: var(--accent); }
 
     /* Today's Focus Checklist */
     .checklist-container {
@@ -622,7 +691,7 @@
 
     /* Needs Attention Block */
     .attention-block {
-      background: var(--accent-light);
+      background: linear-gradient(120deg, #eef2ff 0%, #f5f3ff 55%, #fdf2f8 100%);
       border: 1px solid #c7d2fe;
       border-radius: var(--radius-lg);
       padding: 24px 32px;
@@ -647,7 +716,9 @@
       border-radius: var(--radius-lg);
       padding: 24px 32px;
       box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
     }
+    .partner-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
     .partner-card-header {
       display: flex;
       justify-content: space-between;
@@ -805,25 +876,6 @@
     .partner-status.active { background: #ecfdf5; color: #047857; }
     .partner-status.done { background: var(--accent-light); color: var(--accent-hover); }
     .partner-status.idle { background: var(--bg-subtle); color: var(--text-muted); }
-    .partner-hours-chip {
-      flex-shrink: 0;
-      font-weight: 800;
-      font-size: 1.05rem;
-      color: var(--text-main);
-      background: var(--bg-canvas);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-full);
-      padding: 6px 12px;
-    }
-    .partner-hours-chip span {
-      display: block;
-      font-size: 0.62rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      text-align: center;
-    }
     .partner-bar {
       height: 8px;
       background: var(--bg-subtle);
@@ -905,7 +957,9 @@
       padding: 32px;
       margin-bottom: 24px;
       box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.3s ease;
     }
+    .q-card:hover { box-shadow: var(--shadow-md); }
     .q-meta {
       display: flex;
       align-items: center;
@@ -1133,7 +1187,7 @@
 
     /* Utilities */
     .empty-state {
-      padding: 64px 24px;
+      padding: 56px 24px;
       text-align: center;
       background: var(--bg-surface);
       border: 1px dashed var(--border-focus);
@@ -1141,6 +1195,23 @@
       color: var(--text-muted);
       font-size: 1rem;
       font-weight: 500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .empty-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-full);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      line-height: 1;
+      margin-bottom: 4px;
     }
     .loading-state {
       padding: 80px 24px;
@@ -1154,6 +1225,8 @@
     @media (prefers-reduced-motion: reduce) {
       .partner-live-dot { animation: none; }
       .progress-ring-value { transition: none; }
+      .partner-card, .partner-card:hover { transition: none; transform: none; }
+      .nav-tab::after { transition: none; }
     }
 
     /* Responsive */
@@ -1183,6 +1256,9 @@
   <!-- SELECT USER SCREEN -->
   <div id="view-select-user" class="hidden">
     <div class="login-brand">
+      <div class="login-brand-mark" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      </div>
       <h1>AskBack</h1>
       <p>Study Journal & Accountability</p>
     </div>
@@ -1197,6 +1273,9 @@
       <div class="container">
         <div class="header-top">
           <div class="brand">
+            <div class="brand-mark" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+            </div>
             <h1 class="serif">AskBack</h1>
           </div>
           
@@ -1228,7 +1307,6 @@
         <div class="greeting-area">
           <div class="greeting-date" id="today-date-display">Date</div>
           <h2 class="serif" id="today-greeting">Good day.</h2>
-          <p id="today-task-note" class="task-day-note hidden"></p>
         </div>
 
         <div id="today-attention-block" class="attention-block hidden">
@@ -1264,7 +1342,6 @@
               <div class="progress-track" id="today-progress-track" aria-hidden="true"></div>
               <div class="progress-meta">
                 <span class="progress-pill"><strong id="today-fraction">0 of 0</strong> goals</span>
-                <span class="progress-pill hours"><strong id="today-hours">0h</strong> studied</span>
               </div>
             </div>
           </div>
@@ -1277,7 +1354,6 @@
             
             <div class="context-action">
               <button class="btn btn-outline" onclick="app.openTodayModal()">Edit Today's Goals</button>
-              <button class="btn btn-outline" onclick="app.openLogModal()">Log Study Time</button>
             </div>
           </div>
         </div>
@@ -1295,7 +1371,6 @@
         <div class="greeting-area">
           <div class="greeting-date" id="plan-date-display">Tomorrow</div>
           <h2 class="serif" id="plan-heading">Tomorrow's Plan</h2>
-          <p id="plan-task-note" class="task-day-note hidden"></p>
         </div>
 
         <div class="section-block">
@@ -1403,28 +1478,6 @@
     </div>
   </div>
 
-  <!-- Log Study Modal -->
-  <div id="modal-log" class="modal-overlay">
-    <div class="modal-content">
-      <h3 class="serif" id="log-modal-title" style="margin-bottom: 32px; font-size: 1.75rem;">Today's Study</h3>
-      <div class="form-group">
-        <label class="form-label">How much did you study?</label>
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <input type="number" id="log-hours" class="form-input" min="0" max="24" step="0.5" style="width: 120px; font-size: 1.25rem; font-weight: 600;" placeholder="0.0">
-          <span style="color: var(--text-muted); font-weight: 500;">hours</span>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom: 40px;">
-        <label class="form-label">Today's note</label>
-        <textarea id="log-note" class="form-input" placeholder="Reflections on today..."></textarea>
-      </div>
-      <div style="display: flex; justify-content: flex-end; gap: 12px;">
-        <button class="btn btn-text" onclick="app.closeModals()">Cancel</button>
-        <button id="btn-save-log" class="btn btn-primary" onclick="app.saveLog()">Save Log</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Add Member Modal (Admin Only) -->
   <div id="modal-add-member" class="modal-overlay">
     <div class="modal-content">
@@ -1489,66 +1542,19 @@
         await dbState.ensureInit();
 
         if (action === 'dashboard') {
-          // Tasks, goals, and study logs follow the 6:00 AM task day.
-          // The calendar date (midnight) is returned separately for the header.
+          // Goals follow the 6:00 AM task day internally; the calendar date
+          // (midnight) is returned separately for the header.
+          await app.clearLegacyGoals();
+
           const calendarToday = app.getCalendarDateString(0);
           const today = app.getTaskDateString(0);
           const tomorrow = app.getTaskDateString(1);
-          
-          const p = today.split('-');
-          const d = new Date(p[0], p[1]-1, p[2]);
-          const diff = d.getDay() === 0 ? 6 : d.getDay() - 1;
-          d.setDate(d.getDate() - diff);
-          const weekStart = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
-          const [
-            { data: goals, error: gErr },
-            { data: todayLogs, error: lErr1 },
-            { data: weekLogs, error: lErr2 },
-            totalLogsRes
-          ] = await Promise.all([
-            supabaseClient.from('goals').select('*').eq('group_id', dbState.group.id).in('goal_date', [today, tomorrow]),
-            supabaseClient.from('study_logs').select('*').eq('group_id', dbState.group.id).eq('log_date', today),
-            supabaseClient.from('study_logs').select('member_id, study_hours').eq('group_id', dbState.group.id).gte('log_date', weekStart).lte('log_date', today),
-            supabaseClient.from('study_log_totals').select('*').eq('group_id', dbState.group.id)
-          ]);
-
+          const { data: goals, error: gErr } = await supabaseClient.from('goals')
+            .select('*')
+            .eq('group_id', dbState.group.id)
+            .in('goal_date', [today, tomorrow]);
           if (gErr) throw new Error(gErr.message);
-          if (lErr1) throw new Error(lErr1.message);
-          if (lErr2) throw new Error(lErr2.message);
-
-          const studyHours = { today: {}, thisWeek: {}, total: {} };
-          const todayLogsMap = {};
-
-          Object.keys(dbState.members).forEach(name => {
-            studyHours.today[name] = 0;
-            studyHours.thisWeek[name] = 0;
-            studyHours.total[name] = 0;
-          });
-
-          if (totalLogsRes && totalLogsRes.data) {
-            totalLogsRes.data.forEach(log => {
-              const name = dbState.membersById[log.member_id];
-              if (name && studyHours.total[name] !== undefined) studyHours.total[name] = Number(log.total_hours);
-            });
-          }
-
-          if (weekLogs) {
-            weekLogs.forEach(log => {
-              const name = dbState.membersById[log.member_id];
-              if (name && studyHours.thisWeek[name] !== undefined) studyHours.thisWeek[name] += Number(log.study_hours);
-            });
-          }
-
-          if (todayLogs) {
-            todayLogs.forEach(log => {
-              const name = dbState.membersById[log.member_id];
-              if (name && studyHours.today[name] !== undefined) {
-                studyHours.today[name] += Number(log.study_hours);
-                todayLogsMap[name] = log;
-              }
-            });
-          }
 
           const todayGoals = {};
           const tomorrowGoals = {};
@@ -1570,7 +1576,6 @@
           const dashboard = {
             today: { date: today, users: {} },
             tomorrow: { date: tomorrow, users: {} },
-            studyHours,
             calendarDate: calendarToday,
             taskDate: today
           };
@@ -1579,9 +1584,7 @@
             const ug = todayGoals[name] || [];
             dashboard.today.users[name] = {
               date: today, user: name, goals: ug,
-              completion: { completed: ug.filter(g=>g.completed).length, total: ug.length },
-              studyHours: todayLogsMap[name] ? Number(todayLogsMap[name].study_hours) : null,
-              note: todayLogsMap[name] ? (todayLogsMap[name].note || '') : ''
+              completion: { completed: ug.filter(g=>g.completed).length, total: ug.length }
             };
             dashboard.tomorrow.users[name] = {
               date: tomorrow, user: name, goals: tomorrowGoals[name] || []
@@ -1721,22 +1724,6 @@
           return { success: true };
         }
 
-        if (action === 'saveLog') {
-          const memberId = dbState.members[params.user];
-          const { data, error } = await supabaseClient.from('study_logs')
-            .upsert({
-              group_id: dbState.group.id,
-              member_id: memberId,
-              log_date: params.date,
-              study_hours: params.studyHours,
-              note: params.note
-            }, { onConflict: 'group_id, member_id, log_date' })
-            .select().single();
-            
-          if (error) throw new Error(error.message);
-          return { log: { studyHours: params.studyHours, note: params.note } };
-        }
-
         if (action === 'create') {
           const creatorId = dbState.members[params.creator];
           const subjectNames = JSON.parse(params.subject);
@@ -1831,11 +1818,56 @@
       TASK_ROLLOVER_HOUR: 6,
       MCQ_MAX_OPTIONS: 15,
       ASK_PREFS_KEY: 'askback_ask_prefs',
+      LEGACY_GOAL_CUTOFF: '2026-09-23',
+      _legacyCleanupDone: false,
+
+      // ---- One-time legacy cleanup (shipped with the 23 Sep 2026 update) ----
+      // Clears every task that was due before 23 September 2026: all goal rows
+      // stored on earlier dates, plus rolled-over backlog rows sitting on the
+      // 23rd that still carry an older "[DUE: ...]" mark. Idempotent — once the
+      // rows are gone every later run is a no-op, so it is safe to attempt on
+      // each dashboard load from any device.
+      async clearLegacyGoals() {
+        if (this._legacyCleanupDone) return;
+        const cutoff = this.LEGACY_GOAL_CUTOFF;
+        const { error: delErr } = await supabaseClient.from('goals').delete().lt('goal_date', cutoff);
+        if (delErr) {
+          console.warn('Legacy task cleanup deferred (will retry on next refresh):', delErr.message);
+          return;
+        }
+        const { data: onDay, error: selErr } = await supabaseClient
+          .from('goals')
+          .select('id, goal')
+          .eq('goal_date', cutoff);
+        if (!selErr && onDay) {
+          const staleIds = onDay
+            .filter(row => {
+              const m = String(row.goal || '').match(/^\[DUE:\s*(\d{4}-\d{2}-\d{2})\]/);
+              return m && m[1] < cutoff;
+            })
+            .map(row => row.id);
+          if (staleIds.length > 0) {
+            const { error: staleErr } = await supabaseClient.from('goals').delete().in('id', staleIds);
+            if (staleErr) console.warn('Legacy backlog cleanup deferred (will retry on next refresh):', staleErr.message);
+          }
+        }
+        this._legacyCleanupDone = true;
+        try { localStorage.setItem('askback_legacy_goals_cleared', '1'); } catch (e) { /* non-fatal */ }
+      },
+
+      attachHeaderShadow() {
+        const header = document.querySelector('.app-header');
+        if (!header) return;
+        const onScroll = () => header.classList.toggle('is-stuck', window.scrollY > 8);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      },
 
       async init() {
         document.getElementById('global-loading').classList.remove('hidden');
         this.attachGoalEnterBehavior();
         this.attachComposerKeys();
+        this.attachHeaderShadow();
         this.startDayClock();
         try {
           await dbState.ensureInit();
@@ -1972,18 +2004,11 @@
       },
 
       getSafeTodayData(user) {
-        return this.dashboardData?.today?.users?.[user] || { goals: [], completion: { completed: 0, total: 0 }, studyHours: null, note: '' };
+        return this.dashboardData?.today?.users?.[user] || { goals: [], completion: { completed: 0, total: 0 } };
       },
       getSafeTomorrowData(user) {
         return this.dashboardData?.tomorrow?.users?.[user] || { goals: [] };
       },
-      getSafeStudyHours(user) {
-        const globalHours = this.dashboardData?.studyHours?.today?.[user];
-        if (globalHours !== undefined && globalHours !== null) return globalHours;
-        const userData = this.dashboardData?.today?.users?.[user];
-        return userData?.studyHours !== undefined ? userData.studyHours : null;
-      },
-
       escapeHTML(str) {
         if (!str) return '';
         return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
@@ -2089,13 +2114,6 @@
       isBeforeTaskRollover(date = new Date()) {
         return this.getKolkataParts(date).hour < this.TASK_ROLLOVER_HOUR;
       },
-      formatHours(h) {
-        if (h === null || h === undefined || h === '') return '0h';
-        const n = Number(h);
-        if (!isFinite(n)) return '0h';
-        const rounded = Math.round(n * 10) / 10;
-        return `${rounded}h`;
-      },
       formatDateFriendly(dateStr) {
         if (!dateStr) return '';
         const p = dateStr.split('-');
@@ -2135,8 +2153,6 @@
         const cal = this.getCalendarDateString(0);
         const task = this.getTaskDateString(0);
         if (cal === this._seenCalendar && task === this._seenTask) return;
-        const taskChanged = task !== this._seenTask;
-        const dateChanged = cal !== this._seenCalendar;
         this.lastFetchTime.dashboard = 0;
         const shell = document.getElementById('app-shell');
         const loggedOut = !this.currentUser || !shell || shell.classList.contains('hidden');
@@ -2155,9 +2171,6 @@
         }
         this._seenCalendar = cal;
         this._seenTask = task;
-        if (loggedOut) return;
-        if (taskChanged) this.showToast('Tasks rolled over — you\'re on a new task day.');
-        else if (dateChanged) this.showToast('It\'s a new day. Tasks stay put until 6:00 AM.');
       },
 
       taskDayContext() {
@@ -2397,10 +2410,10 @@
           el.classList.toggle('selected', !!(box && box.checked));
         });
       },
-      progressHeadline(completed, total, split) {
+      progressHeadline(completed, total) {
         if (total === 0) return 'Set a focus to get moving';
         if (completed === 0) return 'Ready when you are';
-        if (completed === total) return split ? 'All done for this task day' : 'All done for today';
+        if (completed === total) return 'All done for today';
         const pct = Math.round((completed / total) * 100);
         if (pct < 40) return 'You\u2019ve started — keep going';
         if (pct < 70) return 'Solid progress';
@@ -2411,21 +2424,17 @@
         const completed = goals.filter(g => g.completed).length;
         const total = goals.length;
         const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-        const hours = this.formatHours(this.getSafeStudyHours(this.currentUser));
-        const day = this.taskDayContext();
         const done = total > 0 && completed === total;
 
         const pctEl = document.getElementById('today-percent');
         if (pctEl) pctEl.textContent = `${pct}%`;
         const frac = document.getElementById('today-fraction');
         if (frac) frac.textContent = `${completed} of ${total}`;
-        const hoursEl = document.getElementById('today-hours');
-        if (hoursEl) hoursEl.textContent = hours;
 
         const card = document.getElementById('today-progress-card');
         if (card) {
           card.classList.toggle('is-complete', done);
-          card.setAttribute('aria-label', `${pct}% complete, ${completed} of ${total} goals, ${hours} studied`);
+          card.setAttribute('aria-label', `${pct}% complete, ${completed} of ${total} goals`);
         }
         const ring = document.getElementById('today-ring');
         if (ring) {
@@ -2436,9 +2445,9 @@
           ring.style.stroke = done ? '#10b981' : 'url(#progressGrad)';
         }
         const kicker = document.getElementById('today-progress-kicker');
-        if (kicker) kicker.textContent = day.split ? `Tasks still on ${this.formatDueShort(day.taskDate)}` : (done ? 'Complete' : 'Today');
+        if (kicker) kicker.textContent = done ? 'Complete' : 'Today';
         const headline = document.getElementById('today-progress-headline');
-        if (headline) headline.textContent = this.progressHeadline(completed, total, day.split);
+        if (headline) headline.textContent = this.progressHeadline(completed, total);
         const sub = document.getElementById('today-ring-sub');
         if (sub) sub.textContent = done ? 'complete' : 'done';
 
@@ -2469,7 +2478,6 @@
         const goals = this.getSafeTodayData(partnerName).goals || [];
         const act = this.partnerActivity(partnerName);
         const pct = act.total > 0 ? Math.round(((act.total - act.incomplete) / act.total) * 100) : 0;
-        const hours = this.formatHours(this.getSafeStudyHours(partnerName));
         const alt = Object.keys(dbState.members).indexOf(partnerName) % 2 !== 0;
         const cardClass = act.active ? 'is-active' : (act.finished ? 'is-idle is-done' : 'is-idle');
         const statusClass = act.active ? 'active' : (act.finished ? 'done' : 'idle');
@@ -2502,7 +2510,6 @@
                 <h3 class="serif">${this.escapeHTML(partnerName)}</h3>
                 <span class="partner-status ${statusClass}">${this.escapeHTML(statusText)}</span>
               </div>
-              <div class="partner-hours-chip">${this.escapeHTML(hours)}<span>studied</span></div>
             </div>
             <div class="partner-goals-container">${body}</div>
           </article>`;
@@ -2514,7 +2521,7 @@
         const others = Object.keys(dbState.members).filter(name => name !== this.currentUser);
         if (others.length === 0) {
           if (subtitle) subtitle.textContent = '';
-          container.innerHTML = '<div class="empty-state">No other study partners in this group yet.</div>';
+          container.innerHTML = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">👥</span>No other study partners in this group yet.</div>';
           return;
         }
         const ranked = others.map(name => {
@@ -2804,23 +2811,6 @@
         const greetEl = document.getElementById('today-greeting');
         if (greetEl) greetEl.textContent = `${this.getGreeting()}, ${this.currentUser}.`;
 
-        const note = document.getElementById('today-task-note');
-        if (note) {
-          if (day.split) {
-            note.classList.remove('hidden');
-            note.innerHTML = `New calendar day. Tasks and logged hours stay on the previous day (<strong>${this.formatDateFriendly(day.taskDate)}</strong>) until 6:00 AM.`;
-          } else {
-            note.classList.add('hidden');
-            note.textContent = '';
-          }
-        }
-        const focusLabel = document.getElementById('today-focus-label');
-        if (focusLabel) focusLabel.textContent = day.split ? `Focus · ${this.formatDueShort(day.taskDate)}` : "Today's Focus";
-        const progressLabel = document.getElementById('today-progress-label');
-        if (progressLabel) progressLabel.textContent = day.split ? `Progress · ${this.formatDueShort(day.taskDate)}` : "Today's Progress";
-        const partnersLabel = document.getElementById('today-partners-label');
-        if (partnersLabel) partnersLabel.textContent = day.split ? `Study Partners · ${this.formatDueShort(day.taskDate)}` : 'Study Partners Today';
-
         const pendingCount = this.pendingCounts[this.currentUser];
         const alertBlock = document.getElementById('today-attention-block');
         if (pendingCount > 0) {
@@ -2834,9 +2824,7 @@
 
         const listEl = document.getElementById('today-goals-list');
         if (!myData.goals || myData.goals.length === 0) {
-          listEl.innerHTML = day.split
-            ? '<div class="empty-state">No goals left on the previous day. New tasks start at 6:00 AM.</div>'
-            : '<div class="empty-state">No goals set for today. Plan tomorrow tonight.</div>';
+          listEl.innerHTML = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">🎯</span>No goals set for today. Plan tomorrow tonight.</div>';
         } else {
           let html = '';
           myData.goals.forEach(g => {
@@ -2894,24 +2882,12 @@
       renderPlan() {
         if (!this.dashboardData || !this.dashboardData.tomorrow) return;
         const data = this.getSafeTomorrowData(this.currentUser);
-        const day = this.taskDayContext();
-        const heading = document.getElementById('plan-heading');
-        if (heading) heading.textContent = day.split ? 'Next focus' : "Tomorrow's Plan";
-        const note = document.getElementById('plan-task-note');
-        if (note) {
-          if (day.split) {
-            note.classList.remove('hidden');
-            note.innerHTML = `These become today's tasks at <strong>6:00 AM</strong>. You're still on ${this.formatDateFriendly(day.taskDate)} until then.`;
-          } else {
-            note.classList.add('hidden');
-            note.textContent = '';
-          }
-        }
+
         document.getElementById('plan-date-display').textContent = this.formatDateFriendly(this.dashboardData.tomorrow.date);
 
         const listEl = document.getElementById('plan-goals-list');
         if (!data.goals || data.goals.length === 0) {
-          listEl.innerHTML = '<div class="empty-state">Nothing planned for tomorrow yet.</div>';
+          listEl.innerHTML = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">📅</span>Nothing planned yet. Set targets for tomorrow.</div>';
         } else {
           let html = '<ol class="plan-list">';
           data.goals.forEach(g => {
@@ -3175,58 +3151,6 @@
         }
       },
 
-      openLogModal() {
-        const myData = this.getSafeTodayData(this.currentUser);
-        const day = this.taskDayContext();
-        const title = document.getElementById('log-modal-title');
-        if (title) {
-          title.textContent = day.split
-            ? `Study log · ${this.formatDueShort(day.taskDate)}`
-            : "Today's Study";
-        }
-        document.getElementById('log-hours').value = myData.studyHours !== null ? myData.studyHours : '';
-        document.getElementById('log-note').value = myData.note || '';
-        this.openModal('modal-log');
-      },
-
-      async saveLog() {
-        const btn = document.getElementById('btn-save-log');
-        const hours = document.getElementById('log-hours').value;
-        const note = document.getElementById('log-note').value;
-        
-        btn.disabled = true;
-        btn.textContent = 'Saving...';
-
-        try {
-          if(hours === '') throw new Error("Hours required.");
-          
-          const res = await apiLayer.request('saveLog', {
-            user: this.currentUser,
-            date: this.getLocalDateString(0),
-            studyHours: hours,
-            note: note
-          });
-          
-          this.closeModals();
-          this.showToast("Study log updated.");
-          
-          if (this.dashboardData && this.dashboardData.today && this.dashboardData.today.users) {
-            this.dashboardData.today.users[this.currentUser].studyHours = res.log.studyHours;
-            this.dashboardData.today.users[this.currentUser].note = res.log.note;
-            
-            if (this.dashboardData.studyHours && this.dashboardData.studyHours.today) {
-              this.dashboardData.studyHours.today[this.currentUser] = res.log.studyHours;
-            }
-            if (document.querySelector('.nav-tab.active')?.id === 'nav-today') this.renderToday();
-          }
-        } catch (e) {
-          this.showToast(e.message, true);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Save Log';
-        }
-      },
-
       async loadQuestions() {
         this.renderRecipientChips();
         try {
@@ -3245,7 +3169,7 @@
       renderPendingQuestions() {
         const listEl = document.getElementById('qex-pending-list');
         if (this.cachedPending.length === 0) {
-          listEl.innerHTML = '<div class="empty-state">You\'re all caught up.</div>';
+          listEl.innerHTML = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">📬</span>You\'re all caught up.</div>';
           return;
         }
 
@@ -3438,7 +3362,7 @@
         if (filter !== 'All') data = data.filter(q => q.subject.includes(filter));
 
         if (data.length === 0) {
-          listEl.innerHTML = '<div class="empty-state">No question history.</div>';
+          listEl.innerHTML = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">🗂️</span>No question history.</div>';
           return;
         }
 
