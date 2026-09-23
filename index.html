@@ -356,30 +356,140 @@
     /* Dashboard: Greeting & Progress */
     .greeting-area { margin-bottom: 48px; }
     .greeting-date { color: var(--text-muted); font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-    
-    .progress-overview {
+
+    .task-day-note {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      color: #3730a3;
+      font-size: 0.9rem;
+      font-weight: 500;
+      line-height: 1.45;
+      max-width: 640px;
+    }
+    .task-day-note strong { font-weight: 700; }
+
+    .progress-card {
       display: flex;
       align-items: center;
-      gap: 32px;
-      background: var(--bg-surface);
-      padding: 32px;
+      gap: 36px;
+      background:
+        radial-gradient(120% 140% at 0% 0%, rgba(79, 70, 229, 0.12), transparent 52%),
+        radial-gradient(90% 120% at 100% 100%, rgba(219, 39, 119, 0.08), transparent 48%),
+        var(--bg-surface);
+      border: 1px solid #e0e7ff;
       border-radius: var(--radius-lg);
+      padding: 28px 32px;
       box-shadow: var(--shadow-sm);
-      border: 1px solid var(--border);
     }
-    .progress-large {
+    .progress-card.is-complete {
+      background:
+        radial-gradient(120% 140% at 0% 0%, rgba(16, 185, 129, 0.14), transparent 52%),
+        var(--bg-surface);
+      border-color: #a7f3d0;
+    }
+    .progress-ring-wrap {
+      position: relative;
+      width: 148px;
+      height: 148px;
+      flex-shrink: 0;
+    }
+    .progress-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .progress-ring-track,
+    .progress-ring-value { fill: none; stroke-width: 10; }
+    .progress-ring-track { stroke: #e0e7ff; }
+    .progress-ring-value {
+      stroke: url(#progressGrad);
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .progress-card.is-complete .progress-ring-track { stroke: #d1fae5; }
+    .progress-ring-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+    .progress-ring-pct {
       font-family: 'Inter', sans-serif;
-      font-size: 4.5rem;
+      font-size: 2.05rem;
       font-weight: 800;
+      letter-spacing: -0.04em;
       line-height: 1;
       background: var(--accent-gradient);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
-      letter-spacing: -0.04em;
     }
-    .progress-stats { display: flex; flex-direction: column; gap: 8px; }
-    .stat-line { font-size: 1rem; color: var(--text-muted); }
-    .stat-line strong { color: var(--text-main); font-weight: 700; font-size: 1.125rem;}
+    .progress-card.is-complete .progress-ring-pct {
+      background: none;
+      -webkit-text-fill-color: #059669;
+      color: #059669;
+    }
+    .progress-ring-sub {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .progress-body { flex: 1; min-width: 0; }
+    .progress-kicker {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .progress-card.is-complete .progress-kicker { color: #059669; }
+    .progress-headline {
+      font-family: 'Lora', serif;
+      font-size: 1.7rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      color: var(--text-main);
+    }
+    .progress-track {
+      display: flex;
+      gap: 6px;
+      margin: 16px 0 18px;
+    }
+    .progress-segment {
+      flex: 1;
+      height: 10px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      min-width: 0;
+    }
+    .progress-segment.done { background: linear-gradient(90deg, #4f46e5, #7c3aed); }
+    .progress-segment.due { background: #fda4af; }
+    .progress-segment.empty {
+      background: repeating-linear-gradient(90deg, #e2e8f0, #e2e8f0 8px, transparent 8px, transparent 14px);
+    }
+    .progress-card.is-complete .progress-segment.done { background: #10b981; }
+    .progress-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .progress-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 7px 12px;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .progress-pill strong { color: var(--text-main); font-weight: 700; }
+    .progress-pill.hours { color: var(--accent-hover); }
+    .progress-pill.hours strong { color: var(--accent); }
 
     /* Today's Focus Checklist */
     .checklist-container {
@@ -554,6 +664,10 @@
       font-weight: 700; color: #ffffff; font-size: 1.25rem;
       box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
     }
+    .partner-avatar.alt {
+      background: linear-gradient(135deg, #f43f5e, #fb923c);
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25);
+    }
     .partner-stats { display: flex; gap: 32px; }
     .partner-stat { display: flex; flex-direction: column; }
     .partner-stat-val { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.35rem; color: var(--text-main); }
@@ -598,6 +712,140 @@
     }
     .partner-goal-icon.done { color: var(--status-success); }
     .partner-goal-icon.pending { color: var(--text-muted); font-size: 0.8rem; }
+
+    .partners-subtitle {
+      margin: -8px 0 16px;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .partner-group { display: flex; flex-direction: column; gap: 14px; }
+    .partner-group + .partner-group { margin-top: 8px; }
+    .partner-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .partner-group-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .partner-group-count {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-light);
+      border-radius: var(--radius-full);
+      padding: 2px 8px;
+    }
+    .partner-card.is-active {
+      border-color: #c7d2fe;
+      box-shadow: 0 14px 32px rgba(79, 70, 229, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .partner-card.is-active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 18px;
+      bottom: 18px;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+      background: var(--accent-gradient);
+    }
+    .partner-card.is-idle {
+      background: #fbfcfe;
+    }
+    .partner-card-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .partner-avatar-wrap { position: relative; flex-shrink: 0; }
+    .partner-live-dot {
+      position: absolute;
+      right: -1px;
+      bottom: -1px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--status-success);
+      border: 2px solid #fff;
+      animation: partnerPulse 2.2s ease-out infinite;
+    }
+    @keyframes partnerPulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+      70% { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .partner-id { flex: 1; min-width: 0; }
+    .partner-id h3 {
+      margin: 0;
+      font-size: 1.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .partner-status {
+      display: inline-flex;
+      margin-top: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+    }
+    .partner-status.active { background: #ecfdf5; color: #047857; }
+    .partner-status.done { background: var(--accent-light); color: var(--accent-hover); }
+    .partner-status.idle { background: var(--bg-subtle); color: var(--text-muted); }
+    .partner-hours-chip {
+      flex-shrink: 0;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: var(--text-main);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 6px 12px;
+    }
+    .partner-hours-chip span {
+      display: block;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .partner-bar {
+      height: 8px;
+      background: var(--bg-subtle);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-top: 16px;
+    }
+    .partner-bar > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent-gradient);
+      min-width: 0;
+    }
+    .partner-card.is-idle .partner-bar > span { background: #94a3b8; }
+    .partner-card.is-done .partner-bar > span { background: var(--status-success); }
+    .partner-bar-meta {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
 
     /* Plan (Tomorrow) */
     .plan-list {
@@ -684,6 +932,137 @@
       border-radius: var(--radius-md);
       border-left: 4px solid var(--status-success);
     }
+
+    /* Question composer */
+    .composer-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-sm);
+    }
+    .q-type-switch {
+      display: inline-flex;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 28px;
+    }
+    .q-type-btn {
+      border: none;
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .q-type-btn.active {
+      background: var(--bg-surface);
+      color: var(--accent);
+      box-shadow: var(--shadow-sm);
+    }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .choice-chip {
+      border: 1px solid var(--border);
+      background: var(--bg-canvas);
+      border-radius: var(--radius-full);
+      padding: 8px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .choice-chip:hover { border-color: #c7d2fe; color: var(--accent); }
+    .choice-chip.selected {
+      background: var(--accent-light);
+      border-color: #c7d2fe;
+      color: var(--accent-hover);
+    }
+    .field-hint {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .field-hint kbd {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      padding: 1px 6px;
+    }
+    .mcq-option-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .mcq-letter {
+      width: 28px;
+      flex-shrink: 0;
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+    .mcq-option-row .form-input { margin: 0; }
+    .btn-add-option {
+      width: 100%;
+      margin-top: 4px;
+      border-style: dashed;
+    }
+    .mcq-multi-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+    .composer-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .mcq-static-list, .mcq-answer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 4px 0 16px;
+    }
+    .mcq-static-choice, .mcq-choice {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-canvas);
+      font-size: 0.98rem;
+      font-weight: 500;
+    }
+    .mcq-choice { cursor: pointer; }
+    .mcq-choice input { margin-top: 4px; accent-color: var(--accent); }
+    .mcq-static-choice > span:last-child,
+    .mcq-choice > span:last-child { min-width: 0; flex: 1; }
+    .mcq-choice.selected, .mcq-static-choice.picked {
+      border-color: #c7d2fe;
+      background: var(--accent-light);
+    }
+    .mcq-static-choice.picked .mcq-letter { color: #047857; }
+    .composer-card .form-group:last-of-type { margin-bottom: 20px; }
 
     /* Modals */
     .modal-overlay {
@@ -772,14 +1151,23 @@
       font-size: 1.25rem;
     }
     
+    @media (prefers-reduced-motion: reduce) {
+      .partner-live-dot { animation: none; }
+      .progress-ring-value { transition: none; }
+    }
+
     /* Responsive */
     @media (max-width: 640px) {
       .container { padding: 0 16px; }
       h2 { font-size: 1.75rem; }
       .app-nav { gap: 20px; overflow-x: auto; padding-bottom: 12px; }
       .attention-block { flex-direction: column; align-items: flex-start; gap: 20px; }
-      .progress-overview { flex-direction: column; align-items: flex-start; gap: 24px; padding: 24px;}
-      .partner-card-header { flex-direction: column; align-items: flex-start; }
+      .progress-card { flex-direction: column; align-items: flex-start; gap: 20px; padding: 24px; }
+      .progress-ring-wrap { width: 128px; height: 128px; }
+      .partner-card-header, .partner-card-top { flex-direction: row; align-items: center; }
+      .composer-card { padding: 24px; }
+      .q-type-switch { display: flex; width: 100%; }
+      .q-type-btn { flex: 1; }
       .modal-content { padding: 24px; }
       .login-cards-container { flex-direction: column; }
       .user-profile-card { width: 100%; max-width: 300px; padding: 24px; }
@@ -840,6 +1228,7 @@
         <div class="greeting-area">
           <div class="greeting-date" id="today-date-display">Date</div>
           <h2 class="serif" id="today-greeting">Good day.</h2>
+          <p id="today-task-note" class="task-day-note hidden"></p>
         </div>
 
         <div id="today-attention-block" class="attention-block hidden">
@@ -851,18 +1240,38 @@
         </div>
 
         <div class="section-block">
-          <span class="section-label">Today's Progress</span>
-          <div class="progress-overview">
-            <div class="progress-large" id="today-percent">0%</div>
-            <div class="progress-stats">
-              <div class="stat-line"><strong id="today-fraction">0 of 0</strong> goals complete</div>
-              <div class="stat-line"><strong id="today-hours">0h</strong> studied</div>
+          <span class="section-label" id="today-progress-label">Today's Progress</span>
+          <div class="progress-card" id="today-progress-card" aria-label="Today's progress">
+            <div class="progress-ring-wrap">
+              <svg viewBox="0 0 120 120" class="progress-ring" aria-hidden="true">
+                <defs>
+                  <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4f46e5"/>
+                    <stop offset="100%" stop-color="#db2777"/>
+                  </linearGradient>
+                </defs>
+                <circle class="progress-ring-track" cx="60" cy="60" r="52"></circle>
+                <circle class="progress-ring-value" id="today-ring" cx="60" cy="60" r="52" stroke-dasharray="326.726" stroke-dashoffset="326.726"></circle>
+              </svg>
+              <div class="progress-ring-label">
+                <span class="progress-ring-pct" id="today-percent">0%</span>
+                <span class="progress-ring-sub" id="today-ring-sub">done</span>
+              </div>
+            </div>
+            <div class="progress-body">
+              <div class="progress-kicker" id="today-progress-kicker">Today</div>
+              <div class="progress-headline" id="today-progress-headline">No goals yet</div>
+              <div class="progress-track" id="today-progress-track" aria-hidden="true"></div>
+              <div class="progress-meta">
+                <span class="progress-pill"><strong id="today-fraction">0 of 0</strong> goals</span>
+                <span class="progress-pill hours"><strong id="today-hours">0h</strong> studied</span>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="section-block">
-          <span class="section-label">Today's Focus</span>
+          <span class="section-label" id="today-focus-label">Today's Focus</span>
           <div class="checklist-container">
             <div id="today-goals-list"></div>
             
@@ -874,7 +1283,8 @@
         </div>
 
         <div class="section-block">
-          <span class="section-label">Study Partners Today</span>
+          <span class="section-label" id="today-partners-label">Study Partners Today</span>
+          <p id="partners-subtitle" class="partners-subtitle">People with an active task are listed first.</p>
           <div id="today-partners-container" class="partner-grid"></div>
         </div>
 
@@ -884,7 +1294,8 @@
       <div id="view-plan" class="view hidden">
         <div class="greeting-area">
           <div class="greeting-date" id="plan-date-display">Tomorrow</div>
-          <h2 class="serif">Tomorrow's Plan</h2>
+          <h2 class="serif" id="plan-heading">Tomorrow's Plan</h2>
+          <p id="plan-task-note" class="task-day-note hidden"></p>
         </div>
 
         <div class="section-block">
@@ -907,23 +1318,40 @@
 
         <div class="section-block">
           <span class="section-label">Ask A Question</span>
-          <div class="checklist-container" style="padding: 40px;">
-            
-            <div class="form-group">
-              <label class="form-label">Subjects (Select multiple)</label>
-              <div id="qex-ask-subjects-container" class="checklist-container" style="max-height: 200px; overflow-y: auto; padding: 16px;"></div>
+          <div class="composer-card">
+            <div class="q-type-switch" role="tablist" aria-label="Question type">
+              <button type="button" id="q-type-open" class="q-type-btn active" onclick="app.setQuestionType('open')">Written</button>
+              <button type="button" id="q-type-mcq" class="q-type-btn" onclick="app.setQuestionType('mcq')">Multiple choice</button>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Question(s) — (Paste or type multiple lines for separate questions)</label>
-              <textarea id="qex-ask-text" class="form-input" placeholder="Write your question (or multiple questions, one per line)..."></textarea>
+              <label class="form-label">Subjects</label>
+              <div id="qex-ask-subjects-container" class="chip-row"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" id="qex-ask-label">Question</label>
+              <textarea id="qex-ask-text" class="form-input" placeholder="Write your question…"></textarea>
+              <p class="field-hint" id="qex-ask-hint">Line breaks stay in this question. <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> sends. Subjects and recipient stay selected so the next one is faster.</p>
+            </div>
+
+            <div id="qex-mcq-block" class="form-group hidden">
+              <label class="form-label">Options</label>
+              <p class="field-hint">Add as many choices as you need. <kbd>Enter</kbd> adds another. Pasting a list splits into options.</p>
+              <div id="qex-mcq-options"></div>
+              <button type="button" class="btn btn-outline btn-add-option" onclick="app.addMcqOption()">+ Add option</button>
+              <label class="mcq-multi-toggle">
+                <input type="checkbox" id="qex-mcq-multi">
+                <span>Allow more than one answer</span>
+              </label>
             </div>
 
             <div class="form-group">
               <label class="form-label">Question for</label>
-              <select id="qex-ask-recipient" class="form-input" style="color: var(--accent); font-weight: 600; padding: 8px;"></select>
+              <div id="qex-recipient-chips" class="chip-row"></div>
+              <input type="hidden" id="qex-ask-recipient" value="">
             </div>
-            <div style="text-align: right;">
+            <div class="composer-actions">
               <button id="btn-submit-qex" class="btn btn-primary" onclick="app.submitQuestion()">Send Question</button>
             </div>
           </div>
@@ -978,7 +1406,7 @@
   <!-- Log Study Modal -->
   <div id="modal-log" class="modal-overlay">
     <div class="modal-content">
-      <h3 class="serif" style="margin-bottom: 32px; font-size: 1.75rem;">Today's Study</h3>
+      <h3 class="serif" id="log-modal-title" style="margin-bottom: 32px; font-size: 1.75rem;">Today's Study</h3>
       <div class="form-group">
         <label class="form-label">How much did you study?</label>
         <div style="display: flex; align-items: center; gap: 16px;">
@@ -1061,8 +1489,11 @@
         await dbState.ensureInit();
 
         if (action === 'dashboard') {
-          const today = app.getLocalDateString(0);
-          const tomorrow = app.getLocalDateString(1);
+          // Tasks, goals, and study logs follow the 6:00 AM task day.
+          // The calendar date (midnight) is returned separately for the header.
+          const calendarToday = app.getCalendarDateString(0);
+          const today = app.getTaskDateString(0);
+          const tomorrow = app.getTaskDateString(1);
           
           const p = today.split('-');
           const d = new Date(p[0], p[1]-1, p[2]);
@@ -1136,7 +1567,13 @@
             });
           }
 
-          const dashboard = { today: { date: today, users: {} }, tomorrow: { date: tomorrow, users: {} }, studyHours };
+          const dashboard = {
+            today: { date: today, users: {} },
+            tomorrow: { date: tomorrow, users: {} },
+            studyHours,
+            calendarDate: calendarToday,
+            taskDate: today
+          };
 
           Object.keys(dbState.members).forEach(name => {
             const ug = todayGoals[name] || [];
@@ -1390,8 +1827,16 @@
       cachedHistory: [],
       cachedPending: [],
       
+      questionType: 'open',
+      TASK_ROLLOVER_HOUR: 6,
+      MCQ_MAX_OPTIONS: 15,
+      ASK_PREFS_KEY: 'askback_ask_prefs',
+
       async init() {
         document.getElementById('global-loading').classList.remove('hidden');
+        this.attachGoalEnterBehavior();
+        this.attachComposerKeys();
+        this.startDayClock();
         try {
           await dbState.ensureInit();
         } catch(e) {
@@ -1420,9 +1865,6 @@
           });
         });
 
-        // Enter-to-add-new-goal only applies to the Today/Plan goal modals
-        // (delegated so dynamically added + pasted fields are covered too).
-        this.attachGoalEnterBehavior();
       },
 
       buildUserSelector() {
@@ -1510,6 +1952,7 @@
 
           this.buildUserSelector();
           this.populateSubjectsUI();
+          this.renderRecipientChips();
           this.closeModals();
           this.showToast(`Member "${name}" added successfully!`);
 
@@ -1589,14 +2032,69 @@
         }, 4000);
       },
       
+      // Asia/Kolkata wall clock. hourCycle h23 is preferred; dayPeriod is a fallback
+      // so a 12-hour engine can't silently shift the midnight / 6am boundaries.
+      getKolkataParts(date = new Date()) {
+        const fmt = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23'
+        });
+        const map = {};
+        fmt.formatToParts(date).forEach(p => { map[p.type] = p.value; });
+        let hour = Number(map.hour);
+        if (hour === 24) hour = 0;
+        if (map.dayPeriod && hour <= 12) {
+          const period = String(map.dayPeriod).toLowerCase();
+          if (period.includes('am')) {
+            if (hour === 12) hour = 0;
+          } else if (period.includes('pm') && hour < 12) {
+            hour += 12;
+          }
+        }
+        return {
+          year: Number(map.year),
+          month: Number(map.month),
+          day: Number(map.day),
+          hour,
+          minute: Number(map.minute)
+        };
+      },
+      ymdFromParts(y, m, d) {
+        return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      },
+      shiftYmd(y, m, d, days) {
+        const utc = new Date(Date.UTC(y, m - 1, d + days));
+        return this.ymdFromParts(utc.getUTCFullYear(), utc.getUTCMonth() + 1, utc.getUTCDate());
+      },
+      // The displayed date changes at midnight IST.
+      getCalendarDateString(offsetDays = 0, date = new Date()) {
+        const p = this.getKolkataParts(date);
+        return this.shiftYmd(p.year, p.month, p.day, offsetDays);
+      },
+      // Tasks, goals, study logs, and overdue rollover stay on the previous
+      // calendar date until 6:00 AM IST, then move to the new day.
+      getTaskDateString(offsetDays = 0, date = new Date()) {
+        const p = this.getKolkataParts(date);
+        const shift = p.hour < this.TASK_ROLLOVER_HOUR ? -1 : 0;
+        return this.shiftYmd(p.year, p.month, p.day, shift + offsetDays);
+      },
       getLocalDateString(offsetDays = 0) {
-        const d = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
-        d.setHours(d.getHours() - 4);
-        d.setDate(d.getDate() + offsetDays);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
+        return this.getTaskDateString(offsetDays);
+      },
+      isBeforeTaskRollover(date = new Date()) {
+        return this.getKolkataParts(date).hour < this.TASK_ROLLOVER_HOUR;
+      },
+      formatHours(h) {
+        if (h === null || h === undefined || h === '') return '0h';
+        const n = Number(h);
+        if (!isFinite(n)) return '0h';
+        const rounded = Math.round(n * 10) / 10;
+        return `${rounded}h`;
       },
       formatDateFriendly(dateStr) {
         if (!dateStr) return '';
@@ -1606,27 +2104,463 @@
         if(isNaN(date.getTime())) return this.escapeHTML(dateStr);
         return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
       },
+      formatDateWithWeekday(dateStr) {
+        if (!dateStr) return '';
+        const p = dateStr.split('-');
+        if (p.length !== 3) return this.escapeHTML(dateStr);
+        const date = new Date(p[0], p[1] - 1, p[2]);
+        if (isNaN(date.getTime())) return this.escapeHTML(dateStr);
+        return date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      },
       getGreeting() {
-        const d = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
-        const hr = d.getHours();
-        if(hr < 12) return 'Good morning';
-        if(hr < 18) return 'Good afternoon';
+        const hr = this.getKolkataParts().hour;
+        if (hr < 12) return 'Good morning';
+        if (hr < 18) return 'Good afternoon';
         return 'Good evening';
+      },
+      startDayClock() {
+        this._seenCalendar = this.getCalendarDateString(0);
+        this._seenTask = this.getTaskDateString(0);
+        if (this._dayClock) clearInterval(this._dayClock);
+        this._dayClock = setInterval(() => { this.onDayClock(); }, 20000);
+        if (!this._visBound) {
+          this._visBound = true;
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') this.onDayClock();
+          });
+        }
+      },
+
+      async onDayClock() {
+        const cal = this.getCalendarDateString(0);
+        const task = this.getTaskDateString(0);
+        if (cal === this._seenCalendar && task === this._seenTask) return;
+        const taskChanged = task !== this._seenTask;
+        const dateChanged = cal !== this._seenCalendar;
+        this.lastFetchTime.dashboard = 0;
+        const shell = document.getElementById('app-shell');
+        const loggedOut = !this.currentUser || !shell || shell.classList.contains('hidden');
+        if (!loggedOut) {
+          const active = document.querySelector('.nav-tab.active')?.id;
+          if (active === 'nav-today' || active === 'nav-plan') {
+            try {
+              await this.fetchDashboardData();
+              if (active === 'nav-today') this.renderToday();
+              if (active === 'nav-plan') this.renderPlan();
+            } catch (e) {
+              console.error(e);
+              return;
+            }
+          }
+        }
+        this._seenCalendar = cal;
+        this._seenTask = task;
+        if (loggedOut) return;
+        if (taskChanged) this.showToast('Tasks rolled over — you\'re on a new task day.');
+        else if (dateChanged) this.showToast('It\'s a new day. Tasks stay put until 6:00 AM.');
+      },
+
+      taskDayContext() {
+        const calendarDate = this.dashboardData?.calendarDate || this.getCalendarDateString(0);
+        const taskDate = this.dashboardData?.taskDate || this.dashboardData?.today?.date || this.getTaskDateString(0);
+        return { calendarDate, taskDate, split: calendarDate !== taskDate };
+      },
+      readAskPrefs() {
+        try {
+          return JSON.parse(localStorage.getItem(this.ASK_PREFS_KEY) || '{}') || {};
+        } catch (e) {
+          return {};
+        }
+      },
+      persistAskPrefs() {
+        const prev = this.readAskPrefs();
+        const cont = document.getElementById('qex-ask-subjects-container');
+        const subjects = cont && cont.dataset.ready
+          ? Array.from(cont.querySelectorAll('.choice-chip.selected')).map(el => el.dataset.subject)
+          : (prev.subjects || []);
+        const hidden = document.getElementById('qex-ask-recipient');
+        const recipient = hidden && hidden.value ? hidden.value : (prev.recipient || '');
+        try {
+          localStorage.setItem(this.ASK_PREFS_KEY, JSON.stringify({ subjects, recipient }));
+        } catch (e) {}
+      },
+      resetComposerDraft() {
+        const ta = document.getElementById('qex-ask-text');
+        if (ta) ta.value = '';
+        document.querySelectorAll('.mcq-option-input').forEach(el => { el.value = ''; });
+      },
+      toggleSubjectChip(btn) {
+        btn.classList.toggle('selected');
+        this.persistAskPrefs();
+      },
+      selectRecipient(btn) {
+        const wrap = btn.closest('#qex-recipient-chips') || document.getElementById('qex-recipient-chips');
+        if (wrap) wrap.querySelectorAll('.choice-chip').forEach(el => el.classList.remove('selected'));
+        btn.classList.add('selected');
+        const hidden = document.getElementById('qex-ask-recipient');
+        if (hidden) hidden.value = btn.dataset.recipient || '';
+        this.persistAskPrefs();
+      },
+      renderRecipientChips() {
+        const wrap = document.getElementById('qex-recipient-chips');
+        const hidden = document.getElementById('qex-ask-recipient');
+        if (!wrap || !hidden) return;
+        const current = hidden.value || '';
+        const saved = this.readAskPrefs().recipient || '';
+        const others = Object.keys(dbState.members).filter(name => name !== this.currentUser);
+        if (others.length === 0) {
+          wrap.innerHTML = '<span class="field-hint" style="margin:0;">No one else in the group yet.</span>';
+          hidden.value = '';
+          return;
+        }
+        wrap.innerHTML = others.map(name =>
+          `<button type="button" class="choice-chip" data-recipient="${this.escapeHTML(name)}" onclick="app.selectRecipient(this)">${this.escapeHTML(name)}</button>`
+        ).join('') + '<button type="button" class="choice-chip" data-recipient="ALL" onclick="app.selectRecipient(this)">Everyone</button>';
+        const buttons = Array.from(wrap.querySelectorAll('.choice-chip'));
+        const pick = buttons.find(el => el.dataset.recipient === current)
+          || buttons.find(el => el.dataset.recipient === saved && saved !== this.currentUser)
+          || buttons[0];
+        if (pick) this.selectRecipient(pick);
+      },
+      encodeMcq(stem, options, multi) {
+        const payload = JSON.stringify({ v: 1, multi: !!multi, options });
+        return `[[ASKBACK_MCQ]]\n${payload}\n[[/ASKBACK_MCQ]]\n${String(stem || '').trim()}`;
+      },
+      parseQuestion(raw) {
+        const text = String(raw || '');
+        const m = text.match(/^\[\[ASKBACK_MCQ\]\]\n([\s\S]*?)\n\[\[\/ASKBACK_MCQ\]\]\n?([\s\S]*)$/);
+        if (!m) return { type: 'open', text, options: [], multi: false };
+        try {
+          const data = JSON.parse(m[1]);
+          const options = Array.isArray(data.options) ? data.options.map(o => String(o)) : [];
+          if (options.length < 2) return { type: 'open', text, options: [], multi: false };
+          return { type: 'mcq', text: m[2].replace(/^\n/, ''), options, multi: !!data.multi };
+        } catch (e) {
+          return { type: 'open', text, options: [], multi: false };
+        }
+      },
+      encodeMcqAnswer(indices, options, note) {
+        const idxs = [...new Set(indices)]
+          .filter(i => Number.isInteger(i) && i >= 0 && i < options.length)
+          .sort((a, b) => a - b);
+        const lines = idxs.map(i => options[i]).join('\n');
+        const extra = String(note || '').trim();
+        const body = extra ? (lines ? `${lines}\n\n${extra}` : extra) : lines;
+        return `[[ASKBACK_PICK:${idxs.join(',')}]]\n${body}`;
+      },
+      parseAnswer(raw) {
+        const text = String(raw || '');
+        const m = text.match(/^\[\[ASKBACK_PICK:([0-9,]*)\]\]\n?([\s\S]*)$/);
+        if (!m) return { indices: [], body: text, marked: false };
+        const indices = m[1]
+          ? m[1].split(',').map(n => Number(n)).filter(n => Number.isInteger(n) && n >= 0)
+          : [];
+        return { indices, body: m[2], marked: true };
+      },
+      mcqLetter(i) {
+        return String.fromCharCode(65 + i);
+      },
+      mcqOptionsHTML(options, pickedSet) {
+        return options.map((opt, i) => {
+          const picked = pickedSet && pickedSet.has(i) ? ' picked' : '';
+          return `<div class="mcq-static-choice${picked}"><span class="mcq-letter">${this.mcqLetter(i)}</span><span>${this.escapeHTML(opt)}</span></div>`;
+        }).join('');
+      },
+      answerNoteHTML(questionRaw, answerRaw) {
+        if (!answerRaw) return '';
+        const parsedQ = this.parseQuestion(questionRaw);
+        const parsedA = this.parseAnswer(answerRaw);
+        let body = parsedA.body || '';
+        if (parsedA.marked && parsedQ.type === 'mcq') {
+          const joined = parsedA.indices.map(i => parsedQ.options[i]).filter(Boolean).join('\n');
+          if (joined && body.startsWith(joined)) body = body.slice(joined.length).replace(/^\s+/, '');
+        }
+        if (!body) return '';
+        return `
+          <div class="timeline-answer">
+            <div class="section-label">Answer</div>
+            <div style="font-size: 1.0625rem; font-weight: 500; color: var(--text-main); white-space: pre-wrap;">${this.escapeHTML(body)}</div>
+          </div>`;
+      },
+      setQuestionType(type) {
+        this.questionType = type === 'mcq' ? 'mcq' : 'open';
+        const openBtn = document.getElementById('q-type-open');
+        const mcqBtn = document.getElementById('q-type-mcq');
+        if (openBtn) openBtn.classList.toggle('active', this.questionType === 'open');
+        if (mcqBtn) mcqBtn.classList.toggle('active', this.questionType === 'mcq');
+        const block = document.getElementById('qex-mcq-block');
+        if (block) block.classList.toggle('hidden', this.questionType !== 'mcq');
+        const ta = document.getElementById('qex-ask-text');
+        if (ta) {
+          ta.placeholder = this.questionType === 'mcq'
+            ? 'Ask the question, then add the choices below…'
+            : 'Write your question…';
+        }
+        const hint = document.getElementById('qex-ask-hint');
+        if (hint) {
+          hint.innerHTML = this.questionType === 'mcq'
+            ? 'Choices go below. <kbd>Enter</kbd> adds another. <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> sends.'
+            : 'Line breaks stay in this question. <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> sends. Subjects and recipient stay selected so the next one is faster.';
+        }
+        const btn = document.getElementById('btn-submit-qex');
+        if (btn && !btn.disabled) btn.textContent = this.questionType === 'mcq' ? 'Send multiple choice' : 'Send Question';
+        if (this.questionType === 'mcq' && document.querySelectorAll('.mcq-option-input').length === 0) {
+          for (let i = 0; i < 4; i++) this.addMcqOption('', null, false);
+        }
+      },
+      addMcqOption(val = '', afterRow = null, focus = true) {
+        const container = document.getElementById('qex-mcq-options');
+        if (!container) return null;
+        if (container.querySelectorAll('.mcq-option-input').length >= this.MCQ_MAX_OPTIONS) {
+          this.showToast(`You can add up to ${this.MCQ_MAX_OPTIONS} options.`, true);
+          return null;
+        }
+        const row = document.createElement('div');
+        row.className = 'mcq-option-row';
+        row.innerHTML = `
+          <span class="mcq-letter">A</span>
+          <input type="text" class="form-input mcq-option-input" placeholder="Option" autocomplete="off">
+          <button type="button" class="btn-icon" aria-label="Remove option" onclick="app.removeMcqOption(this)">✕</button>
+        `;
+        const input = row.querySelector('input');
+        input.value = val == null ? '' : String(val);
+        input.addEventListener('paste', (e) => this.handleMcqPaste(e));
+        if (afterRow && afterRow.parentElement === container) afterRow.insertAdjacentElement('afterend', row);
+        else container.appendChild(row);
+        this.refreshMcqLetters();
+        if (focus) {
+          input.focus();
+          input.selectionStart = input.selectionEnd = input.value.length;
+        }
+        return row;
+      },
+      removeMcqOption(btn) {
+        const row = btn.closest('.mcq-option-row');
+        if (row) row.remove();
+        if (document.querySelectorAll('.mcq-option-input').length === 0) this.addMcqOption('', null, false);
+        this.refreshMcqLetters();
+      },
+      refreshMcqLetters() {
+        document.querySelectorAll('#qex-mcq-options .mcq-letter').forEach((el, i) => {
+          el.textContent = this.mcqLetter(i);
+        });
+      },
+      cleanOptionLine(line) {
+        return String(line || '').replace(/^\s*(?:[A-Za-z][\.\)]|\d{1,2}[\.\)]|[-•*])\s+/, '').trim();
+      },
+      handleMcqPaste(e) {
+        const paste = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        if (!paste || !/[\r\n]/.test(paste)) return;
+        e.preventDefault();
+        const lines = paste.split(/\r?\n/).map(l => this.cleanOptionLine(l)).filter(Boolean);
+        if (!lines.length) return;
+        const input = e.target;
+        input.value = lines[0];
+        let row = input.closest('.mcq-option-row');
+        for (let i = 1; i < lines.length; i++) {
+          const next = this.addMcqOption(lines[i], row, false);
+          if (!next) {
+            this.showToast(`Stopped at ${this.MCQ_MAX_OPTIONS} options.`, true);
+            break;
+          }
+          row = next;
+        }
+      },
+      attachComposerKeys() {
+        const ta = document.getElementById('qex-ask-text');
+        if (ta && !ta.dataset.sendBound) {
+          ta.dataset.sendBound = '1';
+          ta.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              this.submitQuestion();
+            }
+          });
+        }
+        const opts = document.getElementById('qex-mcq-options');
+        if (opts && !opts.dataset.enterBound) {
+          opts.dataset.enterBound = '1';
+          opts.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+            const input = e.target && e.target.closest ? e.target.closest('input') : null;
+            if (!input) return;
+            e.preventDefault();
+            this.addMcqOption('', input.closest('.mcq-option-row'), true);
+          });
+        }
+      },
+      syncMcqChoice(input) {
+        const list = input.closest('.mcq-answer-list');
+        if (!list) return;
+        list.querySelectorAll('.mcq-choice').forEach(el => {
+          const box = el.querySelector('input');
+          el.classList.toggle('selected', !!(box && box.checked));
+        });
+      },
+      progressHeadline(completed, total, split) {
+        if (total === 0) return 'Set a focus to get moving';
+        if (completed === 0) return 'Ready when you are';
+        if (completed === total) return split ? 'All done for this task day' : 'All done for today';
+        const pct = Math.round((completed / total) * 100);
+        if (pct < 40) return 'You\u2019ve started — keep going';
+        if (pct < 70) return 'Solid progress';
+        return 'Almost there';
+      },
+      updateTodayProgress() {
+        const goals = this.getSafeTodayData(this.currentUser).goals || [];
+        const completed = goals.filter(g => g.completed).length;
+        const total = goals.length;
+        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const hours = this.formatHours(this.getSafeStudyHours(this.currentUser));
+        const day = this.taskDayContext();
+        const done = total > 0 && completed === total;
+
+        const pctEl = document.getElementById('today-percent');
+        if (pctEl) pctEl.textContent = `${pct}%`;
+        const frac = document.getElementById('today-fraction');
+        if (frac) frac.textContent = `${completed} of ${total}`;
+        const hoursEl = document.getElementById('today-hours');
+        if (hoursEl) hoursEl.textContent = hours;
+
+        const card = document.getElementById('today-progress-card');
+        if (card) {
+          card.classList.toggle('is-complete', done);
+          card.setAttribute('aria-label', `${pct}% complete, ${completed} of ${total} goals, ${hours} studied`);
+        }
+        const ring = document.getElementById('today-ring');
+        if (ring) {
+          const c = 2 * Math.PI * 52;
+          ring.style.strokeDasharray = String(c);
+          ring.style.strokeDashoffset = String(c * (1 - pct / 100));
+          ring.style.strokeLinecap = (pct > 0 && pct < 100) ? 'round' : 'butt';
+          ring.style.stroke = done ? '#10b981' : 'url(#progressGrad)';
+        }
+        const kicker = document.getElementById('today-progress-kicker');
+        if (kicker) kicker.textContent = day.split ? `Tasks still on ${this.formatDueShort(day.taskDate)}` : (done ? 'Complete' : 'Today');
+        const headline = document.getElementById('today-progress-headline');
+        if (headline) headline.textContent = this.progressHeadline(completed, total, day.split);
+        const sub = document.getElementById('today-ring-sub');
+        if (sub) sub.textContent = done ? 'complete' : 'done';
+
+        const track = document.getElementById('today-progress-track');
+        if (track) {
+          if (total === 0) {
+            track.innerHTML = '<div class="progress-segment empty"></div>';
+          } else {
+            track.innerHTML = goals.map(g => {
+              const parsed = this.parseDueMarker(g.goal);
+              const cls = g.completed ? 'done' : (parsed.dueDate ? 'due' : '');
+              return `<span class="progress-segment ${cls}" title="${this.escapeHTML(parsed.clean)}"></span>`;
+            }).join('');
+          }
+        }
+      },
+      partnerActivity(name) {
+        const goals = this.getSafeTodayData(name).goals || [];
+        const incomplete = goals.filter(g => !g.completed).length;
+        return {
+          incomplete,
+          total: goals.length,
+          active: incomplete > 0,
+          finished: goals.length > 0 && incomplete === 0
+        };
+      },
+      renderPartnerCard(partnerName) {
+        const goals = this.getSafeTodayData(partnerName).goals || [];
+        const act = this.partnerActivity(partnerName);
+        const pct = act.total > 0 ? Math.round(((act.total - act.incomplete) / act.total) * 100) : 0;
+        const hours = this.formatHours(this.getSafeStudyHours(partnerName));
+        const alt = Object.keys(dbState.members).indexOf(partnerName) % 2 !== 0;
+        const cardClass = act.active ? 'is-active' : (act.finished ? 'is-idle is-done' : 'is-idle');
+        const statusClass = act.active ? 'active' : (act.finished ? 'done' : 'idle');
+        const statusText = act.active
+          ? `Active · ${act.incomplete} left`
+          : (act.finished ? 'All done' : 'No tasks');
+        const dot = act.active ? '<span class="partner-live-dot" aria-hidden="true"></span>' : '';
+        const items = goals.map(g => {
+          const parsed = this.parseDueMarker(g.goal);
+          const isDone = !!g.completed;
+          return `
+            <div class="partner-goal-item ${isDone ? 'done' : ''}">
+              <span class="partner-goal-icon ${isDone ? 'done' : 'pending'}">${isDone ? '✓' : '○'}</span>
+              <span>${this.dueBadgeHTML(parsed.dueDate)}${this.escapeHTML(parsed.clean)}</span>
+            </div>`;
+        }).join('');
+        const body = act.total === 0
+          ? '<div class="partner-bar-meta">No task set for this day.</div>'
+          : `<div class="partner-bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
+             <div class="partner-bar-meta">${act.total - act.incomplete} of ${act.total} done</div>
+             <div class="partner-goals-list">${items}</div>`;
+        return `
+          <article class="partner-card ${cardClass}">
+            <div class="partner-card-top">
+              <div class="partner-avatar-wrap">
+                <div class="partner-avatar${alt ? ' alt' : ''}">${this.escapeHTML(partnerName.charAt(0).toUpperCase())}</div>
+                ${dot}
+              </div>
+              <div class="partner-id">
+                <h3 class="serif">${this.escapeHTML(partnerName)}</h3>
+                <span class="partner-status ${statusClass}">${this.escapeHTML(statusText)}</span>
+              </div>
+              <div class="partner-hours-chip">${this.escapeHTML(hours)}<span>studied</span></div>
+            </div>
+            <div class="partner-goals-container">${body}</div>
+          </article>`;
+      },
+      renderPartners() {
+        const container = document.getElementById('today-partners-container');
+        const subtitle = document.getElementById('partners-subtitle');
+        if (!container) return;
+        const others = Object.keys(dbState.members).filter(name => name !== this.currentUser);
+        if (others.length === 0) {
+          if (subtitle) subtitle.textContent = '';
+          container.innerHTML = '<div class="empty-state">No other study partners in this group yet.</div>';
+          return;
+        }
+        const ranked = others.map(name => {
+          const act = this.partnerActivity(name);
+          const rank = act.active ? 0 : (act.finished ? 1 : 2);
+          return { name, act, rank };
+        }).sort((a, b) => {
+          if (a.rank !== b.rank) return a.rank - b.rank;
+          if (a.rank === 0 && a.act.incomplete !== b.act.incomplete) return b.act.incomplete - a.act.incomplete;
+          return a.name.localeCompare(b.name);
+        });
+        const active = ranked.filter(p => p.rank === 0);
+        const idle = ranked.filter(p => p.rank !== 0);
+        if (subtitle) {
+          subtitle.textContent = active.length
+            ? `${active.length} with an active task${idle.length ? ` · ${idle.length} with none` : ''} — active partners are listed first.`
+            : 'No one has an active task right now.';
+        }
+        const group = (label, people) => {
+          if (!people.length) return '';
+          return `
+            <div class="partner-group">
+              <div class="partner-group-head">
+                <span class="partner-group-label">${label}</span>
+                <span class="partner-group-count">${people.length}</span>
+              </div>
+              ${people.map(p => this.renderPartnerCard(p.name)).join('')}
+            </div>`;
+        };
+        container.innerHTML = group('Active task', active) + group('No active task', idle);
       },
 
       selectUser(username) {
         this.currentUser = username;
         localStorage.setItem('askback_user', username);
-        
+
         this.dashboardData = null;
         this.lastFetchTime = { dashboard: 0, questions: 0, history: 0 };
         this.cachedPending = [];
         this.cachedHistory = [];
-        
+        this.resetComposerDraft();
+
         document.getElementById('view-select-user').classList.add('hidden');
         this.showApp();
       },
-      
+
       toggleUserMenu() { document.getElementById('user-menu').classList.toggle('open'); },
       
       switchUser(username) {
@@ -1645,20 +2579,16 @@
 
       populateSubjectsUI() {
         const cont = document.getElementById('qex-ask-subjects-container');
-        if (cont && cont.children.length === 0) {
-          let html = '';
-          Object.keys(dbState.subjects).forEach(subj => {
-            html += `
-              <label class="goal-label" style="margin-bottom: 12px;">
-                <input type="checkbox" class="goal-checkbox qex-subject-chk" value="${this.escapeHTML(subj)}">
-                <span class="custom-check"></span>
-                <span class="goal-text" style="font-size: 0.9375rem;">${this.escapeHTML(subj)}</span>
-              </label>
-            `;
-          });
-          cont.innerHTML = html;
+        if (cont && !cont.dataset.ready) {
+          cont.dataset.ready = '1';
+          const saved = new Set(this.readAskPrefs().subjects || []);
+          const names = Object.keys(dbState.subjects);
+          cont.innerHTML = names.map(subj => {
+            const on = saved.has(subj) || names.length === 1 ? ' selected' : '';
+            return `<button type="button" class="choice-chip${on}" data-subject="${this.escapeHTML(subj)}" onclick="app.toggleSubjectChip(this)">${this.escapeHTML(subj)}</button>`;
+          }).join('');
         }
-        
+
         const filter = document.getElementById('history-filter');
         if (filter && filter.options.length <= 1) {
           Object.keys(dbState.subjects).forEach(subj => {
@@ -1686,6 +2616,7 @@
             if(viewId === 'today') this.renderToday();
             if(viewId === 'plan') this.renderPlan();
           } else if (viewId === 'questions') {
+            this.renderRecipientChips();
             if (this.cachedPending && this.cachedPending.length >= 0 && (Date.now() - this.lastFetchTime.questions <= this.CACHE_TTL)) {
               this.renderPendingQuestions();
             } else {
@@ -1864,12 +2795,32 @@
 
       renderToday() {
         if (!this.dashboardData || !this.dashboardData.today) return;
-        
+
         const myData = this.getSafeTodayData(this.currentUser);
-        
-        document.getElementById('today-date-display').textContent = `Today — ${this.formatDateFriendly(this.dashboardData.today.date)}`;
-        document.getElementById('today-greeting').textContent = `${this.getGreeting()}, ${this.currentUser}.`;
-        
+        const day = this.taskDayContext();
+
+        const dateEl = document.getElementById('today-date-display');
+        if (dateEl) dateEl.textContent = `Today — ${this.formatDateWithWeekday(day.calendarDate)}`;
+        const greetEl = document.getElementById('today-greeting');
+        if (greetEl) greetEl.textContent = `${this.getGreeting()}, ${this.currentUser}.`;
+
+        const note = document.getElementById('today-task-note');
+        if (note) {
+          if (day.split) {
+            note.classList.remove('hidden');
+            note.innerHTML = `New calendar day. Tasks and logged hours stay on the previous day (<strong>${this.formatDateFriendly(day.taskDate)}</strong>) until 6:00 AM.`;
+          } else {
+            note.classList.add('hidden');
+            note.textContent = '';
+          }
+        }
+        const focusLabel = document.getElementById('today-focus-label');
+        if (focusLabel) focusLabel.textContent = day.split ? `Focus · ${this.formatDueShort(day.taskDate)}` : "Today's Focus";
+        const progressLabel = document.getElementById('today-progress-label');
+        if (progressLabel) progressLabel.textContent = day.split ? `Progress · ${this.formatDueShort(day.taskDate)}` : "Today's Progress";
+        const partnersLabel = document.getElementById('today-partners-label');
+        if (partnersLabel) partnersLabel.textContent = day.split ? `Study Partners · ${this.formatDueShort(day.taskDate)}` : 'Study Partners Today';
+
         const pendingCount = this.pendingCounts[this.currentUser];
         const alertBlock = document.getElementById('today-attention-block');
         if (pendingCount > 0) {
@@ -1879,17 +2830,13 @@
           alertBlock.classList.add('hidden');
         }
 
-        const comp = myData.completion;
-        const pct = comp.total > 0 ? Math.round((comp.completed / comp.total) * 100) : 0;
-        document.getElementById('today-percent').textContent = `${pct}%`;
-        document.getElementById('today-fraction').textContent = `${comp.completed} of ${comp.total}`;
-        
-        const myHours = this.getSafeStudyHours(this.currentUser);
-        document.getElementById('today-hours').textContent = myHours !== null ? `${myHours}h` : '0h';
+        this.updateTodayProgress();
 
         const listEl = document.getElementById('today-goals-list');
         if (!myData.goals || myData.goals.length === 0) {
-          listEl.innerHTML = '<div class="empty-state">No goals set for today. Plan tomorrow tonight.</div>';
+          listEl.innerHTML = day.split
+            ? '<div class="empty-state">No goals left on the previous day. New tasks start at 6:00 AM.</div>'
+            : '<div class="empty-state">No goals set for today. Plan tomorrow tonight.</div>';
         } else {
           let html = '';
           myData.goals.forEach(g => {
@@ -1911,64 +2858,7 @@
           listEl.innerHTML = html;
         }
 
-        const partnersContainer = document.getElementById('today-partners-container');
-        const otherMembers = Object.keys(dbState.members).filter(name => name !== this.currentUser);
-
-        if (otherMembers.length === 0) {
-          partnersContainer.innerHTML = '<div class="empty-state">No other study partners in this group yet.</div>';
-        } else {
-          let partnersHtml = '';
-          otherMembers.forEach(partnerName => {
-            const pData = this.getSafeTodayData(partnerName);
-            const pHours = this.getSafeStudyHours(partnerName);
-            const pComp = pData.completion || { completed: 0, total: 0 };
-            const pPct = pComp.total > 0 ? Math.round((pComp.completed / pComp.total) * 100) : 0;
-
-            let goalsListHtml = '';
-            if (!pData.goals || pData.goals.length === 0) {
-              goalsListHtml = '<div style="font-size: 0.875rem; color: var(--text-muted); font-style: italic; padding: 4px 0;">No goals set for today yet.</div>';
-            } else {
-              goalsListHtml = '<div class="partner-goals-list">';
-              pData.goals.forEach(g => {
-                const isDone = g.completed;
-                const parsed = this.parseDueMarker(g.goal);
-                goalsListHtml += `
-                  <div class="partner-goal-item ${isDone ? 'done' : ''}">
-                    <span class="partner-goal-icon ${isDone ? 'done' : 'pending'}">${isDone ? '✓' : '○'}</span>
-                    <span>${this.dueBadgeHTML(parsed.dueDate)}${this.escapeHTML(parsed.clean)}</span>
-                  </div>
-                `;
-              });
-              goalsListHtml += '</div>';
-            }
-
-            partnersHtml += `
-              <div class="partner-card">
-                <div class="partner-card-header">
-                  <div class="partner-info">
-                    <div class="partner-avatar">${partnerName.charAt(0).toUpperCase()}</div>
-                    <h3 class="serif" style="margin: 0; font-size: 1.35rem;">${this.escapeHTML(partnerName)}</h3>
-                  </div>
-                  <div class="partner-stats">
-                    <div class="partner-stat">
-                      <span class="partner-stat-val">${pComp.completed} / ${pComp.total} (${pPct}%)</span>
-                      <span class="partner-stat-label">Goals Done</span>
-                    </div>
-                    <div class="partner-stat">
-                      <span class="partner-stat-val">${pHours !== null ? pHours + 'h' : '0h'}</span>
-                      <span class="partner-stat-label">Studied</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="partner-goals-container">
-                  <span class="partner-goals-label">Today's Focus & Progress</span>
-                  ${goalsListHtml}
-                </div>
-              </div>
-            `;
-          });
-          partnersContainer.innerHTML = partnersHtml;
-        }
+        this.renderPartners();
       },
 
       async toggleGoal(goalId, isCompleted) {
@@ -1987,9 +2877,7 @@
             const completedCount = myData.goals.filter(g => g.completed).length;
             myData.completion.completed = completedCount;
             
-            const pct = myData.completion.total > 0 ? Math.round((completedCount / myData.completion.total) * 100) : 0;
-            document.getElementById('today-percent').textContent = `${pct}%`;
-            document.getElementById('today-fraction').textContent = `${completedCount} of ${myData.completion.total}`;
+            this.updateTodayProgress();
           }
 
           if (isCompleted) label.classList.add('completed');
@@ -2006,8 +2894,21 @@
       renderPlan() {
         if (!this.dashboardData || !this.dashboardData.tomorrow) return;
         const data = this.getSafeTomorrowData(this.currentUser);
+        const day = this.taskDayContext();
+        const heading = document.getElementById('plan-heading');
+        if (heading) heading.textContent = day.split ? 'Next focus' : "Tomorrow's Plan";
+        const note = document.getElementById('plan-task-note');
+        if (note) {
+          if (day.split) {
+            note.classList.remove('hidden');
+            note.innerHTML = `These become today's tasks at <strong>6:00 AM</strong>. You're still on ${this.formatDateFriendly(day.taskDate)} until then.`;
+          } else {
+            note.classList.add('hidden');
+            note.textContent = '';
+          }
+        }
         document.getElementById('plan-date-display').textContent = this.formatDateFriendly(this.dashboardData.tomorrow.date);
-        
+
         const listEl = document.getElementById('plan-goals-list');
         if (!data.goals || data.goals.length === 0) {
           listEl.innerHTML = '<div class="empty-state">Nothing planned for tomorrow yet.</div>';
@@ -2276,11 +3177,18 @@
 
       openLogModal() {
         const myData = this.getSafeTodayData(this.currentUser);
+        const day = this.taskDayContext();
+        const title = document.getElementById('log-modal-title');
+        if (title) {
+          title.textContent = day.split
+            ? `Study log · ${this.formatDueShort(day.taskDate)}`
+            : "Today's Study";
+        }
         document.getElementById('log-hours').value = myData.studyHours !== null ? myData.studyHours : '';
         document.getElementById('log-note').value = myData.note || '';
         this.openModal('modal-log');
       },
-      
+
       async saveLog() {
         const btn = document.getElementById('btn-save-log');
         const hours = document.getElementById('log-hours').value;
@@ -2320,28 +3228,7 @@
       },
 
       async loadQuestions() {
-        const recipSelect = document.getElementById('qex-ask-recipient');
-        if (recipSelect) {
-            recipSelect.innerHTML = '';
-            
-            const otherMembers = Object.keys(dbState.members).filter(name => name !== this.currentUser);
-            otherMembers.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                opt.textContent = name;
-                recipSelect.appendChild(opt);
-            });
-
-            if (otherMembers.length > 0) {
-                const allOpt = document.createElement('option');
-                allOpt.value = 'ALL';
-                allOpt.textContent = 'Everyone';
-                recipSelect.appendChild(allOpt);
-            }
-        }
-        document.getElementById('qex-ask-text').value = '';
-        Array.from(document.querySelectorAll('.qex-subject-chk')).forEach(c => c.checked = false);
-        
+        this.renderRecipientChips();
         try {
           const res = await apiLayer.request('pending', { user: this.currentUser });
           this.cachedPending = res.questions || [];
@@ -2354,25 +3241,33 @@
           console.error(e);
         }
       },
-      
+
       renderPendingQuestions() {
         const listEl = document.getElementById('qex-pending-list');
-        if(this.cachedPending.length === 0) {
+        if (this.cachedPending.length === 0) {
           listEl.innerHTML = '<div class="empty-state">You\'re all caught up.</div>';
           return;
         }
-        
+
         let html = '';
         this.cachedPending.forEach(q => {
           const dObj = new Date(q.createdAt);
           const dateStr = isNaN(dObj.getTime()) ? q.createdAt : dObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+          const parsed = this.parseQuestion(q.question);
+          const typeTag = parsed.type === 'mcq'
+            ? `<span class="tag">${parsed.multi ? 'Select all that apply' : 'Multiple choice'}</span>`
+            : '';
+          const body = parsed.type === 'mcq'
+            ? `<div class="q-text" style="margin-bottom: 12px;">${this.escapeHTML(parsed.text)}</div><div class="mcq-static-list">${this.mcqOptionsHTML(parsed.options)}</div>`
+            : `<div class="q-text">${this.escapeHTML(parsed.text)}</div>`;
           html += `
             <div class="q-card" id="q-card-${q.id}">
               <div class="q-meta">
                 <span class="tag">${this.escapeHTML(q.subject)}</span>
+                ${typeTag}
                 <span>Asked by ${this.escapeHTML(q.creator)} &middot; ${dateStr}</span>
               </div>
-              <div class="q-text">${this.escapeHTML(q.question)}</div>
+              ${body}
               <div id="qex-answer-area-${q.id}">
                  <button class="btn btn-outline" onclick="app.showAnswerBox('${q.id}')">Answer</button>
               </div>
@@ -2381,9 +3276,34 @@
         });
         listEl.innerHTML = html;
       },
-      
+
       showAnswerBox(id) {
         const area = document.getElementById(`qex-answer-area-${id}`);
+        if (!area) return;
+        const q = (this.cachedPending || []).find(item => item.id === id);
+        const parsed = this.parseQuestion(q?.question || '');
+        if (parsed.type === 'mcq') {
+          const inputType = parsed.multi ? 'checkbox' : 'radio';
+          const choices = parsed.options.map((opt, i) => `
+            <label class="mcq-choice">
+              <input type="${inputType}" name="mcq-ans-${id}" data-choice="${i}" onchange="app.syncMcqChoice(this)">
+              <span class="mcq-letter">${this.mcqLetter(i)}</span>
+              <span>${this.escapeHTML(opt)}</span>
+            </label>
+          `).join('');
+          area.innerHTML = `
+            <div class="q-answer-box">
+              <div class="mcq-answer-list">${choices}</div>
+              <textarea id="qex-ans-text-${id}" class="form-input" placeholder="Optional note…" style="min-height: 88px;"></textarea>
+              <div style="text-align: right; margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px;">
+                <button class="btn btn-text" onclick="app.renderPendingQuestions()">Cancel</button>
+                <button id="qex-ans-btn-${id}" class="btn btn-primary" onclick="app.submitAnswer('${id}')">Submit</button>
+              </div>
+            </div>`;
+          const first = area.querySelector('input');
+          if (first) first.focus();
+          return;
+        }
         area.innerHTML = `
           <div class="q-answer-box">
             <textarea id="qex-ans-text-${id}" class="form-input" placeholder="Your answer..."></textarea>
@@ -2395,21 +3315,37 @@
         `;
         document.getElementById(`qex-ans-text-${id}`).focus();
       },
-      
+
       async submitAnswer(id) {
-        const text = document.getElementById(`qex-ans-text-${id}`).value.trim();
-        if(!text) return;
-        
+        const q = (this.cachedPending || []).find(item => item.id === id);
+        const parsed = this.parseQuestion(q?.question || '');
+        let text = '';
+        if (parsed.type === 'mcq') {
+          const area = document.getElementById(`qex-answer-area-${id}`);
+          const selected = area
+            ? Array.from(area.querySelectorAll('input[data-choice]:checked')).map(el => Number(el.dataset.choice)).filter(n => Number.isInteger(n))
+            : [];
+          if (selected.length === 0) {
+            this.showToast('Pick an option first.', true);
+            return;
+          }
+          const note = (document.getElementById(`qex-ans-text-${id}`)?.value || '').trim();
+          text = this.encodeMcqAnswer(selected, parsed.options, note);
+        } else {
+          text = (document.getElementById(`qex-ans-text-${id}`)?.value || '').trim();
+          if (!text) return;
+        }
+
         const btn = document.getElementById(`qex-ans-btn-${id}`);
         btn.disabled = true;
         btn.textContent = 'Submitting...';
-        
+
         try {
           await apiLayer.request('answer', { id: id, user: this.currentUser, answer: text });
-          this.cachedPending = this.cachedPending.filter(q => q.id !== id);
+          this.cachedPending = this.cachedPending.filter(item => item.id !== id);
           this.pendingCounts[this.currentUser] = this.cachedPending.length;
           this.lastFetchTime.history = 0;
-          
+
           this.updateNavBadge();
           this.renderPendingQuestions();
           this.showToast('Answer submitted.');
@@ -2419,30 +3355,43 @@
           btn.textContent = 'Submit';
         }
       },
-      
+
       async submitQuestion() {
         const btn = document.getElementById('btn-submit-qex');
-        const chks = document.querySelectorAll('.qex-subject-chk:checked');
-        const subjects = Array.from(chks).map(c => c.value);
+        const subjects = Array.from(document.querySelectorAll('#qex-ask-subjects-container .choice-chip.selected'))
+          .map(el => el.dataset.subject);
         const text = document.getElementById('qex-ask-text').value.trim();
         const recipientName = document.getElementById('qex-ask-recipient').value;
-        
-        if(subjects.length === 0) {
+        const isMcq = this.questionType === 'mcq';
+
+        if (subjects.length === 0) {
           this.showToast('Select at least one subject.', true);
           return;
         }
-        if(!text) {
+        if (!text) {
           this.showToast('Question text is required.', true);
           return;
         }
-        if(!recipientName) {
+        if (!recipientName) {
           this.showToast('Please select a recipient.', true);
           return;
         }
 
-        // Questions are always ONE question per send — line breaks are kept
-        // as-is (multiline supported). The per-line splitting only applies to
-        // Today/Plan goals.
+        // One question per send. Line breaks stay in the question.
+        // Today/Plan is the only place that splits lines into separate items.
+        let question = text;
+        if (isMcq) {
+          const options = Array.from(document.querySelectorAll('.mcq-option-input'))
+            .map(el => el.value.trim())
+            .filter(Boolean);
+          if (options.length < 2) {
+            this.showToast('Add at least two options.', true);
+            return;
+          }
+          const multi = !!document.getElementById('qex-mcq-multi')?.checked;
+          question = this.encodeMcq(text, options, multi);
+        }
+
         btn.disabled = true;
         btn.textContent = 'Sending...';
 
@@ -2451,19 +3400,21 @@
             creator: this.currentUser,
             recipient: recipientName,
             subject: JSON.stringify(subjects),
-            question: text
+            question
           });
 
           document.getElementById('qex-ask-text').value = '';
-          chks.forEach(c => c.checked = false);
+          if (isMcq) document.querySelectorAll('.mcq-option-input').forEach(el => { el.value = ''; });
+          this.persistAskPrefs();
           this.lastFetchTime.history = 0;
           const targetMsg = recipientName === 'ALL' ? 'Everyone' : recipientName;
-          this.showToast(`Question sent to ${targetMsg}`);
+          this.showToast(isMcq ? `Multiple choice sent to ${targetMsg}` : `Question sent to ${targetMsg}`);
+          document.getElementById('qex-ask-text').focus();
         } catch (e) {
           this.showToast(e.message, true);
         } finally {
           btn.disabled = false;
-          btn.textContent = 'Send Question';
+          btn.textContent = this.questionType === 'mcq' ? 'Send multiple choice' : 'Send Question';
         }
       },
 
@@ -2482,11 +3433,11 @@
       renderHistory() {
         const filter = document.getElementById('history-filter').value;
         const listEl = document.getElementById('history-list');
-        
-        let data = this.cachedHistory;
-        if(filter !== 'All') data = data.filter(q => q.subject.includes(filter));
 
-        if(data.length === 0) {
+        let data = this.cachedHistory;
+        if (filter !== 'All') data = data.filter(q => q.subject.includes(filter));
+
+        if (data.length === 0) {
           listEl.innerHTML = '<div class="empty-state">No question history.</div>';
           return;
         }
@@ -2495,28 +3446,33 @@
         data.forEach(q => {
           const dObj = new Date(q.createdAt);
           const dateStr = isNaN(dObj.getTime()) ? q.createdAt : dObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-          
+          const parsed = this.parseQuestion(q.question);
+          const parsedA = this.parseAnswer(q.answer);
+          const typeTag = parsed.type === 'mcq'
+            ? `<span class="tag">${parsed.multi ? 'Select all that apply' : 'Multiple choice'}</span>`
+            : '';
+          const picked = new Set(parsed.type === 'mcq' ? parsedA.indices : []);
+          const questionHTML = parsed.type === 'mcq'
+            ? `<div class="q-text" style="margin-bottom: 12px;">${this.escapeHTML(parsed.text)}</div><div class="mcq-static-list">${this.mcqOptionsHTML(parsed.options, picked)}</div>`
+            : `<div class="q-text">${this.escapeHTML(parsed.text)}</div>`;
+          const answerHTML = (q.status === 'Answered' && q.answer) ? this.answerNoteHTML(q.question, q.answer) : '';
+
           html += `
             <div class="q-card" style="position: relative;">
               <div style="position: absolute; top: 32px; right: 32px; font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">${dateStr}</div>
               <div class="q-meta">
                 <span class="tag">${this.escapeHTML(q.subject)}</span>
+                ${typeTag}
                 <span>${this.escapeHTML(q.creator)} &rarr; ${this.escapeHTML(q.recipient)}</span>
               </div>
-              <div class="q-text" style="margin-bottom: ${q.answer ? '0' : '0'};">${this.escapeHTML(q.question)}</div>
+              ${questionHTML}
+              ${answerHTML}
+            </div>
           `;
-          if(q.status === 'Answered' && q.answer) {
-             html += `
-               <div class="timeline-answer">
-                 <div class="section-label">Answer</div>
-                 <div style="font-size: 1.0625rem; font-weight: 500; color: var(--text-main); white-space: pre-wrap;">${this.escapeHTML(q.answer)}</div>
-               </div>
-             `;
-          }
-          html += '</div>';
         });
         listEl.innerHTML = html;
-      }
+      },
+
     };
 
     app.init();
