@@ -458,6 +458,49 @@
       text-decoration-color: var(--text-faint);
     }
 
+    /* Overdue / rolled-over goals */
+    .goal-item.overdue {
+      background: #fff7f7;
+      border-color: #fecaca;
+    }
+    .goal-item.overdue:hover {
+      background: #fff5f5;
+      border-color: #fca5a5;
+    }
+    .due-badge {
+      display: inline-block;
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      margin-right: 8px;
+      vertical-align: 1px;
+      white-space: nowrap;
+    }
+
+    /* Modal helper hints */
+    .modal-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin: -20px 0 24px 0;
+    }
+    .modal-hint kbd {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      padding: 1px 6px;
+    }
+
     /* Contextual Action */
     .context-action {
       margin-top: 32px;
@@ -825,7 +868,7 @@
             
             <div class="context-action">
               <button class="btn btn-outline" onclick="app.openTodayModal()">Edit Today's Goals</button>
-              <button class="btn btn-outline" onclick="app.openModal('modal-log')">Log Study Time</button>
+              <button class="btn btn-outline" onclick="app.openLogModal()">Log Study Time</button>
             </div>
           </div>
         </div>
@@ -909,6 +952,7 @@
   <div id="modal-today" class="modal-overlay">
     <div class="modal-content">
       <h3 class="serif" style="margin-bottom: 32px; font-size: 1.75rem;">Edit Today's Goals</h3>
+      <p class="modal-hint">Tip: press <kbd>Enter</kbd> for a new goal — every line is saved as a separate goal. Pasting multiple lines creates separate goals.</p>
       <div id="modal-today-inputs"></div>
       <button class="btn btn-outline" style="width: 100%; margin: 16px 0 40px 0; border-style: dashed;" onclick="app.addTodayInput()">+ Add Goal</button>
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
@@ -1198,6 +1242,48 @@
           return { success: true };
         }
 
+        // Fetch one member's goals in [from, to) — used by the overdue rollover.
+        if (action === 'rangeGoals') {
+          const memberId = dbState.members[params.user];
+          if (!memberId) return { goals: [] };
+          const { data, error } = await supabaseClient.from('goals')
+            .select('*')
+            .eq('group_id', dbState.group.id)
+            .eq('member_id', memberId)
+            .gte('goal_date', params.from)
+            .lt('goal_date', params.to)
+            .order('goal_date', { ascending: false })
+            .limit(300);
+          if (error) throw new Error(error.message);
+          return { goals: data || [] };
+        }
+
+        // Insert goals for a date WITHOUT deleting existing ones (rollover).
+        if (action === 'appendGoals') {
+          const memberId = dbState.members[params.user];
+          const goalsArr = JSON.parse(params.goals);
+          if (goalsArr.length === 0) return { goals: [] };
+          const toInsert = goalsArr.map(g => ({
+            group_id: dbState.group.id,
+            member_id: memberId,
+            goal_date: params.date,
+            goal: g,
+            completed: false
+          }));
+          const { data, error } = await supabaseClient.from('goals').insert(toInsert).select();
+          if (error) throw new Error(error.message);
+          return { goals: (data || []).map(g => ({ id: g.id, date: g.goal_date, user: params.user, goal: g.goal, completed: g.completed })) };
+        }
+
+        // Rename a single goal's text (used to stamp the DUE mark on matches).
+        if (action === 'renameGoal') {
+          const { error } = await supabaseClient.from('goals')
+            .update({ goal: params.goal })
+            .eq('id', params.id);
+          if (error) throw new Error(error.message);
+          return { success: true };
+        }
+
         if (action === 'saveLog') {
           const memberId = dbState.members[params.user];
           const { data, error } = await supabaseClient.from('study_logs')
@@ -1333,6 +1419,10 @@
             if(e.target === modal) this.closeModals();
           });
         });
+
+        // Enter-to-add-new-goal only applies to the Today/Plan goal modals
+        // (delegated so dynamically added + pasted fields are covered too).
+        this.attachGoalEnterBehavior();
       },
 
       buildUserSelector() {
@@ -1454,6 +1544,36 @@
       escapeHTML(str) {
         if (!str) return '';
         return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+      },
+      // ---- Overdue (DUE mark) helpers ----
+      // Rolled-over goals are stored as "[DUE: YYYY-MM-DD] original text".
+      // The prefix is parsed for display and stripped in the edit modals.
+      DUE_PREFIX_RE: /^\[DUE:\s*(\d{4}-\d{2}-\d{2})\]\s*/,
+      parseDueMarker(text) {
+        const m = String(text || '').match(this.DUE_PREFIX_RE);
+        if (!m) return { dueDate: null, clean: String(text || '').trim() };
+        return { dueDate: m[1], clean: String(text || '').replace(this.DUE_PREFIX_RE, '').trim() };
+      },
+      stripDueMarker(text) {
+        return this.parseDueMarker(text).clean;
+      },
+      withDueMarker(dueDate, cleanText) {
+        return `[DUE: ${dueDate}] ${String(cleanText || '').trim()}`;
+      },
+      normGoalText(text) {
+        return this.stripDueMarker(text).toLowerCase();
+      },
+      formatDueShort(dateStr) {
+        if (!dateStr) return '';
+        const p = dateStr.split('-');
+        if (p.length !== 3) return dateStr;
+        const d = new Date(p[0], p[1] - 1, p[2]);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      },
+      dueBadgeHTML(dueDate) {
+        if (!dueDate) return '';
+        return `<span class="due-badge" title="Originally due ${this.escapeHTML(this.formatDateFriendly(dueDate))}">Due ${this.escapeHTML(this.formatDueShort(dueDate))}</span>`;
       },
       showToast(msg, isError = false) {
         const container = document.getElementById('toast-container');
@@ -1605,8 +1725,141 @@
         ]);
         this.dashboardData = dashRes.dashboard || dashRes;
         this.pendingCounts[this.currentUser] = myCountRes.count || 0;
+        // Lazy rollover: carry this user's unfinished goals forward into today.
+        // Runs before render so rolled-over goals show up immediately.
+        await this.maybeRolloverOverdue();
         this.lastFetchTime.dashboard = Date.now();
         this.updateNavBadge();
+      },
+
+      // ---- Overdue rollover ----
+      // Rule: find the most recent past date (within 14 days) on which the
+      // current user had ANY goals. Copy its still-incomplete goals into today
+      // with a "[DUE: <date>]" mark. Skipping empty days handles days the app
+      // wasn't opened; only looking at the nearest non-empty date prevents
+      // already-completed/abandoned tasks from resurrecting as zombies.
+      // Idempotent: goals already present in today (by text) are never
+      // duplicated — an unmarked match just gets the DUE mark stamped on it.
+      async maybeRolloverOverdue() {
+        const today = this.getLocalDateString(0);
+        const key = `${this.currentUser}|${today}`;
+        if (this._rolloverDoneKey === key) return;
+        if (this._rolloverRunning) {
+          try { await this._rolloverRunning; } catch (e) { /* first run failed; next fetch retries */ }
+          return;
+        }
+        this._rolloverRunning = this.runRolloverOverdue(today)
+          .then(() => { this._rolloverDoneKey = key; })
+          .catch((e) => { console.error('Rollover failed (will retry on next refresh):', e); })
+          .finally(() => { this._rolloverRunning = null; });
+        await this._rolloverRunning;
+      },
+
+      async runRolloverOverdue(today) {
+        const from = this.getLocalDateString(-14);
+        const res = await apiLayer.request('rangeGoals', { user: this.currentUser, from, to: today });
+        const pastRows = res.goals || [];
+        if (pastRows.length === 0) return;
+
+        // Group past rows by date.
+        const byDate = {};
+        pastRows.forEach(r => {
+          (byDate[r.goal_date] = byDate[r.goal_date] || []).push(r);
+        });
+        const sortedDates = Object.keys(byDate).sort().reverse(); // newest first
+
+        // One-time backfill: right after this feature ships there may be
+        // unfinished goals spread across several past dates (the feature never
+        // rolled them before). Roll all of them once; afterwards the
+        // nearest-date rule below keeps things zombie-free.
+        const backfillKey = `askback_backfill_${this.currentUser}`;
+        let sourceDates = [];
+        let isBackfill = false;
+        try {
+          if (!localStorage.getItem(backfillKey)) {
+            isBackfill = true;
+            sourceDates = sortedDates; // oldest handled via earliest-date marker below
+          }
+        } catch (e) { /* storage unavailable — fall through to normal rule */ }
+        if (!isBackfill) {
+          // Normal rule: nearest past date with ANY goals (complete or not).
+          if (sortedDates.length === 0) return;
+          sourceDates = [sortedDates[0]];
+        }
+        if (sourceDates.length === 0) return;
+
+        const myTodayGoals = (this.dashboardData?.today?.users?.[this.currentUser]?.goals) || [];
+        const todayNorms = new Set(myTodayGoals.map(g => this.normGoalText(g.goal)));
+        const todayUnmarkedByNorm = {};
+        myTodayGoals.forEach(g => {
+          const parsed = this.parseDueMarker(g.goal);
+          if (!parsed.dueDate && !g.completed) todayUnmarkedByNorm[this.normGoalText(g.goal)] = g;
+        });
+
+        // Collect candidates: incomplete, non-empty, deduped by text.
+        // Marker date = original DUE date if already marked, else source date
+        // (for backfill across dates, keep the earliest date per text).
+        const candidates = {}; // norm -> { clean, dueDate }
+        // iterate oldest-first so earliest date wins on duplicates
+        sourceDates.slice().sort().forEach(dateStr => {
+          (byDate[dateStr] || []).forEach(r => {
+            if (r.completed) return;
+            const parsed = this.parseDueMarker(r.goal);
+            if (!parsed.clean) return;
+            const norm = parsed.clean.toLowerCase();
+            if (!candidates[norm]) {
+              candidates[norm] = { clean: parsed.clean, dueDate: parsed.dueDate || dateStr };
+            }
+          });
+        });
+
+        const toInsert = [];
+        const toStamp = []; // { id, goal }
+        Object.keys(candidates).forEach(norm => {
+          if (todayNorms.has(norm)) {
+            const match = todayUnmarkedByNorm[norm];
+            if (match) {
+              // Keep today's own wording — only add the DUE mark.
+              toStamp.push({ id: match.id, goal: this.withDueMarker(candidates[norm].dueDate, this.stripDueMarker(match.goal)) });
+            }
+            return;
+          }
+          toInsert.push(this.withDueMarker(candidates[norm].dueDate, candidates[norm].clean));
+        });
+
+        if (toInsert.length === 0 && toStamp.length === 0) {
+          if (isBackfill) { try { localStorage.setItem(backfillKey, '1'); } catch (e) {} }
+          return;
+        }
+
+        const [insertRes] = await Promise.all([
+          toInsert.length > 0
+            ? apiLayer.request('appendGoals', { user: this.currentUser, date: today, goals: JSON.stringify(toInsert) })
+            : Promise.resolve({ goals: [] }),
+          ...toStamp.map(s => apiLayer.request('renameGoal', { id: s.id, goal: s.goal }))
+        ]);
+
+        // Merge into local dashboard state so the very next render includes them.
+        if (this.dashboardData?.today?.users?.[this.currentUser]) {
+          const mine = this.dashboardData.today.users[this.currentUser];
+          toStamp.forEach(s => {
+            const g = (mine.goals || []).find(x => x.id === s.id);
+            if (g) g.goal = s.goal;
+          });
+          (insertRes.goals || []).forEach(g => mine.goals.push(g));
+          mine.completion = {
+            completed: (mine.goals || []).filter(g => g.completed).length,
+            total: (mine.goals || []).length
+          };
+        }
+
+        if (isBackfill) { try { localStorage.setItem(backfillKey, '1'); } catch (e) {} }
+
+        const n = toInsert.length + toStamp.length;
+        const fromLabel = isBackfill
+          ? 'previous days'
+          : this.formatDateFriendly(sourceDates[0]);
+        this.showToast(`${n} overdue task${n > 1 ? 's' : ''} rolled over from ${fromLabel}.`);
       },
 
       renderToday() {
@@ -1642,13 +1895,15 @@
           myData.goals.forEach(g => {
             const isComp = g.completed ? 'completed' : '';
             const isChk = g.completed ? 'checked' : '';
+            const parsed = this.parseDueMarker(g.goal);
+            const overdueCls = parsed.dueDate ? ' overdue' : '';
             html += `
-              <div class="goal-item">
+              <div class="goal-item${overdueCls}">
                 <label id="goal-item-${g.id}" class="goal-label ${isComp}">
-                  <input type="checkbox" id="goal-chk-${g.id}" class="goal-checkbox" ${isChk} 
+                  <input type="checkbox" id="goal-chk-${g.id}" class="goal-checkbox" ${isChk}
                          onchange="app.toggleGoal('${g.id}', this.checked)">
                   <span class="custom-check"></span>
-                  <span class="goal-text">${this.escapeHTML(g.goal)}</span>
+                  <span class="goal-text">${this.dueBadgeHTML(parsed.dueDate)}${this.escapeHTML(parsed.clean)}</span>
                 </label>
               </div>
             `;
@@ -1676,10 +1931,11 @@
               goalsListHtml = '<div class="partner-goals-list">';
               pData.goals.forEach(g => {
                 const isDone = g.completed;
+                const parsed = this.parseDueMarker(g.goal);
                 goalsListHtml += `
                   <div class="partner-goal-item ${isDone ? 'done' : ''}">
                     <span class="partner-goal-icon ${isDone ? 'done' : 'pending'}">${isDone ? '✓' : '○'}</span>
-                    <span>${this.escapeHTML(g.goal)}</span>
+                    <span>${this.dueBadgeHTML(parsed.dueDate)}${this.escapeHTML(parsed.clean)}</span>
                   </div>
                 `;
               });
@@ -1757,7 +2013,10 @@
           listEl.innerHTML = '<div class="empty-state">Nothing planned for tomorrow yet.</div>';
         } else {
           let html = '<ol class="plan-list">';
-          data.goals.forEach(g => html += `<li class="plan-item">${this.escapeHTML(g.goal)}</li>`);
+          data.goals.forEach(g => {
+            const parsed = this.parseDueMarker(g.goal);
+            html += `<li class="plan-item">${this.dueBadgeHTML(parsed.dueDate)}${this.escapeHTML(parsed.clean)}</li>`;
+          });
           html += '</ol>';
           listEl.innerHTML = html;
         }
@@ -1770,9 +2029,57 @@
         const container = document.getElementById('modal-today-inputs');
         container.innerHTML = '';
         const existing = this.getSafeTodayData(this.currentUser).goals || [];
-        if (existing.length > 0) existing.forEach(g => this.addTodayInput(g.goal));
+        if (existing.length > 0) existing.forEach(g => this.addTodayInput(this.stripDueMarker(g.goal)));
         else this.addTodayInput('');
         this.openModal('modal-today');
+      },
+
+      // Enter (no Shift) inside a Today/Plan goal field splits it into a new
+      // goal field below and moves the cursor there. The Questions box is
+      // intentionally NOT wired this way — questions stay multiline.
+      attachGoalEnterBehavior() {
+        ['modal-today-inputs', 'modal-plan-inputs'].forEach(id => {
+          const container = document.getElementById(id);
+          if (!container || container.dataset.enterBound) return;
+          container.dataset.enterBound = '1';
+          container.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+            const ta = e.target && e.target.closest ? e.target.closest('textarea') : null;
+            if (!ta) return;
+            e.preventDefault();
+            this.splitGoalField(ta);
+          });
+        });
+      },
+
+      splitGoalField(ta) {
+        const item = ta.parentElement;
+        if (!item) return;
+        const isToday = ta.classList.contains('today-input-field');
+        const cls = isToday ? 'today-input-field' : 'plan-input-field';
+        const type = isToday ? 'today' : 'plan';
+
+        const start = (typeof ta.selectionStart === 'number') ? ta.selectionStart : ta.value.length;
+        const end = (typeof ta.selectionEnd === 'number') ? ta.selectionEnd : start;
+        const before = ta.value.slice(0, start);
+        const after = ta.value.slice(end).replace(/^\n/, '');
+        ta.value = before;
+        ta.style.height = '';
+        ta.style.height = ta.scrollHeight + 'px';
+
+        const newDiv = document.createElement('div');
+        newDiv.className = 'dynamic-list-item';
+        newDiv.innerHTML = `
+          <textarea class="form-input ${cls}" placeholder="Target..." rows="1" style="resize: vertical; min-height: 48px; max-height: 160px;" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'">${this.escapeHTML(after)}</textarea>
+          <button class="btn-icon" onclick="this.parentElement.remove()">✕</button>
+        `;
+        const newTa = newDiv.querySelector('textarea');
+        newTa.addEventListener('paste', (e) => this.handleGoalPaste(e, type));
+        item.insertAdjacentElement('afterend', newDiv);
+        newTa.style.height = '';
+        newTa.style.height = newTa.scrollHeight + 'px';
+        newTa.focus();
+        newTa.selectionStart = newTa.selectionEnd = 0;
       },
 
       addTodayInput(val = '') {
@@ -1826,14 +2133,42 @@
           const inputs = document.querySelectorAll('.today-input-field');
           let newGoals = [];
           inputs.forEach(inp => {
+            // Today/Plan: every line is its own goal (multiline splits).
             const lines = inp.value.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
             newGoals.push(...lines);
           });
-          
+
           if(newGoals.length === 0) throw new Error("Please add at least one target.");
 
           const currentData = this.getSafeTodayData(this.currentUser);
-          const completedGoalTexts = (currentData.goals || []).filter(g => g.completed).map(g => g.goal.trim());
+          const prevGoals = currentData.goals || [];
+
+          // Compare on marker-stripped text: the modal shows clean text while
+          // stored goals may carry a "[DUE: ...]" prefix.
+          const completedCleanTexts = prevGoals
+            .filter(g => g.completed)
+            .map(g => this.stripDueMarker(g.goal).trim());
+
+          // Keep the DUE mark on still-incomplete goals the user kept as-is.
+          const dueByNorm = {};
+          prevGoals.forEach(g => {
+            if (g.completed) return;
+            const parsed = this.parseDueMarker(g.goal);
+            if (!parsed.dueDate || !parsed.clean) return;
+            const norm = parsed.clean.toLowerCase();
+            if (!dueByNorm[norm]) dueByNorm[norm] = [];
+            dueByNorm[norm].push(parsed.dueDate);
+          });
+          newGoals = newGoals.map(line => {
+            if (this.DUE_PREFIX_RE.test(line)) return line; // user-typed marker: keep
+            const norm = line.toLowerCase();
+            if (dueByNorm[norm] && dueByNorm[norm].length > 0) {
+              return this.withDueMarker(dueByNorm[norm].shift(), line);
+            }
+            return line;
+          });
+
+          const completedGoalTexts = completedCleanTexts;
 
           const saveRes = await apiLayer.request('saveGoals', {
             user: this.currentUser,
@@ -1843,22 +2178,22 @@
           
           const newlySavedGoals = saveRes.goals || [];
           const completionPromises = [];
-          
+          const completionTargets = [];
+
           for (const goal of newlySavedGoals) {
-            const matchIndex = completedGoalTexts.indexOf(goal.goal.trim());
+            const matchIndex = completedGoalTexts.indexOf(this.stripDueMarker(goal.goal).trim());
             if (matchIndex > -1) {
+              completionTargets.push(goal.id);
               completionPromises.push(apiLayer.request('completeGoal', { id: goal.id, user: this.currentUser, completed: "true" }));
               completedGoalTexts.splice(matchIndex, 1);
             }
           }
-          
+
           if (completionPromises.length > 0) {
-            const completedResults = await Promise.all(completionPromises);
-            completedResults.forEach(res => {
-               if(res.success && res.goal) {
-                 const g = newlySavedGoals.find(x => x.id === res.goal.id);
-                 if (g) g.completed = res.goal.completed;
-               }
+            await Promise.all(completionPromises);
+            completionTargets.forEach(id => {
+              const g = newlySavedGoals.find(x => x.id === id);
+              if (g) g.completed = true;
             });
           }
           
@@ -1884,7 +2219,7 @@
         const container = document.getElementById('modal-plan-inputs');
         container.innerHTML = '';
         const existing = this.getSafeTomorrowData(this.currentUser).goals || [];
-        if (existing.length > 0) existing.forEach(g => this.addPlanInput(g.goal));
+        if (existing.length > 0) existing.forEach(g => this.addPlanInput(this.stripDueMarker(g.goal)));
         else this.addPlanInput('');
         this.openModal('modal-plan');
       },
@@ -1911,6 +2246,7 @@
           const inputs = document.querySelectorAll('.plan-input-field');
           let goals = [];
           inputs.forEach(inp => {
+            // Today/Plan: every line is its own goal (multiline splits).
             const lines = inp.value.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
             goals.push(...lines);
           });
@@ -2104,31 +2440,25 @@
           return;
         }
 
-        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-        if (lines.length === 0) {
-          this.showToast('Question text is required.', true);
-          return;
-        }
-        
+        // Questions are always ONE question per send — line breaks are kept
+        // as-is (multiline supported). The per-line splitting only applies to
+        // Today/Plan goals.
         btn.disabled = true;
         btn.textContent = 'Sending...';
-        
+
         try {
-          for (const line of lines) {
-            await apiLayer.request('create', {
-              creator: this.currentUser,
-              recipient: recipientName,
-              subject: JSON.stringify(subjects),
-              question: line
-            });
-          }
-          
+          await apiLayer.request('create', {
+            creator: this.currentUser,
+            recipient: recipientName,
+            subject: JSON.stringify(subjects),
+            question: text
+          });
+
           document.getElementById('qex-ask-text').value = '';
           chks.forEach(c => c.checked = false);
           this.lastFetchTime.history = 0;
           const targetMsg = recipientName === 'ALL' ? 'Everyone' : recipientName;
-          const sentMsg = lines.length > 1 ? `${lines.length} questions sent to ${targetMsg}` : `Question sent to ${targetMsg}`;
-          this.showToast(sentMsg);
+          this.showToast(`Question sent to ${targetMsg}`);
         } catch (e) {
           this.showToast(e.message, true);
         } finally {
