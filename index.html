@@ -1634,6 +1634,7 @@
           // Goals follow the 6:00 AM task day internally; the calendar date
           // (midnight) is returned separately for the header.
           await app.clearLegacyGoals();
+          await app.purgeStaleGoals();
 
           const calendarToday = app.getCalendarDateString(0);
           const today = app.getTaskDateString(0);
@@ -1813,6 +1814,50 @@
           return { success: true };
         }
 
+        // Mark specific goal rows as completed, by id (rollover consumes its
+        // source rows with this once they have been copied into today).
+        if (action === 'completeGoalIds') {
+          const ids = params.ids || [];
+          if (ids.length === 0) return { retired: 0 };
+          const { error } = await supabaseClient.from('goals')
+            .update({ completed: true })
+            .in('id', ids);
+          if (error) throw new Error(error.message);
+          return { retired: ids.length };
+        }
+
+        // Retire deleted tasks: given clean goal texts, mark this member's
+        // still-incomplete past rows (in [from, to)) with the same text as
+        // completed. Without this, the overdue rollover would resurrect a
+        // task the user deliberately removed via the edit modal.
+        if (action === 'abandonGoals') {
+          const memberId = dbState.members[params.user];
+          if (!memberId) return { retired: 0 };
+          const wanted = new Set((JSON.parse(params.goals) || [])
+            .map(t => String(t).toLowerCase())
+            .filter(t => t.length > 0));
+          if (wanted.size === 0) return { retired: 0 };
+          const { data, error } = await supabaseClient.from('goals')
+            .select('id, goal')
+            .eq('group_id', dbState.group.id)
+            .eq('member_id', memberId)
+            .gte('goal_date', params.from)
+            .lt('goal_date', params.to)
+            .eq('completed', false)
+            .limit(300);
+          if (error) throw new Error(error.message);
+          const ids = (data || []).filter(r => {
+            const clean = String(r.goal || '').replace(app.DUE_PREFIX_RE, '').trim().toLowerCase();
+            return wanted.has(clean);
+          }).map(r => r.id);
+          if (ids.length === 0) return { retired: 0 };
+          const { error: upErr } = await supabaseClient.from('goals')
+            .update({ completed: true })
+            .in('id', ids);
+          if (upErr) throw new Error(upErr.message);
+          return { retired: ids.length };
+        }
+
         if (action === 'create') {
           const creatorId = dbState.members[params.creator];
           const subjectNames = JSON.parse(params.subject);
@@ -1965,6 +2010,28 @@
         }
         this._legacyCleanupDone = true;
         try { localStorage.setItem('askback_legacy_goals_cleared', '1'); } catch (e) { /* non-fatal */ }
+      },
+
+      // ---- Continuous stale-task purge (runs silently in the background) ----
+      // Deletes task rows that are a week old or older straight from Supabase.
+      // Age is measured in task days (6 AM IST boundary); today's and
+      // tomorrow's rows are never touched. Runs at most once per task date
+      // per session; failures simply defer to the next dashboard load.
+      STALE_TASK_AGE_DAYS: 7,
+      _stalePurgeDate: null,
+      async purgeStaleGoals() {
+        const today = this.getTaskDateString(0);
+        if (this._stalePurgeDate === today) return;
+        // Rows older than this cutoff are at least STALE_TASK_AGE_DAYS old.
+        const cutoff = this.getTaskDateString(-(this.STALE_TASK_AGE_DAYS - 1));
+        const { error } = await supabaseClient.from('goals')
+          .delete()
+          .lt('goal_date', cutoff);
+        if (error) {
+          console.warn('Stale task purge deferred (will retry on next refresh):', error.message);
+          return;
+        }
+        this._stalePurgeDate = today;
       },
 
       attachHeaderShadow() {
@@ -2813,6 +2880,8 @@
       // already-completed/abandoned tasks from resurrecting as zombies.
       // Idempotent: goals already present in today (by text) are never
       // duplicated — an unmarked match just gets the DUE mark stamped on it.
+      // Consumed source rows are marked completed once copied, so a task the
+      // user later deletes via the edit modal stays deleted after a refresh.
       async maybeRolloverOverdue() {
         const user = this.currentUser;
         const today = this.getLocalDateString(0);
@@ -2880,7 +2949,7 @@
         // Collect candidates: incomplete, non-empty, deduped by text.
         // Marker date = original DUE date if already marked, else source date
         // (for backfill across dates, keep the earliest date per text).
-        const candidates = {}; // norm -> { clean, dueDate }
+        const candidates = {}; // norm -> { clean, dueDate, ids }
         // iterate oldest-first so earliest date wins on duplicates
         sourceDates.slice().sort().forEach(dateStr => {
           (byDate[dateStr] || []).forEach(r => {
@@ -2889,8 +2958,11 @@
             if (!parsed.clean) return;
             const norm = parsed.clean.toLowerCase();
             if (!candidates[norm]) {
-              candidates[norm] = { clean: parsed.clean, dueDate: parsed.dueDate || dateStr };
+              candidates[norm] = { clean: parsed.clean, dueDate: parsed.dueDate || dateStr, ids: [] };
             }
+            // Every matching incomplete source row gets consumed, including
+            // duplicates across dates during the one-time backfill.
+            candidates[norm].ids.push(r.id);
           });
         });
 
@@ -2908,7 +2980,27 @@
           toInsert.push(this.withDueMarker(candidates[norm].dueDate, candidates[norm].clean));
         });
 
+        // Consume the source rows: mark them completed so this exact task can
+        // never be rolled over again from those past dates. The copy in today
+        // becomes the only live instance — which is also what keeps a task
+        // deleted via the edit modal from resurrecting on the next refresh.
+        // Only called once today's copy is confirmed to exist.
+        const consumeSources = async () => {
+          const consumedIds = Object.keys(candidates).reduce((acc, norm) => acc.concat(candidates[norm].ids), []);
+          if (consumedIds.length === 0) return;
+          try {
+            await apiLayer.request('completeGoalIds', { ids: consumedIds });
+          } catch (e) {
+            // Non-fatal: today's copy already exists, so the worst case is a
+            // deferred retirement that the dedupe check absorbs.
+            console.error('Failed to retire rollover source rows:', e);
+          }
+        };
+
         if (toInsert.length === 0 && toStamp.length === 0) {
+          // Everything is already present in today (pre-marked copies) — the
+          // sources can still be retired safely.
+          await consumeSources();
           if (isBackfill) { try { localStorage.setItem(backfillKey, '1'); } catch (e) {} }
           return;
         }
@@ -2923,6 +3015,8 @@
             : Promise.resolve({ goals: [] }),
           ...toStamp.map(s => apiLayer.request('renameGoal', { id: s.id, goal: s.goal }))
         ]);
+
+        await consumeSources();
 
         // Merge into local dashboard state so the very next render includes them.
         if (this.dashboardData?.today?.users?.[user]) {
@@ -3165,10 +3259,22 @@
             newGoals.push(...lines);
           });
 
-          if(newGoals.length === 0) throw new Error("Please add at least one target.");
+          // An empty list is allowed — it clears the day.
 
           const currentData = this.getSafeTodayData(user);
           const prevGoals = currentData.goals || [];
+
+          // Detect tasks the user deliberately removed in the modal so their
+          // past-date source rows can be retired (otherwise the overdue
+          // rollover would resurrect them on the next refresh).
+          const newNorms = new Set(newGoals.map(g => this.stripDueMarker(g).trim().toLowerCase()));
+          const removedCleanTexts = [];
+          prevGoals.forEach(g => {
+            if (g.completed) return; // completed rows never roll over
+            const clean = this.stripDueMarker(g.goal).trim();
+            if (!clean) return;
+            if (!newNorms.has(clean.toLowerCase())) removedCleanTexts.push(clean);
+          });
 
           // Compare on marker-stripped text: the modal shows clean text while
           // stored goals may carry a "[DUE: ...]" prefix.
@@ -3197,11 +3303,23 @@
 
           const completedGoalTexts = completedCleanTexts;
 
-          const saveRes = await apiLayer.request('saveGoals', {
-            user,
-            date: this.getLocalDateString(0),
-            goals: JSON.stringify(newGoals)
-          });
+          const [saveRes] = await Promise.all([
+            apiLayer.request('saveGoals', {
+              user,
+              date: this.getLocalDateString(0),
+              goals: JSON.stringify(newGoals)
+            }),
+            // Retire deleted tasks in parallel with the save. Non-blocking:
+            // a failure only means the rollover might offer the task again.
+            removedCleanTexts.length > 0
+              ? apiLayer.request('abandonGoals', {
+                  user,
+                  from: this.getLocalDateString(-14),
+                  to: this.getLocalDateString(0),
+                  goals: JSON.stringify(removedCleanTexts)
+                }).catch(e => console.error('Failed to retire deleted task sources:', e))
+              : Promise.resolve()
+          ]);
           
           const newlySavedGoals = saveRes.goals || [];
           const completionPromises = [];
@@ -3279,7 +3397,28 @@
             goals.push(...lines);
           });
           
-          if(goals.length === 0) throw new Error("Please add at least one target.");
+          // An empty list is allowed — it clears the plan.
+
+          // Keep the DUE mark on goals that carried one (the modal shows
+          // stripped text, same behavior as Edit Today's Goals).
+          const prevGoals = this.getSafeTomorrowData(user).goals || [];
+          const dueByNorm = {};
+          prevGoals.forEach(g => {
+            if (g.completed) return;
+            const parsed = this.parseDueMarker(g.goal);
+            if (!parsed.dueDate || !parsed.clean) return;
+            const norm = parsed.clean.toLowerCase();
+            if (!dueByNorm[norm]) dueByNorm[norm] = [];
+            dueByNorm[norm].push(parsed.dueDate);
+          });
+          goals = goals.map(line => {
+            if (this.DUE_PREFIX_RE.test(line)) return line; // user-typed marker: keep
+            const norm = line.toLowerCase();
+            if (dueByNorm[norm] && dueByNorm[norm].length > 0) {
+              return this.withDueMarker(dueByNorm[norm].shift(), line);
+            }
+            return line;
+          });
 
           const res = await apiLayer.request('saveGoals', {
             user,
