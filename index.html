@@ -213,6 +213,16 @@
       letter-spacing: 0.2em;
     }
 
+    .login-form { width: min(100%, 380px); margin-bottom: auto; padding: 28px; border-radius: 16px; background: var(--bg-surface); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+    .login-form .btn { width: 100%; }
+    .login-error { color: #dc2626; font-size: .875rem; margin: 12px 0; }
+    .login-note { color: var(--text-muted); font-size: .9rem; line-height: 1.55; margin: 14px 0; }
+    .login-link { margin-top: 12px; }
+    .admin-list { display: grid; gap: 12px; }
+    .admin-row { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .admin-row p { color: var(--text-muted); font-size: .85rem; margin-top: 4px; overflow-wrap: anywhere; }
+    .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
     .login-cards-container {
       display: flex;
       flex-wrap: wrap;
@@ -1349,7 +1359,26 @@
       <p>Study Journal & Accountability</p>
     </div>
     
-    <div class="login-cards-container" id="login-cards"></div>
+    <form class="login-form" id="login-form" onsubmit="app.submitAuth(event)">
+      <div id="register-name-group" class="form-group hidden"><label class="form-label" for="register-name">Display name</label><input class="form-input" id="register-name" type="text" maxlength="60" autocomplete="name"></div>
+      <div class="form-group"><label class="form-label" for="login-email">Email</label><input class="form-input" id="login-email" type="email" autocomplete="username" required></div>
+      <div class="form-group"><label class="form-label" for="login-password">Password</label><input class="form-input" id="login-password" type="password" autocomplete="current-password" required></div>
+      <p id="login-note" class="login-note" role="status" hidden></p>
+      <p id="login-error" class="login-error" role="alert" hidden></p>
+      <button id="login-submit" class="btn btn-primary" type="submit">Sign in</button>
+      <button id="login-toggle" class="btn btn-text login-link" type="button" onclick="app.toggleAuthMode()">New here? Request to join</button>
+    </form>
+    <div class="login-form hidden" id="approval-screen">
+      <h3 id="approval-title">Membership request</h3>
+      <p id="approval-message" class="login-note" role="status"></p>
+      <form id="request-form" class="hidden" onsubmit="app.submitJoinRequest(event)">
+        <div class="form-group"><label class="form-label" for="request-name">Display name</label><input class="form-input" id="request-name" type="text" maxlength="60" required></div>
+        <button class="btn btn-primary" type="submit">Submit request</button>
+      </form>
+      <p id="request-error" class="login-error" role="alert" hidden></p>
+      <button class="btn btn-outline login-link" type="button" onclick="app.restoreSession()">Check status</button>
+      <button class="btn btn-text login-link" type="button" onclick="app.signOut()">Sign out</button>
+    </div>
   </div>
 
   <!-- MAIN APP SHELL -->
@@ -1386,12 +1415,18 @@
             Questions <span id="nav-qex-badge" class="nav-badge empty">0</span>
           </button>
           <button id="nav-history" class="nav-tab" onclick="app.switchView('history')">History</button>
+          <button id="nav-admin" class="nav-tab hidden" onclick="app.switchView('admin')">Admin</button>
         </nav>
       </div>
     </header>
 
     <main class="container">
 
+      <div id="view-admin" class="view hidden">
+        <div class="greeting-area"><span class="section-label">Owner controls</span><h2 class="serif">Admin Dashboard</h2></div>
+        <div class="section-block"><span class="section-label">Pending Requests</span><div id="admin-requests" class="admin-list" aria-live="polite"></div></div>
+        <div class="section-block"><span class="section-label">Members</span><div id="admin-members" class="admin-list" aria-live="polite"></div></div>
+      </div>
       <!-- VIEW: TODAY (DASHBOARD) -->
       <div id="view-today" class="view hidden">
         
@@ -1563,28 +1598,6 @@
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
         <button class="btn btn-text" onclick="app.closeModals()">Cancel</button>
         <button id="btn-save-plan" class="btn btn-primary" onclick="app.savePlan()">Save Plan</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add Member Modal (Admin Only) -->
-  <div id="modal-add-member" class="modal-overlay">
-    <div class="modal-content">
-      <h3 class="serif" style="margin-bottom: 32px; font-size: 1.75rem;">Add Study Member</h3>
-      
-      <div class="form-group">
-        <label class="form-label">Member Name</label>
-        <input type="text" id="add-member-name" class="form-input" placeholder="e.g. Priya" autocomplete="off">
-      </div>
-      
-      <div class="form-group" style="margin-bottom: 40px;">
-        <label class="form-label">Admin Password</label>
-        <input type="password" id="add-member-password" class="form-input" placeholder="Enter admin password">
-      </div>
-      
-      <div style="display: flex; justify-content: flex-end; gap: 12px;">
-        <button class="btn btn-text" onclick="app.closeModals()">Cancel</button>
-        <button id="btn-save-member" class="btn btn-primary" onclick="app.submitNewMember()">Add Member</button>
       </div>
     </div>
   </div>
@@ -1922,25 +1935,16 @@
           return { success: true };
         }
 
-        if (action === 'addMember') {
-          const { data, error } = await supabaseClient.from('members')
-            .insert({
-              group_id: dbState.group.id,
-              name: params.name,
-              active: true
-            })
-            .select()
-            .single();
-          if (error) throw new Error(error.message);
-          return { member: data };
-        }
-
         throw new Error("Unknown API action");
       }
     };
 
     const app = {
       currentUser: null,
+      authUserId: null,
+      isOwner: false,
+      waitingForApproval: false,
+      registering: false,
       CACHE_TTL: 3 * 60 * 1000,
       lastFetchTime: { dashboard: 0, questions: 0, history: 0 },
       dashboardData: null,
@@ -2049,28 +2053,19 @@
         this.attachComposerKeys();
         this.attachHeaderShadow();
         this.startDayClock();
-        try {
-          await dbState.ensureInit();
-        } catch(e) {
-          console.error("Init error", e);
-          document.getElementById('global-loading').classList.add('hidden');
-          document.getElementById('view-select-user').classList.remove('hidden');
-          this.showToast("Database connection issue: " + e.message, true);
-          return;
-        }
-        
-        this.buildUserSelector();
+        // Never trust the old local name selection as an identity.
+        localStorage.removeItem('askback_user');
+        supabaseClient.auth.onAuthStateChange((event) => {
+          if (event === 'SIGNED_OUT') this.lockScreen();
+        });
+        await this.restoreSession();
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden && (this.currentUser || this.waitingForApproval)) this.restoreSession();
+        });
+        // Membership is checked on the server for every data request; this also
+        // hides cached UI when an administrator removes access in another tab.
+        setInterval(() => { if (this.currentUser || this.waitingForApproval) this.restoreSession(); }, 60000);
 
-        const savedUser = localStorage.getItem('askback_user');
-        if (savedUser && dbState.members[savedUser]) {
-          this.currentUser = savedUser;
-          document.getElementById('view-select-user').classList.add('hidden');
-          this.showApp();
-        } else {
-          document.getElementById('global-loading').classList.add('hidden');
-          document.getElementById('view-select-user').classList.remove('hidden');
-        }
-        
         document.querySelectorAll('.modal-overlay').forEach(modal => {
           modal.addEventListener('click', (e) => {
             if(e.target === modal) this.closeModals();
@@ -2095,108 +2090,197 @@
 
       },
 
-      buildUserSelector() {
-        const container = document.getElementById('login-cards');
-        container.innerHTML = '';
-        
-        const menu = document.getElementById('user-menu');
-        menu.innerHTML = '';
-
-        Object.keys(dbState.members).forEach((name, index) => {
-            const isAlt = index % 2 !== 0; 
-            const card = document.createElement('div');
-            card.className = `user-profile-card ${isAlt ? 'alt-user' : ''}`;
-            card.onclick = () => this.selectUser(name);
-            card.innerHTML = `
-              <div class="user-avatar">${this.escapeHTML(name.charAt(0).toUpperCase())}</div>
-              <h3>${this.escapeHTML(name)}</h3>
-            `;
-            container.appendChild(card);
-            
-            const btn = document.createElement('button');
-            btn.onclick = () => this.switchUser(name);
-            btn.textContent = name;
-            menu.appendChild(btn);
-        });
-
-        // Add Member option inside User Switcher Toggle for Admin (Lakshya)
-        if (this.currentUser === 'Lakshya') {
-          const divider = document.createElement('div');
-          divider.className = 'menu-divider';
-          menu.appendChild(divider);
-
-          const addBtn = document.createElement('button');
-          addBtn.className = 'btn-menu-action';
-          addBtn.onclick = () => {
-            this.toggleUserMenu();
-            this.openAddMemberModal();
-          };
-          addBtn.innerHTML = `+ Add Member`;
-          menu.appendChild(addBtn);
-        }
+      _authSeq: 0,
+      lockScreen(message = '') {
+        ++this._authSeq;
+        ++this._viewSeq;
+        this.currentUser = null;
+        this.authUserId = null;
+        this.isOwner = false;
+        this.waitingForApproval = false;
+        document.getElementById('nav-admin').classList.add('hidden');
+        document.getElementById('approval-screen').classList.add('hidden');
+        document.getElementById('login-form').classList.remove('hidden');
+        this.dashboardData = null;
+        this.cachedHistory = [];
+        this.cachedPending = [];
+        this.pendingCounts = {};
+        this.lastFetchTime = { dashboard: 0, questions: 0, history: 0 };
+        dbState.group = null;
+        dbState.members = {}; dbState.membersById = {};
+        dbState.subjects = {}; dbState.subjectsById = {};
+        this.closeModals();
+        document.getElementById('app-shell').classList.add('hidden');
+        document.getElementById('global-loading').classList.add('hidden');
+        document.getElementById('view-select-user').classList.remove('hidden');
+        const error = document.getElementById('login-error');
+        error.textContent = message;
+        error.hidden = !message;
       },
 
-      openAddMemberModal() {
-        document.getElementById('add-member-name').value = '';
-        document.getElementById('add-member-password').value = '';
-        this.openModal('modal-add-member');
-        setTimeout(() => document.getElementById('add-member-name').focus(), 100);
-      },
-
-      async submitNewMember() {
-        const nameInput = document.getElementById('add-member-name');
-        const passInput = document.getElementById('add-member-password');
-        const btn = document.getElementById('btn-save-member');
-
-        const name = nameInput.value.trim();
-        const password = passInput.value.trim();
-
-        if (!name) {
-          this.showToast('Please enter a valid member name.', true);
-          return;
-        }
-
-        if (password !== 'Lordraj@08') {
-          this.showToast('Incorrect admin password.', true);
-          return;
-        }
-
-        // Case-insensitive duplicate check
-        const isDuplicate = Object.keys(dbState.members).some(
-          existingName => existingName.toLowerCase() === name.toLowerCase()
-        );
-
-        if (isDuplicate) {
-          this.showToast(`Member "${name}" already exists.`, true);
-          return;
-        }
-
-        btn.disabled = true;
-        btn.textContent = 'Adding...';
-
+      async restoreSession() {
+        const seq = ++this._authSeq;
         try {
-          await apiLayer.request('addMember', { name });
-          await dbState.refreshMembers();
+          const { data: { session }, error } = await supabaseClient.auth.getSession();
+          if (error) throw error;
+          if (seq !== this._authSeq) return;
+          if (!session) { this.lockScreen(); return; }
+          // Validate the token with Auth, then look up the server-authorized member.
+          const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+          if (userError) throw userError;
+          if (seq !== this._authSeq) return;
+          // A different account may have signed in in another tab. Discard all
+          // cached data before displaying anything for the new identity.
+          if (this.currentUser && this.authUserId && userData?.user?.id !== this.authUserId) {
+            this.lockScreen();
+            return this.restoreSession();
+          }
+          const { data, error: memberError } = await supabaseClient.rpc('askback_current_member');
+          if (memberError) throw memberError;
+          if (seq !== this._authSeq) return;
+          if (!data || data.length !== 1) {
+            const { data: status, error: statusError } = await supabaseClient.rpc('askback_request_status');
+            if (statusError) throw statusError;
+            if (seq !== this._authSeq) return;
+            let nextStatus = status;
+            const savedName = userData?.user?.user_metadata?.display_name;
+            if (status === 'none' && typeof savedName === 'string' && savedName.trim()) {
+              const result = await supabaseClient.rpc('askback_submit_join_request', { display_name: savedName });
+              if (seq !== this._authSeq) return;
+              if (result.error) {
+                this.showApprovalScreen('none', savedName);
+                const requestError = document.getElementById('request-error');
+                requestError.textContent = result.error.message || 'Please correct your display name and submit your request.';
+                requestError.hidden = false;
+                return;
+              }
+              nextStatus = result.data;
+            }
+            this.showApprovalScreen(nextStatus, savedName);
+            return;
+          }
+          // Names are used as dashboard cache keys. Discard cached data if the
+          // server-side profile name changes while this account is signed in.
+          if (this.currentUser && this.currentUser !== data[0].name) {
+            this.lockScreen();
+            return this.restoreSession();
+          }
+          const { data: isOwner, error: ownerError } = await supabaseClient.rpc('askback_is_owner');
+          if (ownerError) throw ownerError;
+          if (seq !== this._authSeq) return;
+          this.isOwner = isOwner === true;
+          document.getElementById('nav-admin').classList.toggle('hidden', !this.isOwner);
+          if (this.currentUser === data[0].name && dbState.group) return;
+          dbState.group = null;
+          await dbState.ensureInit();
+          if (seq !== this._authSeq) return;
+          if (!dbState.members[data[0].name]) throw new Error('Your member profile is not available.');
+          this.currentUser = data[0].name;
+          this.authUserId = userData?.user?.id || null;
+          document.getElementById('global-loading').classList.add('hidden');
+          document.getElementById('view-select-user').classList.add('hidden');
+          this.showApp();
+        } catch (e) {
+          if (seq !== this._authSeq) return;
+          console.error('Session verification failed:', e);
+          this.lockScreen('Unable to verify access. Please check your connection or contact the owner.');
+        }
+      },
 
-          this.buildUserSelector();
-          this.populateSubjectsUI();
-          this.renderRecipientChips();
-          this.closeModals();
-          this.showToast(`Member "${name}" added successfully!`);
+      showApprovalScreen(status, name = '') {
+        this.lockScreen();
+        this.waitingForApproval = true;
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('approval-screen').classList.remove('hidden');
+        document.getElementById('request-error').hidden = true;
+        document.getElementById('request-form').classList.toggle('hidden', status !== 'none');
+        document.getElementById('request-name').value = typeof name === 'string' ? name : '';
+        document.getElementById('approval-title').textContent = status === 'pending' ? 'Request pending' : 'Membership request';
+        document.getElementById('approval-message').textContent = status === 'pending'
+          ? 'Your request is awaiting owner approval. You cannot access study data until approved.'
+          : status === 'rejected' || status === 'removed'
+          ? 'This account does not have access. Contact the owner if you believe this is a mistake.'
+          : status === 'none' ? 'Choose a display name and submit your request to the owner.' : 'This account does not currently have access. Contact the owner.';
+      },
 
-          // Refresh current dashboard view to display the new partner
-          this.lastFetchTime.dashboard = 0;
-          await this.fetchDashboardData();
-          if (document.querySelector('.nav-tab.active')?.id === 'nav-today') {
-            this.renderToday();
+      toggleAuthMode() {
+        this.registering = !this.registering;
+        document.getElementById('register-name-group').classList.toggle('hidden', !this.registering);
+        document.getElementById('register-name').required = this.registering;
+        document.getElementById('login-password').autocomplete = this.registering ? 'new-password' : 'current-password';
+        document.getElementById('login-submit').textContent = this.registering ? 'Create account' : 'Sign in';
+        document.getElementById('login-toggle').textContent = this.registering ? 'Already have an account? Sign in' : 'New here? Request to join';
+        document.getElementById('login-error').hidden = true;
+        document.getElementById('login-note').hidden = true;
+      },
+
+      async submitAuth(event) {
+        event.preventDefault();
+        const btn = document.getElementById('login-submit');
+        const password = document.getElementById('login-password');
+        const email = document.getElementById('login-email').value.trim();
+        btn.disabled = true;
+        document.getElementById('login-error').hidden = true;
+        document.getElementById('login-note').hidden = true;
+        try {
+          if (this.registering) {
+            const displayName = document.getElementById('register-name').value.trim();
+            if (!displayName) throw new Error('Enter a display name.');
+            const { data, error } = await supabaseClient.auth.signUp({ email, password: password.value, options: { data: { display_name: displayName }, emailRedirectTo: new URL('.', window.location.href).href } });
+            if (error) throw error;
+            password.value = '';
+            if (data.session) await this.restoreSession();
+            else {
+              this.toggleAuthMode();
+              const note = document.getElementById('login-note');
+              note.textContent = 'If registration succeeded, check your email to confirm your account. After confirmation, sign in to submit your request.';
+              note.hidden = false;
+            }
+          } else {
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password: password.value });
+            if (error) throw error;
+            password.value = '';
+            await this.restoreSession();
           }
         } catch (e) {
-          console.error("Add Member Error:", e);
-          this.showToast(e.message || 'Failed to add member.', true);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Add Member';
-        }
+          password.value = '';
+          const error = document.getElementById('login-error');
+          error.textContent = this.registering ? (e.message || 'Registration failed. Please try again.') : 'Sign-in failed. Check your credentials and try again.';
+          error.hidden = false;
+        } finally { btn.disabled = false; }
+      },
+
+      async submitJoinRequest(event) {
+        event.preventDefault();
+        const form = document.getElementById('request-form');
+        const button = form.querySelector('button[type="submit"]');
+        button.disabled = true;
+        try {
+          const { error } = await supabaseClient.rpc('askback_submit_join_request', { display_name: document.getElementById('request-name').value.trim() });
+          if (error) throw error;
+          await this.restoreSession();
+        } catch (e) {
+          const error = document.getElementById('request-error');
+          error.textContent = e.message || 'Unable to submit your request.';
+          error.hidden = false;
+        } finally { button.disabled = false; }
+      },
+
+      async signOut() {
+        ++this._authSeq;
+        // Global logout revokes the refresh sessions for this account.
+        const { error } = await supabaseClient.auth.signOut({ scope: 'global' });
+        if (error) { this.showToast('Could not sign out. Please try again.', true); return; }
+        this.lockScreen();
+      },
+
+      buildUserSelector() {
+        const menu = document.getElementById('user-menu');
+        menu.innerHTML = '';
+        const btn = document.createElement('button');
+        btn.textContent = 'Sign out';
+        btn.onclick = () => this.signOut();
+        menu.appendChild(btn);
       },
 
       getSafeTodayData(user) {
@@ -2737,26 +2821,7 @@
         container.innerHTML = group('Active task', active) + group('No active task', idle);
       },
 
-      selectUser(username) {
-        this.currentUser = username;
-        localStorage.setItem('askback_user', username);
-
-        this.dashboardData = null;
-        this.lastFetchTime = { dashboard: 0, questions: 0, history: 0 };
-        this.cachedPending = [];
-        this.cachedHistory = [];
-        this.resetComposerDraft();
-
-        document.getElementById('view-select-user').classList.add('hidden');
-        this.showApp();
-      },
-
       toggleUserMenu() { document.getElementById('user-menu').classList.toggle('open'); },
-      
-      switchUser(username) {
-        document.getElementById('user-menu').classList.remove('open');
-        this.selectUser(username);
-      },
 
       async showApp() {
         document.getElementById('app-shell').classList.remove('hidden');
@@ -2765,6 +2830,61 @@
         this.buildUserSelector();
         this.populateSubjectsUI();
         this.switchView('today');
+      },
+
+      async loadAdminData() {
+        const [requests, members] = await Promise.all([
+          supabaseClient.rpc('askback_pending_requests'), supabaseClient.rpc('askback_managed_members')
+        ]);
+        if (requests.error) throw requests.error;
+        if (members.error) throw members.error;
+        const render = (id, rows, pending) => {
+          const container = document.getElementById(id);
+          container.replaceChildren();
+          if (!rows.length) { const p = document.createElement('p'); p.className = 'login-note'; p.textContent = pending ? 'No pending requests.' : 'No other members.'; container.appendChild(p); return; }
+          rows.forEach(row => {
+            const item = document.createElement('div'); item.className = 'admin-row';
+            const info = document.createElement('div');
+            const name = document.createElement('strong'); name.textContent = row.display_name;
+            const email = document.createElement('p'); email.textContent = row.email || '';
+            info.append(name, email); item.appendChild(info);
+            const actions = document.createElement('div'); actions.className = 'admin-actions';
+            const action = (label, handler, kind) => { const btn = document.createElement('button'); btn.className = `btn ${kind}`; btn.type = 'button'; btn.textContent = label; btn.onclick = () => handler(row, btn); actions.appendChild(btn); };
+            if (pending) { action('Approve', (r, b) => this.decideRequest(r, true, b), 'btn-primary'); action('Reject', (r, b) => this.decideRequest(r, false, b), 'btn-outline'); }
+            else action('Remove access', (r, b) => this.removeMember(r, b), 'btn-outline');
+            item.appendChild(actions); container.appendChild(item);
+          });
+        };
+        render('admin-requests', requests.data || [], true);
+        render('admin-members', members.data || [], false);
+      },
+
+      async decideRequest(row, approve, button) {
+        if (!window.confirm(`${approve ? 'Approve' : 'Reject'} the request from ${row.display_name}?`)) return;
+        button.disabled = true;
+        try {
+          const { error } = await supabaseClient.rpc('askback_decide_request', { applicant: row.user_id, approve });
+          if (error) throw error;
+          await dbState.refreshMembers();
+          this.lastFetchTime.dashboard = 0;
+          await this.loadAdminData();
+          this.showToast(approve ? 'Member approved.' : 'Request rejected.');
+        } catch (e) { this.showToast(e.message || 'Could not process request.', true); }
+        finally { button.disabled = false; }
+      },
+
+      async removeMember(row, button) {
+        if (!window.confirm(`Remove access for ${row.display_name}? Their existing sessions will be revoked.`)) return;
+        button.disabled = true;
+        try {
+          const { error } = await supabaseClient.rpc('askback_remove_member', { target: row.user_id });
+          if (error) throw error;
+          await dbState.refreshMembers();
+          this.lastFetchTime.dashboard = 0;
+          await this.loadAdminData();
+          this.showToast('Member access removed.');
+        } catch (e) { this.showToast(e.message || 'Could not remove member.', true); }
+        finally { button.disabled = false; }
       },
 
       populateSubjectsUI() {
@@ -2824,6 +2944,10 @@
               await this.loadQuestions();
               if (!isCurrent()) return;
             }
+          } else if (viewId === 'admin') {
+            if (!this.isOwner) throw new Error('Owner access required.');
+            await this.loadAdminData();
+            if (!isCurrent()) return;
           } else if (viewId === 'history') {
             if (this.cachedHistory && (Date.now() - this.lastFetchTime.history <= this.CACHE_TTL)) {
               this.renderHistory();
